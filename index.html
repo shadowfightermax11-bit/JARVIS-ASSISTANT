@@ -694,6 +694,52 @@ button:hover{
 
 
 /* =========================================================
+   RESPONDING GREEN CORE BORDER
+========================================================= */
+
+.core-video-wrap.responding::after{
+
+    width:224px;
+    height:224px;
+
+    border:
+        2px solid #00ff66;
+
+    background:
+        transparent;
+
+    opacity:1;
+
+    box-shadow:
+        0 0 5px #00ff66,
+        0 0 12px #00ff66,
+        0 0 25px #00ff66,
+        0 0 45px rgba(0,255,102,.9),
+        0 0 75px rgba(0,255,102,.45);
+
+    animation:
+        respondingPulse 1s ease-in-out infinite;
+}
+
+@keyframes respondingPulse{
+
+    0%,100%{
+        transform:
+            scale(.97);
+
+        opacity:.75;
+    }
+
+    50%{
+        transform:
+            scale(1.05);
+
+        opacity:1;
+    }
+}
+
+
+/* =========================================================
    VIDEO
 ========================================================= */
 
@@ -1353,6 +1399,11 @@ button:hover{
         height:176px;
     }
 
+    .core-video-wrap.responding::after{
+        width:176px;
+        height:176px;
+    }
+
     .core-label{
         top:50%;
     }
@@ -1437,7 +1488,7 @@ button:hover{
         </h1>
 
         <div class="subtitle">
-            EDITH CORE ACCESS
+            JARVIS CORE ACCESS
         </div>
 
         <label>
@@ -1518,7 +1569,7 @@ button:hover{
     <!-- FLOATING TITLE -->
 
     <div class="jarvis-title">
-        J.A.R.V.I.S.
+        A.I ASSISTANT
     </div>
 
     <div class="title-line"></div>
@@ -1529,7 +1580,7 @@ button:hover{
     <div class="panel panel-left">
 
         <div class="panel-title">
-            EDITH CORE
+            JARVIS CORE
         </div>
 
         <div class="panel-row">
@@ -1668,7 +1719,7 @@ button:hover{
 
 
     <!-- =====================================================
-         EDITH CORE TEXT
+         JARVIS CORE TEXT
     ====================================================== -->
 
     <div class="core-label">
@@ -1677,7 +1728,7 @@ button:hover{
             id="coreMain"
             class="core-main"
         >
-            EDITH CORE // ONLINE
+            JARVIS CORE // ONLINE
         </div>
 
         <div class="core-sub">
@@ -1702,7 +1753,7 @@ button:hover{
     <div class="bottom">
 
         <span>
-            EDITH CORE // CONNECTED
+            JARVIS CORE // CONNECTED
         </span>
 
         <span class="bottom-center">
@@ -1723,62 +1774,68 @@ button:hover{
 
 <script>
 
-/* =========================================================
-   J.A.R.V.I.S. WEB DISPLAY
-   PYTHON EDITH IS THE ONLY MICROPHONE / AI CONTROLLER
-========================================================= */
-
 
 /* =========================================================
    LOGIN
 ========================================================= */
 
-const PASSWORD = "jarvisxedith@07";
+const PASSWORD =
+    "jarvisxedith@07";
 
 
 function initialize(){
 
     const password =
-        document.getElementById("password").value;
+        document.getElementById(
+            "password"
+        ).value;
 
 
     if(password !== PASSWORD){
 
-        document.getElementById("error").style.display = "block";
+        document.getElementById(
+            "error"
+        ).style.display = "block";
 
         return;
     }
 
 
-    document.getElementById("error").style.display = "none";
+    document.getElementById(
+        "error"
+    ).style.display = "none";
 
 
     createStars();
 
 
-    document.getElementById("loginPage").style.display = "none";
+    document.getElementById(
+        "loginPage"
+    ).style.display = "none";
 
-    document.getElementById("dashboard").style.display = "block";
+
+    document.getElementById(
+        "dashboard"
+    ).style.display = "block";
 
 
     shootLines();
 
 
-    /*
-       IMPORTANT:
+    startMicrophone();
 
-       Browser microphone is DISABLED.
 
-       Python EDITH handles:
-       - microphone
-       - wake word
-       - speech recognition
-       - Gemini
-       - voice response
-    */
+    /* =====================================================
+       PYTHON JARVIS BRIDGE
+    ===================================================== */
 
-    startEdithBridge();
+    startPythonBridge();
 
+
+    setTimeout(
+        startWakeRecognition,
+        1000
+    );
 }
 
 
@@ -1789,35 +1846,40 @@ function initialize(){
 function createStars(){
 
     const container =
-        document.getElementById("stars");
-
+        document.getElementById(
+            "stars"
+        );
 
     container.innerHTML = "";
 
 
-    for(let i = 0; i < 180; i++){
+    for(let i=0;i<180;i++){
 
         const star =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
-
-        star.className = "star";
+        star.className =
+            "star";
 
 
         star.style.left =
-            Math.random() * 100 + "%";
+            Math.random()*100 + "%";
 
 
         star.style.top =
-            Math.random() * 100 + "%";
+            Math.random()*100 + "%";
 
 
         star.style.opacity =
-            0.15 + Math.random() * 0.7;
+            0.15 +
+            Math.random()*0.7;
 
 
         const size =
-            0.5 + Math.random() * 2;
+            0.5 +
+            Math.random()*2;
 
 
         star.style.width =
@@ -1828,10 +1890,10 @@ function createStars(){
             size + "px";
 
 
-        container.appendChild(star);
-
+        container.appendChild(
+            star
+        );
     }
-
 }
 
 
@@ -1842,8 +1904,9 @@ function createStars(){
 function shootLines(){
 
     const container =
-        document.getElementById("initLines");
-
+        document.getElementById(
+            "initLines"
+        );
 
     container.innerHTML = "";
 
@@ -1854,31 +1917,39 @@ function shootLines(){
     ];
 
 
-    angles.forEach((angle,i)=>{
+    angles.forEach(
+        (angle,i)=>{
 
-        const wire =
-            document.createElement("div");
+            const wire =
+                document.createElement(
+                    "div"
+                );
 
-
-        wire.className = "wire";
-
-
-        wire.style.left = "50%";
-
-        wire.style.top = "50%";
+            wire.className =
+                "wire";
 
 
-        wire.style.transform =
-            `rotate(${angle}deg)`;
+            wire.style.left =
+                "50%";
+
+            wire.style.top =
+                "50%";
 
 
-        wire.style.animation =
-            `wireShoot 1.1s ease-out ${i * .04}s forwards`;
+            wire.style.transform =
+                `rotate(${angle}deg)`;
 
 
-        container.appendChild(wire);
+            wire.style.animation =
+                `wireShoot 1.1s ease-out ${i*.04}s forwards`;
 
-    });
+
+            container.appendChild(
+                wire
+            );
+
+        }
+    );
 
 
     setTimeout(()=>{
@@ -1886,39 +1957,172 @@ function shootLines(){
         container.innerHTML = "";
 
     },1600);
-
 }
 
 
 /* =========================================================
-   EDITH PYTHON BRIDGE
+   MICROPHONE
 ========================================================= */
 
-const EDITH_BRIDGE =
-    "http://127.0.0.1:8765/state";
+let analyser = null;
+
+let audioData = null;
 
 
-let lastEdithState = "";
+async function startMicrophone(){
 
-let bridgeOnline = false;
+    try{
+
+        const stream =
+            await navigator.mediaDevices
+                .getUserMedia({
+                    audio:true
+                });
+
+
+        const audioContext =
+            new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+
+        const source =
+            audioContext
+                .createMediaStreamSource(
+                    stream
+                );
+
+
+        analyser =
+            audioContext
+                .createAnalyser();
+
+
+        analyser.fftSize =
+            512;
+
+
+        analyser.smoothingTimeConstant =
+            .72;
+
+
+        source.connect(
+            analyser
+        );
+
+
+        audioData =
+            new Uint8Array(
+                analyser.frequencyBinCount
+            );
+
+    }
+    catch(error){
+
+        console.log(
+            "Microphone unavailable:",
+            error
+        );
+    }
+}
 
 
 /* =========================================================
-   CHECK PYTHON
+   STATUS
 ========================================================= */
 
-async function syncWithPython(){
+function setStatus(text){
+
+    document.getElementById(
+        "status"
+    ).textContent = text;
+}
+
+
+/* =========================================================
+   JARVIS CORE BORDER STATES
+========================================================= */
+
+function setListening(){
+
+    const core =
+        document.querySelector(
+            ".core-video-wrap"
+        );
+
+    if(!core)
+        return;
+
+
+    core.classList.remove(
+        "responding"
+    );
+
+    core.classList.add(
+        "listening"
+    );
+}
+
+
+function setResponding(){
+
+    const core =
+        document.querySelector(
+            ".core-video-wrap"
+        );
+
+    if(!core)
+        return;
+
+
+    core.classList.remove(
+        "listening"
+    );
+
+    core.classList.add(
+        "responding"
+    );
+}
+
+
+function setReady(){
+
+    const core =
+        document.querySelector(
+            ".core-video-wrap"
+        );
+
+    if(!core)
+        return;
+
+
+    core.classList.remove(
+        "listening",
+        "responding"
+    );
+}
+
+
+/* =========================================================
+   PYTHON JARVIS BRIDGE
+========================================================= */
+
+let lastPythonState = "";
+
+let lastPythonMessage = "";
+
+
+async function updatePythonState(){
 
     try{
 
         const response =
             await fetch(
-                EDITH_BRIDGE +
-                "?t=" +
+                "http://127.0.0.1:8765/state?t=" +
                 Date.now(),
                 {
-                    method: "GET",
-                    cache: "no-store"
+                    cache:"no-store"
                 }
             );
 
@@ -1926,9 +2130,8 @@ async function syncWithPython(){
         if(!response.ok){
 
             throw new Error(
-                "HTTP " + response.status
+                "Bridge unavailable"
             );
-
         }
 
 
@@ -1936,363 +2139,474 @@ async function syncWithPython(){
             await response.json();
 
 
-        bridgeOnline = true;
+        if(
+            data.state === lastPythonState &&
+            data.message === lastPythonMessage
+        ){
+
+            return;
+        }
+
+
+        lastPythonState =
+            data.state;
+
+
+        lastPythonMessage =
+            data.message;
 
 
         console.log(
-            "🐍 PYTHON EDITH:",
+            "PYTHON STATE:",
             data.state,
-            "|",
             data.message
         );
 
 
-        /*
-           Only update when state changes.
-        */
+        /* =====================================================
+           ONLY CORE BORDER STATE
+        ===================================================== */
+
+        const state =
+            String(
+                data.state || ""
+            ).toLowerCase();
+
 
         if(
-            data.state !==
-            lastEdithState
+            state.includes("respond") ||
+            state.includes("speak") ||
+            state.includes("tts") ||
+            state.includes("talk")
         ){
 
-            lastEdithState =
-                data.state;
+            setResponding();
 
+        }
+        else if(
+            state.includes("listen") ||
+            state.includes("input")
+        ){
 
-            updateEdithVisual(
-                data.state,
-                data.message
-            );
+            setListening();
+
+        }
+        else if(
+            state.includes("idle") ||
+            state.includes("ready") ||
+            state.includes("standby") ||
+            state.includes("waiting")
+        ){
+
+            setReady();
 
         }
 
     }
     catch(error){
 
-        if(bridgeOnline){
-
-            console.log(
-                "🔌 Python EDITH disconnected."
-            );
-
-        }
-
-
-        bridgeOnline = false;
-
-
-        /*
-           Show Python offline only
-           after the dashboard is visible.
-        */
-
-        const dashboard =
-            document.getElementById(
-                "dashboard"
-            );
-
-
-        if(
-            dashboard &&
-            dashboard.style.display === "block"
-        ){
-
-            const core =
-                document.getElementById(
-                    "coreMain"
-                );
-
-
-            const status =
-                document.getElementById(
-                    "status"
-                );
-
-
-            if(core)
-                core.textContent =
-                    "PYTHON EDITH // OFFLINE";
-
-
-            if(status)
-                status.textContent =
-                    "START EDITH_GEMINI_VOICE.PY";
-
-        }
-
+        console.log(
+            "PYTHON BRIDGE ERROR:",
+            error.message
+        );
     }
+}
+
+
+function startPythonBridge(){
+
+    console.log(
+        "PYTHON JARVIS BRIDGE STARTING..."
+    );
+
+
+    updatePythonState();
+
+
+    setInterval(
+        updatePythonState,
+        500
+    );
 
 }
 
 
 /* =========================================================
-   UPDATE VISUALS FROM PYTHON
+   JARVIS VISUAL STATES
 ========================================================= */
 
-function updateEdithVisual(
-    state,
-    message
-){
+let sequenceRunning = false;
 
-    const coreWrap =
-        document.querySelector(
-            ".core-video-wrap"
+
+function activateJarvis(){
+
+    console.log(
+        "JARVIS WAKE DETECTED"
+    );
+
+
+    setListening();
+
+
+    updatePythonState();
+}
+
+
+/* =========================================================
+   WAKE WORD RECOGNITION
+========================================================= */
+
+let recognition = null;
+
+let recognitionStarted = false;
+
+let recognitionRestartTimer = null;
+
+let lastWakeTime = 0;
+
+
+function cleanTranscript(text){
+
+    return text
+        .toLowerCase()
+        .replace(
+            /[.,!?;:]/g,
+            " "
+        )
+        .replace(
+            /\s+/g,
+            " "
+        )
+        .trim();
+}
+
+
+function containsWakeWord(text){
+
+    const cleaned =
+        cleanTranscript(
+            text
         );
 
 
-    const core =
-        document.getElementById(
-            "coreMain"
-        );
+    return (
+        cleaned.includes(
+            "hey jarvis"
+        ) ||
+
+        cleaned.includes(
+            "hey jervis"
+        ) ||
+
+        cleaned.includes(
+            "a jarvis"
+        ) ||
+
+        cleaned.includes(
+            "ay jarvis"
+        )
+    );
+}
 
 
-    const status =
-        document.getElementById(
-            "status"
-        );
+function handleTranscript(text){
+
+    console.log(
+        "Heard:",
+        text
+    );
 
 
-    const video =
-        document.getElementById(
-            "ballVideo"
-        );
+    setListening();
 
 
-    const title =
-        document.querySelector(
-            ".jarvis-title"
-        );
+    if(!containsWakeWord(text))
+        return;
+
+
+    const now =
+        Date.now();
 
 
     if(
-        !coreWrap ||
-        !core ||
-        !status ||
-        !video
+        now-lastWakeTime < 6000
     )
         return;
 
 
-    /*
-       Remove previous states.
-    */
+    lastWakeTime =
+        now;
 
-    coreWrap.classList.remove(
-        "listening",
-        "thinking",
-        "responding"
+
+    console.log(
+        "JARVIS WAKE WORD DETECTED"
     );
 
 
-    /* =====================================================
-       READY
-    ===================================================== */
-
-    if(state === "ready"){
-
-        core.textContent =
-            "EDITH CORE // ONLINE";
-
-
-        status.textContent =
-            'READY // SAY "HEY JARVIS"';
-
-
-        video.style.filter =
-            "drop-shadow(0 0 8px #00cfff) " +
-            "drop-shadow(0 0 22px rgba(120,0,255,.8))";
-
-
-        if(title){
-
-            title.style.textShadow =
-                "0 0 4px #fff, " +
-                "0 0 10px #fff, " +
-                "0 0 20px #b000ff, " +
-                "0 0 40px #6500ff, " +
-                "0 0 70px #2600ff";
-
-        }
-
-
-        return;
-
-    }
-
-
-    /* =====================================================
-       LISTENING
-    ===================================================== */
-
-    if(state === "listening"){
-
-        coreWrap.classList.add(
-            "listening"
-        );
-
-
-        core.textContent =
-            "VOICE INPUT // ACTIVE";
-
-
-        status.textContent =
-            "LISTENING...";
-
-
-        video.style.filter =
-            "drop-shadow(0 0 12px #ff1744) " +
-            "drop-shadow(0 0 30px rgba(255,23,68,.9))";
-
-
-        if(title){
-
-            title.style.textShadow =
-                "0 0 5px #fff, " +
-                "0 0 15px #ff1744, " +
-                "0 0 35px #9d00ff";
-
-        }
-
-
-        return;
-
-    }
-
-
-    /* =====================================================
-       THINKING
-    ===================================================== */
-
-    if(state === "thinking"){
-
-        coreWrap.classList.add(
-            "thinking"
-        );
-
-
-        core.textContent =
-            "NEURAL PROCESSING // ACTIVE";
-
-
-        status.textContent =
-            "THINKING...";
-
-
-        video.style.filter =
-            "drop-shadow(0 0 12px #9d00ff) " +
-            "drop-shadow(0 0 35px rgba(0,150,255,.9))";
-
-
-        if(title){
-
-            title.style.textShadow =
-                "0 0 5px #fff, " +
-                "0 0 15px #9d00ff, " +
-                "0 0 35px #006eff, " +
-                "0 0 60px #9d00ff";
-
-        }
-
-
-        return;
-
-    }
-
-
-    /* =====================================================
-       RESPONDING
-    ===================================================== */
-
-    if(state === "responding"){
-
-        coreWrap.classList.add(
-            "responding"
-        );
-
-
-        core.textContent =
-            "EDITH RESPONSE // ACTIVE";
-
-
-        status.textContent =
-            "RESPONDING...";
-
-
-        video.style.filter =
-            "drop-shadow(0 0 12px #00d9ff) " +
-            "drop-shadow(0 0 35px rgba(0,217,255,.9))";
-
-
-        if(title){
-
-            title.style.textShadow =
-                "0 0 5px #fff, " +
-                "0 0 15px #00d9ff, " +
-                "0 0 35px #006eff, " +
-                "0 0 60px #9d00ff";
-
-        }
-
-
-        return;
-
-    }
-
-
-    /* =====================================================
-       OFFLINE
-    ===================================================== */
-
-    if(state === "offline"){
-
-        core.textContent =
-            "EDITH CORE // OFFLINE";
-
-
-        status.textContent =
-            "PYTHON EDITH // OFFLINE";
-
-
-        video.style.filter =
-            "drop-shadow(0 0 5px #444)";
-
-
-        return;
-
-    }
-
+    activateJarvis();
 }
 
 
 /* =========================================================
-   START BRIDGE
+   CREATE RECOGNITION
 ========================================================= */
 
-function startEdithBridge(){
+function createRecognition(){
 
-    console.log(
-        "🌐 Connecting to Python EDITH..."
-    );
-
-
-    /*
-       Check immediately.
-    */
-
-    syncWithPython();
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
 
 
-    /*
-       Keep checking Python every 300ms.
-    */
+    if(!SpeechRecognition){
 
-    setInterval(
-        syncWithPython,
-        300
-    );
+        console.log(
+            "Speech Recognition not supported."
+        );
 
+
+        setStatus(
+            "USE CHROME"
+        );
+
+
+        return null;
+    }
+
+
+    const r =
+        new SpeechRecognition();
+
+
+    r.continuous =
+        true;
+
+
+    r.interimResults =
+        true;
+
+
+    r.lang =
+        "en-US";
+
+
+    r.maxAlternatives =
+        3;
+
+
+    r.onstart =
+        function(){
+
+            recognitionStarted =
+                true;
+
+
+            console.log(
+                "JARVIS voice recognition ACTIVE"
+            );
+        };
+
+
+    r.onresult =
+        function(event){
+
+            for(
+                let i=event.resultIndex;
+                i<event.results.length;
+                i++
+            ){
+
+                const result =
+                    event.results[i];
+
+
+                let text = "";
+
+
+                for(
+                    let j=0;
+                    j<result.length;
+                    j++
+                ){
+
+                    text +=
+                        " " +
+                        result[j].transcript;
+                }
+
+
+                text =
+                    text.trim();
+
+
+                if(text){
+
+                    handleTranscript(
+                        text
+                    );
+                }
+            }
+        };
+
+
+    r.onerror =
+        function(event){
+
+            console.log(
+                "Speech recognition error:",
+                event.error
+            );
+
+
+            recognitionStarted =
+                false;
+
+
+            if(
+                event.error ===
+                    "not-allowed" ||
+
+                event.error ===
+                    "service-not-allowed"
+            ){
+
+                setStatus(
+                    "MIC PERMISSION"
+                );
+
+
+                return;
+            }
+
+
+            scheduleRecognitionRestart();
+        };
+
+
+    r.onend =
+        function(){
+
+            console.log(
+                "Recognition stopped."
+            );
+
+
+            recognitionStarted =
+                false;
+
+
+            scheduleRecognitionRestart();
+        };
+
+
+    return r;
 }
+
+
+/* =========================================================
+   RESTART RECOGNITION
+========================================================= */
+
+function scheduleRecognitionRestart(){
+
+    if(recognitionRestartTimer)
+        return;
+
+
+    recognitionRestartTimer =
+        setTimeout(()=>{
+
+            recognitionRestartTimer =
+                null;
+
+
+            startWakeRecognition();
+
+        },700);
+}
+
+
+/* =========================================================
+   START WAKE RECOGNITION
+========================================================= */
+
+function startWakeRecognition(){
+
+    if(!recognition){
+
+        recognition =
+            createRecognition();
+    }
+
+
+    if(!recognition)
+        return;
+
+
+    if(recognitionStarted)
+        return;
+
+
+    try{
+
+        recognition.start();
+
+
+        console.log(
+            "Starting JARVIS recognition..."
+        );
+
+    }
+    catch(error){
+
+        console.log(
+            "Recognition start:",
+            error
+        );
+
+
+        scheduleRecognitionRestart();
+    }
+}
+
+
+/* =========================================================
+   KEEP RECOGNITION ALIVE
+========================================================= */
+
+setInterval(()=>{
+
+    if(
+        document.getElementById(
+            "dashboard"
+        ).style.display === "block"
+    ){
+
+        if(!recognitionStarted){
+
+            startWakeRecognition();
+        }
+    }
+
+},3000);
+
+
+/* =========================================================
+   KEYBOARD TEST
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    function(event){
+
+        if(
+            event.key.toLowerCase() === "j"
+        ){
+
+            activateJarvis();
+        }
+    }
+);
 
 
 /* =========================================================
@@ -2304,18 +2618,7 @@ window.addEventListener(
     function(){
 
         console.log(
-            "🌐 J.A.R.V.I.S. interface loaded."
-        );
-
-
-        console.log(
-            "🐍 Python microphone control: DISABLED IN BROWSER"
-        );
-
-
-        console.log(
-            "🔌 Python EDITH bridge:",
-            EDITH_BRIDGE
+            "J.A.R.V.I.S. interface loaded."
         );
 
     }
