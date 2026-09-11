@@ -2449,37 +2449,27 @@ body::after{
 
 .jarvis-title{
     position:absolute;
-
     left:50%;
     top:4%;
-
-    transform:
-        translateX(-50%);
-
+    transform:translateX(-50%);
     z-index:8;
 
-    font-size:
-        clamp(38px,6vw,76px);
-
-    font-weight:900;
-
-    letter-spacing:
-        clamp(7px,1.5vw,18px);
-
+    font-size:16px;
+    font-weight:400;
+    letter-spacing:1px;
     white-space:nowrap;
 
-    color:#fff;
+    color:rgba(255,255,255,.92);
+
+    background:transparent;
+    border:none;
+    box-shadow:none;
 
     text-shadow:
-        0 0 4px #fff,
-        0 0 10px #fff,
-        0 0 20px #b000ff,
-        0 0 40px #6500ff,
-        0 0 70px #2600ff;
+        0 0 5px rgba(255,255,255,.7),
+        0 0 12px rgba(168,85,247,.45);
 
-    animation:
-        titleFloat 4s ease-in-out infinite,
-        titlePulse 2.5s ease-in-out infinite;
+    pointer-events:none;
 }
 
 @keyframes titleFloat{
@@ -3915,7 +3905,7 @@ body::after{
 
 
         <div class="jarvis-title">
-            A.I ASSISTANT
+            Hi, how can I help you today?
         </div>
 
         <div class="title-line"></div>
