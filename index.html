@@ -1,1123 +1,806 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-
-<title>J.A.R.V.I.S. // EDITH CORE</title>
+<title>J.A.R.V.I.S. // CORE</title>
 
 <style>
 
-/* =========================================================
-   GLOBAL
-========================================================= */
-
 *{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
+box-sizing:border-box;
+margin:0;
+padding:0
 }
 
 :root{
-    --purple:#a855f7;
-    --violet:#c084fc;
-    --cyan:#22d3ee;
-    --blue:#3b82f6;
-    --pink:#f472b6;
-    --red:#fb456b;
-    --green:#39ff88;
-    --white:#f7f3ff;
+--purple:#a855f7;
+--violet:#c084fc;
+--cyan:#22d3ee;
+--blue:#3b82f6;
+--pink:#f472b6;
+--red:#fb456b;
+--green:#39ff88;
+--white:#f7f3ff;
 }
 
 html{
-    scroll-behavior:smooth;
+scroll-behavior:smooth
 }
 
 body{
-    min-height:100vh;
-    background:#020107;
-    color:var(--white);
-    font-family:'Rajdhani',Arial,sans-serif;
-    overflow-x:hidden;
+min-height:100vh;
+background:#020107;
+color:var(--white);
+font-family:'Rajdhani',Arial,sans-serif;
+overflow-x:hidden
 }
 
-button,
-input{
-    font-family:inherit;
+button,input{
+font-family:inherit
 }
-
-
-/* =========================================================
-   SHARED SPACE BACKGROUND
-========================================================= */
 
 #spaceCanvas{
-    position:fixed;
-    inset:0;
-    width:100%;
-    height:100%;
-    z-index:-10;
-    background:#020107;
+position:fixed;
+inset:0;
+width:100%;
+height:100%;
+z-index:-10;
+background:#020107
 }
 
 body::before{
-    content:"";
-    position:fixed;
-    inset:0;
-    z-index:-9;
-    pointer-events:none;
-
-    background:
-        radial-gradient(
-            circle at 18% 20%,
-            rgba(139,92,246,.15),
-            transparent 28%
-        ),
-        radial-gradient(
-            circle at 82% 30%,
-            rgba(6,182,212,.11),
-            transparent 25%
-        ),
-        radial-gradient(
-            circle at 52% 90%,
-            rgba(236,72,153,.10),
-            transparent 30%
-        );
+content:"";
+position:fixed;
+inset:0;
+z-index:-9;
+pointer-events:none;
+background:
+radial-gradient(circle at 18% 20%,rgba(139,92,246,.15),transparent 28%),
+radial-gradient(circle at 82% 30%,rgba(6,182,212,.11),transparent 25%),
+radial-gradient(circle at 52% 90%,rgba(236,72,153,.10),transparent 30%)
 }
 
 body::after{
-    content:"";
-    position:fixed;
-    inset:0;
-    z-index:-8;
-    pointer-events:none;
-    opacity:.12;
-
-    background-image:
-        linear-gradient(
-            rgba(168,85,247,.18) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            90deg,
-            rgba(34,211,238,.13) 1px,
-            transparent 1px
-        );
-
-    background-size:70px 70px;
-
-    mask-image:
-        linear-gradient(
-            transparent,
-            black 20%,
-            black 80%,
-            transparent
-        );
+content:"";
+position:fixed;
+inset:0;
+z-index:-8;
+pointer-events:none;
+opacity:.12;
+background-image:
+linear-gradient(rgba(168,85,247,.18) 1px,transparent 1px),
+linear-gradient(90deg,rgba(34,211,238,.13) 1px,transparent 1px);
+background-size:70px 70px;
+mask-image:linear-gradient(
+transparent,
+black 20%,
+black 80%,
+transparent
+)
 }
 
 .aurora{
-    position:fixed;
-    border-radius:50%;
-    filter:blur(100px);
-    pointer-events:none;
-    z-index:-7;
-    opacity:.20;
+position:fixed;
+border-radius:50%;
+filter:blur(100px);
+pointer-events:none;
+z-index:-7;
+opacity:.20
 }
 
 .a1{
-    width:430px;
-    height:430px;
-    background:#9333ea;
-    left:-180px;
-    top:-160px;
+width:430px;
+height:430px;
+background:#9333ea;
+left:-180px;
+top:-160px
 }
 
 .a2{
-    width:380px;
-    height:380px;
-    background:#06b6d4;
-    right:-170px;
-    top:35%;
+width:380px;
+height:380px;
+background:#06b6d4;
+right:-170px;
+top:35%
 }
 
 .a3{
-    width:420px;
-    height:420px;
-    background:#db2777;
-    left:35%;
-    bottom:-260px;
+width:420px;
+height:420px;
+background:#db2777;
+left:35%;
+bottom:-260px
 }
 
 
 /* =========================================================
-   TOP BAR
+   MAIN TOP BAR
 ========================================================= */
 
 .core-top{
-    height:70px;
-
-    position:fixed;
-    top:0;
-    left:0;
-    right:0;
-
-    z-index:500;
-
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-
-    padding:0 35px;
-
-    background:rgba(3,2,8,.78);
-    backdrop-filter:blur(16px);
-
-    border-bottom:
-        1px solid rgba(192,132,252,.15);
+height:70px;
+position:fixed;
+top:0;
+left:0;
+right:0;
+z-index:500;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:0 35px;
+background:rgba(3,2,8,.78);
+backdrop-filter:blur(16px);
+border-bottom:1px solid rgba(192,132,252,.15)
 }
 
 .core-logo{
-    font-family:'Orbitron',sans-serif;
-    font-size:15px;
-    font-weight:700;
-    letter-spacing:4px;
+font-family:'Orbitron',sans-serif;
+font-size:15px;
+font-weight:700;
+letter-spacing:4px
 }
 
 .core-logo span{
-    color:var(--cyan);
-
-    text-shadow:
-        0 0 8px var(--cyan),
-        0 0 22px rgba(34,211,238,.4);
+color:var(--cyan);
+text-shadow:
+0 0 8px var(--cyan),
+0 0 22px rgba(34,211,238,.4)
 }
 
 .core-system{
-    font-family:'Orbitron',sans-serif;
-    font-size:10px;
-    letter-spacing:2px;
-    color:#aaa5b8;
+font-family:'Orbitron',sans-serif;
+font-size:10px;
+letter-spacing:2px;
+color:#aaa5b8
 }
 
 .core-dot{
-    display:inline-block;
-
-    width:7px;
-    height:7px;
-
-    margin-right:8px;
-
-    background:var(--green);
-    border-radius:50%;
-
-    box-shadow:
-        0 0 7px var(--green),
-        0 0 18px rgba(57,255,136,.7);
-
-    animation:dotPulse 1.8s infinite;
+display:inline-block;
+width:7px;
+height:7px;
+margin-right:8px;
+background:var(--green);
+border-radius:50%;
+box-shadow:
+0 0 7px var(--green),
+0 0 18px rgba(57,255,136,.7);
+animation:dotPulse 1.8s infinite
 }
 
 @keyframes dotPulse{
-
-    0%,100%{
-        opacity:.5;
-        transform:scale(.8);
-    }
-
-    50%{
-        opacity:1;
-        transform:scale(1.2);
-    }
+0%,100%{
+opacity:.5;
+transform:scale(.8)
+}
+50%{
+opacity:1;
+transform:scale(1.2)
+}
 }
 
 
 /* =========================================================
-   STAGE CONTROL
+   STAGES
 ========================================================= */
 
 .stage{
-    display:none;
-    min-height:100vh;
+display:none;
+min-height:100vh
 }
 
 .stage.active{
-    display:block;
+display:block
 }
-
-
-/* =========================================================
-   STAGE 1 + STAGE 2
-   YOUR ORIGINAL FIRST HTML
-========================================================= */
 
 #setupStage,
 #infoStage{
-    padding-top:70px;
+padding-top:70px
 }
 
+
+/* =========================================================
+   FIRST PAGE
+========================================================= */
+
 .access{
-    min-height:calc(100vh - 70px);
-
-    display:grid;
-    place-items:center;
-
-    position:relative;
-
-    padding:40px 18px;
+min-height:calc(100vh - 70px);
+display:grid;
+place-items:center;
+position:relative;
+padding:40px 18px
 }
 
 .hud{
-    position:absolute;
-
-    font-family:'Orbitron',sans-serif;
-    font-size:8px;
-    letter-spacing:3px;
-
-    color:rgba(192,132,252,.45);
-
-    pointer-events:none;
+position:absolute;
+font-family:'Orbitron',sans-serif;
+font-size:8px;
+letter-spacing:3px;
+color:rgba(192,132,252,.45);
+pointer-events:none
 }
 
 .h1{
-    top:15%;
-    left:6%;
+top:15%;
+left:6%
 }
 
 .h2{
-    top:30%;
-    right:5%;
-    color:rgba(34,211,238,.42);
+top:30%;
+right:5%;
+color:rgba(34,211,238,.42)
 }
 
 .h3{
-    bottom:15%;
-    left:8%;
-    color:rgba(244,114,182,.4);
+bottom:15%;
+left:8%;
+color:rgba(244,114,182,.4)
 }
 
 .h4{
-    bottom:20%;
-    right:7%;
-    color:rgba(57,255,136,.35);
+bottom:20%;
+right:7%;
+color:rgba(57,255,136,.35)
 }
 
-
-/* =========================================================
-   CHAMBER
-========================================================= */
-
 .chamber{
-
-    width:min(940px,94vw);
-
-    min-height:590px;
-
-    position:relative;
-
-    padding:1px;
-
-    background:
-        linear-gradient(
-            115deg,
-            #a855f7,
-            #22d3ee,
-            #f472b6,
-            #3b82f6,
-            #a855f7
-        );
-
-    background-size:300% 300%;
-
-    animation:borderFlow 9s linear infinite;
-
-    clip-path:
-        polygon(
-            0 0,
-            97% 0,
-            100% 8%,
-            100% 92%,
-            97% 100%,
-            3% 100%,
-            0 92%,
-            0 8%
-        );
-
-    filter:
-        drop-shadow(
-            0 0 35px rgba(124,58,237,.18)
-        );
+width:min(940px,94vw);
+min-height:590px;
+position:relative;
+padding:1px;
+background:
+linear-gradient(
+115deg,
+#a855f7,
+#22d3ee,
+#f472b6,
+#3b82f6,
+#a855f7
+);
+background-size:300% 300%;
+animation:borderFlow 9s linear infinite;
+clip-path:polygon(
+0 0,
+97% 0,
+100% 8%,
+100% 92%,
+97% 100%,
+3% 100%,
+0 92%,
+0 8%
+);
+filter:drop-shadow(
+0 0 35px rgba(124,58,237,.18)
+)
 }
 
 @keyframes borderFlow{
-
-    0%{
-        background-position:0% 50%;
-    }
-
-    50%{
-        background-position:100% 50%;
-    }
-
-    100%{
-        background-position:0% 50%;
-    }
+0%{
+background-position:0% 50%
+}
+50%{
+background-position:100% 50%
+}
+100%{
+background-position:0% 50%
+}
 }
 
 .inner{
-
-    min-height:588px;
-
-    position:relative;
-
-    overflow:hidden;
-
-    padding:55px 58px;
-
-    background:
-        linear-gradient(
-            135deg,
-            rgba(8,5,16,.97),
-            rgba(12,7,23,.94),
-            rgba(5,7,19,.97)
-        );
-
-    clip-path:inherit;
+min-height:588px;
+position:relative;
+overflow:hidden;
+padding:55px 58px;
+background:
+linear-gradient(
+135deg,
+rgba(8,5,16,.97),
+rgba(12,7,23,.94),
+rgba(5,7,19,.97)
+);
+clip-path:inherit
 }
 
 .inner::before{
-
-    content:"";
-
-    position:absolute;
-    inset:0;
-
-    pointer-events:none;
-
-    background:
-        linear-gradient(
-            90deg,
-            transparent 49.8%,
-            rgba(34,211,238,.035) 50%,
-            transparent 50.2%
-        ),
-        linear-gradient(
-            rgba(192,132,252,.025) 1px,
-            transparent 1px
-        );
-
-    background-size:
-        100% 100%,
-        100% 45px;
+content:"";
+position:absolute;
+inset:0;
+pointer-events:none;
+background:
+linear-gradient(
+90deg,
+transparent 49.8%,
+rgba(34,211,238,.035) 50%,
+transparent 50.2%
+),
+linear-gradient(
+rgba(192,132,252,.025) 1px,
+transparent 1px
+);
+background-size:
+100% 100%,
+100% 45px
 }
 
-
-/* =========================================================
-   SCANNER
-========================================================= */
-
 .scan{
-
-    position:absolute;
-
-    left:0;
-    right:0;
-
-    height:2px;
-
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            var(--cyan),
-            transparent
-        );
-
-    box-shadow:
-        0 0 18px var(--cyan);
-
-    opacity:.25;
-
-    animation:scan 5s linear infinite;
+position:absolute;
+left:0;
+right:0;
+height:2px;
+background:
+linear-gradient(
+90deg,
+transparent,
+var(--cyan),
+transparent
+);
+box-shadow:0 0 18px var(--cyan);
+opacity:.25;
+animation:scan 5s linear infinite
 }
 
 @keyframes scan{
-
-    from{
-        top:-5%;
-    }
-
-    to{
-        top:105%;
-    }
+from{
+top:-5%
+}
+to{
+top:105%
+}
 }
 
-
-/* =========================================================
-   CORNERS
-========================================================= */
-
 .corner{
-
-    position:absolute;
-
-    width:28px;
-    height:28px;
-
-    border-color:
-        rgba(34,211,238,.55);
-
-    border-style:solid;
+position:absolute;
+width:28px;
+height:28px;
+border-color:rgba(34,211,238,.55);
+border-style:solid
 }
 
 .c1{
-    top:24px;
-    left:24px;
-    border-width:1px 0 0 1px;
+top:24px;
+left:24px;
+border-width:1px 0 0 1px
 }
 
 .c2{
-    top:24px;
-    right:24px;
-    border-width:1px 1px 0 0;
+top:24px;
+right:24px;
+border-width:1px 1px 0 0
 }
 
 .c3{
-    bottom:24px;
-    left:24px;
-    border-width:0 0 1px 1px;
+bottom:24px;
+left:24px;
+border-width:0 0 1px 1px
 }
 
 .c4{
-    bottom:24px;
-    right:24px;
-    border-width:0 1px 1px 0;
+bottom:24px;
+right:24px;
+border-width:0 1px 1px 0
 }
 
-
-/* =========================================================
-   TEXT
-========================================================= */
-
 .chip{
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:9px;
-
-    letter-spacing:3px;
-
-    color:#8e8aa2;
-
-    margin-bottom:14px;
+font-family:'Orbitron',sans-serif;
+font-size:9px;
+letter-spacing:3px;
+color:#8e8aa2;
+margin-bottom:14px
 }
 
 .title{
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:clamp(30px,5vw,55px);
-
-    font-weight:700;
-
-    letter-spacing:2px;
-
-    line-height:1.05;
+font-family:'Orbitron',sans-serif;
+font-size:clamp(30px,5vw,55px);
+font-weight:700;
+letter-spacing:2px;
+line-height:1.05
 }
 
 .title b{
-
-    color:var(--violet);
-
-    text-shadow:
-        0 0 12px rgba(192,132,252,.5),
-        0 0 35px rgba(168,85,247,.25);
+color:var(--violet);
+text-shadow:
+0 0 12px rgba(192,132,252,.5),
+0 0 35px rgba(168,85,247,.25)
 }
 
 .title i{
-
-    font-style:normal;
-
-    color:var(--cyan);
-
-    text-shadow:
-        0 0 15px rgba(34,211,238,.5);
+font-style:normal;
+color:var(--cyan);
+text-shadow:
+0 0 15px rgba(34,211,238,.5)
 }
 
 .subtitle{
-
-    max-width:620px;
-
-    color:#aaa5b8;
-
-    font-size:15px;
-
-    line-height:1.6;
-
-    margin:
-        18px 0 30px;
+max-width:620px;
+color:#aaa5b8;
+font-size:15px;
+line-height:1.6;
+margin:18px 0 30px
 }
 
-
-/* =========================================================
-   FORM
-========================================================= */
-
 .layout{
-
-    display:grid;
-
-    grid-template-columns:
-        1fr 260px;
-
-    gap:42px;
-
-    align-items:center;
+display:grid;
+grid-template-columns:1fr 260px;
+gap:42px;
+align-items:center
 }
 
 .fields{
-
-    display:grid;
-
-    gap:14px;
+display:grid;
+gap:14px
 }
 
 .setup-label{
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:9px;
-
-    letter-spacing:2px;
-
-    color:#8e8aa2;
+font-family:'Orbitron',sans-serif;
+font-size:9px;
+letter-spacing:2px;
+color:#8e8aa2
 }
 
 .setup-field{
-    position:relative;
+position:relative
 }
 
 .setup-input{
-
-    width:100%;
-
-    margin-top:7px;
-
-    padding:15px 16px;
-
-    background:
-        rgba(8,6,17,.8);
-
-    border:
-        1px solid rgba(139,92,246,.22);
-
-    color:#fff;
-
-    font-family:'Rajdhani',sans-serif;
-
-    font-size:15px;
-
-    outline:none;
-
-    transition:.25s;
-
-    box-shadow:
-        inset 0 0 25px rgba(0,0,0,.8);
+width:100%;
+margin-top:7px;
+padding:15px 16px;
+background:rgba(8,6,17,.8);
+border:1px solid rgba(139,92,246,.22);
+color:#fff;
+font-family:'Rajdhani',sans-serif;
+font-size:15px;
+outline:none;
+transition:.25s;
+box-shadow:
+inset 0 0 25px rgba(0,0,0,.8)
 }
 
 .setup-input::placeholder{
-    color:#5e596e;
+color:#5e596e
 }
 
 .setup-input:focus{
-
-    border-color:
-        rgba(34,211,238,.75);
-
-    box-shadow:
-        0 0 20px rgba(34,211,238,.1),
-        inset 0 0 25px rgba(0,0,0,.8);
+border-color:rgba(34,211,238,.75);
+box-shadow:
+0 0 20px rgba(34,211,238,.1),
+inset 0 0 25px rgba(0,0,0,.8)
 }
 
-
-/* =========================================================
-   INITIALIZE
-========================================================= */
-
 .init{
-
-    margin-top:8px;
-
-    padding:17px 24px;
-
-    background:
-        linear-gradient(
-            100deg,
-            #7c3aed,
-            #c026d3,
-            #0891b2
-        );
-
-    background-size:200%;
-
-    color:#fff;
-
-    border:none;
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:11px;
-
-    font-weight:700;
-
-    letter-spacing:2px;
-
-    cursor:pointer;
-
-    box-shadow:
-        0 0 24px rgba(168,85,247,.2);
-
-    transition:.3s;
+margin-top:8px;
+padding:17px 24px;
+background:
+linear-gradient(
+100deg,
+#7c3aed,
+#c026d3,
+#0891b2
+);
+background-size:200%;
+color:#fff;
+border:none;
+font-family:'Orbitron',sans-serif;
+font-size:11px;
+font-weight:700;
+letter-spacing:2px;
+cursor:pointer;
+box-shadow:
+0 0 24px rgba(168,85,247,.2);
+transition:.3s
 }
 
 .init:hover{
-
-    background-position:100%;
-
-    transform:translateY(-2px);
-
-    box-shadow:
-        0 0 35px rgba(34,211,238,.35);
+background-position:100%;
+transform:translateY(-2px);
+box-shadow:
+0 0 35px rgba(34,211,238,.35)
 }
 
 .init:active{
-    transform:scale(.98);
+transform:scale(.98)
 }
 
-
-/* =========================================================
-   JARVIS LOGO
-========================================================= */
-
 .coreBox{
-
-    height:270px;
-
-    display:grid;
-
-    place-items:center;
-
-    position:relative;
+height:270px;
+display:grid;
+place-items:center;
+position:relative
 }
 
 .jarvisLogo{
-
-    width:205px;
-    height:205px;
-
-    position:relative;
-
-    display:grid;
-    place-items:center;
+width:205px;
+height:205px;
+position:relative;
+display:grid;
+place-items:center
 }
 
 .jarvisLogo::before{
-
-    content:"";
-
-    position:absolute;
-
-    inset:3px;
-
-    border-radius:50%;
-
-    border:
-        1px solid rgba(34,211,238,.65);
-
-    box-shadow:
-        0 0 15px rgba(34,211,238,.25),
-        inset 0 0 20px rgba(34,211,238,.08);
-
-    animation:
-        logoSpin 12s linear infinite;
+content:"";
+position:absolute;
+inset:3px;
+border-radius:50%;
+border:1px solid rgba(34,211,238,.65);
+box-shadow:
+0 0 15px rgba(34,211,238,.25),
+inset 0 0 20px rgba(34,211,238,.08);
+animation:logoSpin 12s linear infinite
 }
 
 .jarvisLogo::after{
-
-    content:"";
-
-    position:absolute;
-
-    inset:19px;
-
-    border-radius:50%;
-
-    border:
-        1px dashed rgba(192,132,252,.55);
-
-    animation:
-        logoSpinReverse 9s linear infinite;
+content:"";
+position:absolute;
+inset:19px;
+border-radius:50%;
+border:1px dashed rgba(192,132,252,.55);
+animation:logoSpinReverse 9s linear infinite
 }
 
 @keyframes logoSpin{
-
-    to{
-        transform:rotate(360deg);
-    }
+to{
+transform:rotate(360deg)
+}
 }
 
 @keyframes logoSpinReverse{
-
-    to{
-        transform:rotate(-360deg);
-    }
+to{
+transform:rotate(-360deg)
+}
 }
 
 .logoMarks{
-
-    position:absolute;
-
-    inset:-4px;
-
-    border-radius:50%;
-
-    background:
-        conic-gradient(
-            from 0deg,
-            transparent 0deg,
-            transparent 25deg,
-            var(--cyan) 27deg,
-            transparent 31deg,
-            transparent 85deg,
-            var(--pink) 87deg,
-            transparent 91deg,
-            transparent 175deg,
-            var(--violet) 178deg,
-            transparent 182deg,
-            transparent 265deg,
-            var(--blue) 268deg,
-            transparent 272deg,
-            transparent 330deg,
-            var(--cyan) 333deg,
-            transparent 337deg
-        );
-
-    -webkit-mask:
-        radial-gradient(
-            transparent 66%,
-            #000 67%,
-            #000 69%,
-            transparent 70%
-        );
-
-    mask:
-        radial-gradient(
-            transparent 66%,
-            #000 67%,
-            #000 69%,
-            transparent 70%
-        );
-
-    animation:
-        logoSpin 16s linear infinite;
+position:absolute;
+inset:-4px;
+border-radius:50%;
+background:
+conic-gradient(
+from 0deg,
+transparent 0deg,
+transparent 25deg,
+var(--cyan) 27deg,
+transparent 31deg,
+transparent 85deg,
+var(--pink) 87deg,
+transparent 91deg,
+transparent 175deg,
+var(--violet) 178deg,
+transparent 182deg,
+transparent 265deg,
+var(--blue) 268deg,
+transparent 272deg,
+transparent 330deg,
+var(--cyan) 333deg,
+transparent 337deg
+);
+-webkit-mask:
+radial-gradient(
+transparent 66%,
+#000 67%,
+#000 69%,
+transparent 70%
+);
+mask:
+radial-gradient(
+transparent 66%,
+#000 67%,
+#000 69%,
+transparent 70%
+);
+animation:logoSpin 16s linear infinite
 }
 
 .emblem{
-
-    width:115px;
-    height:115px;
-
-    position:relative;
-
-    display:grid;
-    place-items:center;
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(34,211,238,.08),
-            rgba(168,85,247,.05) 55%,
-            transparent 70%
-        );
-
-    clip-path:
-        polygon(
-            50% 0%,
-            90% 23%,
-            90% 77%,
-            50% 100%,
-            10% 77%,
-            10% 23%
-        );
-
-    border:
-        1px solid rgba(255,255,255,.2);
-
-    box-shadow:
-        0 0 25px rgba(168,85,247,.25),
-        inset 0 0 30px rgba(34,211,238,.08);
-
-    animation:
-        emblemPulse 3s ease-in-out infinite;
+width:115px;
+height:115px;
+position:relative;
+display:grid;
+place-items:center;
+background:
+radial-gradient(
+circle,
+rgba(34,211,238,.08),
+rgba(168,85,247,.05) 55%,
+transparent 70%
+);
+clip-path:polygon(
+50% 0%,
+90% 23%,
+90% 77%,
+50% 100%,
+10% 77%,
+10% 23%
+);
+border:1px solid rgba(255,255,255,.2);
+box-shadow:
+0 0 25px rgba(168,85,247,.25),
+inset 0 0 30px rgba(34,211,238,.08);
+animation:emblemPulse 3s ease-in-out infinite
 }
 
 @keyframes emblemPulse{
-
-    0%,100%{
-        filter:
-            drop-shadow(
-                0 0 8px rgba(34,211,238,.35)
-            );
-    }
-
-    50%{
-        filter:
-            drop-shadow(
-                0 0 25px rgba(192,132,252,.6)
-            );
-    }
+0%,100%{
+filter:drop-shadow(
+0 0 8px rgba(34,211,238,.35)
+)
+}
+50%{
+filter:drop-shadow(
+0 0 25px rgba(192,132,252,.6)
+)
+}
 }
 
 .emblemJ{
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:64px;
-
-    font-weight:800;
-
-    line-height:1;
-
-    color:transparent;
-
-    background:
-        linear-gradient(
-            145deg,
-            #fff,
-            #22d3ee 35%,
-            #c084fc 70%,
-            #f472b6
-        );
-
-    -webkit-background-clip:text;
-    background-clip:text;
-
-    text-shadow:
-        0 0 25px rgba(34,211,238,.35);
-
-    transform:
-        translateY(-2px);
+font-family:'Orbitron',sans-serif;
+font-size:64px;
+font-weight:800;
+line-height:1;
+color:transparent;
+background:
+linear-gradient(
+145deg,
+#fff,
+#22d3ee 35%,
+#c084fc 70%,
+#f472b6
+);
+-webkit-background-clip:text;
+background-clip:text;
+text-shadow:
+0 0 25px rgba(34,211,238,.35);
+transform:translateY(-2px)
 }
 
 .techLine{
-
-    position:absolute;
-
-    height:1px;
-
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            var(--cyan),
-            transparent
-        );
-
-    box-shadow:
-        0 0 8px var(--cyan);
-
-    opacity:.65;
+position:absolute;
+height:1px;
+background:
+linear-gradient(
+90deg,
+transparent,
+var(--cyan),
+transparent
+);
+box-shadow:0 0 8px var(--cyan);
+opacity:.65
 }
 
 .line1{
-    width:45px;
-    left:-20px;
-    top:50%;
+width:45px;
+left:-20px;
+top:50%
 }
 
 .line2{
-    width:45px;
-    right:-20px;
-    top:50%;
+width:45px;
+right:-20px;
+top:50%
 }
 
 .line3{
-    width:32px;
-    left:50%;
-    top:-12px;
-    transform:rotate(90deg);
+width:32px;
+left:50%;
+top:-12px;
+transform:rotate(90deg)
 }
 
 .line4{
-    width:32px;
-    left:50%;
-    bottom:-12px;
-    transform:rotate(90deg);
+width:32px;
+left:50%;
+bottom:-12px;
+transform:rotate(90deg)
 }
 
 .logoLabel{
-
-    position:absolute;
-
-    bottom:-35px;
-
-    left:50%;
-
-    transform:translateX(-50%);
-
-    white-space:nowrap;
-
-    text-align:center;
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:9px;
-
-    letter-spacing:4px;
-
-    color:#aaa;
-
-    text-shadow:
-        0 0 10px rgba(192,132,252,.3);
+position:absolute;
+bottom:-35px;
+left:50%;
+transform:translateX(-50%);
+white-space:nowrap;
+text-align:center;
+font-family:'Orbitron',sans-serif;
+font-size:9px;
+letter-spacing:4px;
+color:#aaa;
+text-shadow:
+0 0 10px rgba(192,132,252,.3)
 }
 
 .logoLabel strong{
-
-    display:block;
-
-    margin-top:7px;
-
-    color:var(--cyan);
-
-    font-size:8px;
-
-    letter-spacing:3px;
+display:block;
+margin-top:7px;
+color:var(--cyan);
+font-size:8px;
+letter-spacing:3px
 }
 
-
-/* =========================================================
-   SMALL STATUS
-========================================================= */
-
 .small{
-
-    display:flex;
-
-    gap:18px;
-
-    margin-top:24px;
-
-    color:#666277;
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:8px;
-
-    letter-spacing:2px;
+display:flex;
+gap:18px;
+margin-top:24px;
+color:#666277;
+font-family:'Orbitron',sans-serif;
+font-size:8px;
+letter-spacing:2px
 }
 
 .small span:nth-child(1){
-    color:var(--violet);
+color:var(--violet)
 }
 
 .small span:nth-child(2){
-    color:var(--cyan);
+color:var(--cyan)
 }
 
 .small span:nth-child(3){
-    color:var(--pink);
+color:var(--pink)
 }
 
 
 /* =========================================================
-   GREEN AUTHORIZATION
+   AUTH
 ========================================================= */
 
 .overlay{
-
-    position:fixed;
-
-    inset:0;
-
-    z-index:1000;
-
-    display:none;
-
-    place-items:center;
-
-    background:
-        rgba(2,1,7,.96);
-
-    backdrop-filter:blur(12px);
+position:fixed;
+inset:0;
+z-index:1000;
+display:none;
+place-items:center;
+background:rgba(2,1,7,.96);
+backdrop-filter:blur(12px)
 }
 
 .overlay.show{
-    display:grid;
+display:grid
 }
 
 .auth{
-    text-align:center;
+text-align:center
 }
 
 .authCore{
-
-    width:120px;
-    height:120px;
-
-    border-radius:50%;
-
-    margin:auto;
-
-    background:
-        radial-gradient(
-            circle,
-            #fff 0%,
-            var(--green) 8%,
-            #0b3924 30%,
-            #020c08 65%
-        );
-
-    box-shadow:
-        0 0 35px var(--green),
-        0 0 100px rgba(57,255,136,.27);
-
-    animation:
-        authPulse 1.4s infinite;
+width:120px;
+height:120px;
+border-radius:50%;
+margin:auto;
+background:
+radial-gradient(
+circle,
+#fff 0%,
+var(--green) 8%,
+#0b3924 30%,
+#020c08 65%
+);
+box-shadow:
+0 0 35px var(--green),
+0 0 100px rgba(57,255,136,.27);
+animation:authPulse 1.4s infinite
 }
 
 .auth h2{
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:22px;
-
-    letter-spacing:4px;
-
-    color:var(--green);
-
-    margin-top:28px;
-
-    text-shadow:
-        0 0 20px var(--green);
+font-family:'Orbitron',sans-serif;
+font-size:22px;
+letter-spacing:4px;
+color:var(--green);
+margin-top:28px;
+text-shadow:
+0 0 20px var(--green)
 }
 
 .auth p{
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:10px;
-
-    letter-spacing:3px;
-
-    color:#777;
-
-    margin-top:12px;
+font-family:'Orbitron',sans-serif;
+font-size:10px;
+letter-spacing:3px;
+color:#777;
+margin-top:12px
 }
 
 @keyframes authPulse{
-
-    50%{
-        transform:scale(1.12);
-    }
+50%{
+transform:scale(1.12)
+}
 }
 
 
@@ -1126,907 +809,693 @@ body::after{
 ========================================================= */
 
 #infoStage{
-    padding-bottom:100px;
+padding-bottom:100px
 }
 
 .hero2{
-
-    min-height:65vh;
-
-    display:grid;
-
-    place-items:center;
-
-    text-align:center;
-
-    padding:
-        90px 20px
-        55px;
+min-height:65vh;
+display:grid;
+place-items:center;
+text-align:center;
+padding:90px 20px 55px
 }
 
 .eyebrow{
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:9px;
-
-    letter-spacing:5px;
-
-    color:var(--cyan);
-
-    margin-bottom:20px;
+font-family:'Orbitron',sans-serif;
+font-size:9px;
+letter-spacing:5px;
+color:var(--cyan);
+margin-bottom:20px
 }
 
 .hero2 h1{
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:clamp(40px,8vw,90px);
-
-    font-weight:700;
-
-    background:
-        linear-gradient(
-            90deg,
-            #c084fc,
-            #22d3ee,
-            #f472b6,
-            #c084fc
-        );
-
-    background-size:250%;
-
-    -webkit-background-clip:text;
-
-    background-clip:text;
-
-    color:transparent;
-
-    animation:
-        gradient 7s linear infinite;
+font-family:'Orbitron',sans-serif;
+font-size:clamp(40px,8vw,90px);
+font-weight:700;
+background:
+linear-gradient(
+90deg,
+#c084fc,
+#22d3ee,
+#f472b6,
+#c084fc
+);
+background-size:250%;
+-webkit-background-clip:text;
+background-clip:text;
+color:transparent;
+animation:gradient 7s linear infinite
 }
 
 .hero2 p{
-
-    max-width:760px;
-
-    color:#aaa5b8;
-
-    font-size:17px;
-
-    line-height:1.7;
-
-    margin:24px auto;
+max-width:760px;
+color:#aaa5b8;
+font-size:17px;
+line-height:1.7;
+margin:24px auto
 }
 
 @keyframes gradient{
-
-    to{
-        background-position:250%;
-    }
+to{
+background-position:250%
+}
 }
 
 .content{
-
-    width:min(1100px,92vw);
-
-    margin:auto;
+width:min(1100px,92vw);
+margin:auto
 }
 
 .section{
-
-    margin:35px 0;
-
-    padding:35px;
-
-    border:
-        1px solid rgba(192,132,252,.13);
-
-    background:
-        linear-gradient(
-            135deg,
-            rgba(10,6,20,.8),
-            rgba(5,8,16,.8)
-        );
-
-    position:relative;
-
-    overflow:hidden;
+margin:35px 0;
+padding:35px;
+border:1px solid rgba(192,132,252,.13);
+background:
+linear-gradient(
+135deg,
+rgba(10,6,20,.8),
+rgba(5,8,16,.8)
+);
+position:relative;
+overflow:hidden
 }
 
 .section::before{
-
-    content:"";
-
-    position:absolute;
-
-    left:0;
-    top:0;
-    bottom:0;
-
-    width:3px;
-
-    background:
-        linear-gradient(
-            var(--violet),
-            var(--cyan),
-            var(--pink)
-        );
+content:"";
+position:absolute;
+left:0;
+top:0;
+bottom:0;
+width:3px;
+background:
+linear-gradient(
+var(--violet),
+var(--cyan),
+var(--pink)
+)
 }
 
 .section h2{
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:20px;
-
-    font-weight:600;
-
-    letter-spacing:2px;
-
-    margin-bottom:16px;
+font-family:'Orbitron',sans-serif;
+font-size:20px;
+font-weight:600;
+letter-spacing:2px;
+margin-bottom:16px
 }
 
 .section>p{
-
-    color:#aaa5b8;
-
-    line-height:1.8;
-
-    font-size:15px;
+color:#aaa5b8;
+line-height:1.8;
+font-size:15px
 }
 
-
-/* =========================================================
-   CARDS
-========================================================= */
-
 .cards{
-
-    display:grid;
-
-    grid-template-columns:
-        repeat(3,1fr);
-
-    gap:15px;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:15px
 }
 
 .card{
-
-    padding:24px;
-
-    border:
-        1px solid rgba(255,255,255,.06);
-
-    background:
-        rgba(255,255,255,.02);
-
-    transition:.3s;
+padding:24px;
+border:1px solid rgba(255,255,255,.06);
+background:rgba(255,255,255,.02);
+transition:.3s
 }
 
 .card:hover{
-
-    transform:translateY(-5px);
-
-    border-color:
-        rgba(34,211,238,.4);
-
-    box-shadow:
-        0 15px 40px
-        rgba(34,211,238,.06);
+transform:translateY(-5px);
+border-color:rgba(34,211,238,.4);
+box-shadow:
+0 15px 40px rgba(34,211,238,.06)
 }
 
 .card b{
-
-    display:block;
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:12px;
-
-    color:var(--violet);
-
-    margin-bottom:12px;
+display:block;
+font-family:'Orbitron',sans-serif;
+font-size:12px;
+color:var(--violet);
+margin-bottom:12px
 }
 
 .card p{
-
-    font-size:13px;
-
-    line-height:1.6;
-
-    color:#9993a9;
+font-size:13px;
+line-height:1.6;
+color:#9993a9
 }
 
-
-/* =========================================================
-   FLOW
-========================================================= */
-
 .flow{
-
-    display:grid;
-
-    grid-template-columns:
-        repeat(4,1fr);
-
-    gap:12px;
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:12px
 }
 
 .step{
-
-    text-align:center;
-
-    padding:22px 12px;
-
-    border:
-        1px solid rgba(255,255,255,.06);
-
-    background:
-        rgba(255,255,255,.02);
+text-align:center;
+padding:22px 12px;
+border:1px solid rgba(255,255,255,.06);
+background:rgba(255,255,255,.02)
 }
 
 .num{
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:24px;
-
-    color:var(--cyan);
-
-    text-shadow:
-        0 0 12px rgba(34,211,238,.5);
+font-family:'Orbitron',sans-serif;
+font-size:24px;
+color:var(--cyan);
+text-shadow:
+0 0 12px rgba(34,211,238,.5)
 }
 
 .step h3{
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:12px;
-
-    margin:10px 0;
+font-family:'Orbitron',sans-serif;
+font-size:12px;
+margin:10px 0
 }
 
 .step p{
-
-    font-size:12px;
-
-    color:#888394;
+font-size:12px;
+color:#888394
 }
 
-
-/* =========================================================
-   TERMS
-========================================================= */
-
 .terms{
-
-    display:grid;
-
-    grid-template-columns:
-        1fr 1fr;
-
-    gap:12px;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px
 }
 
 .term{
-
-    padding:18px;
-
-    border-left:
-        2px solid var(--purple);
-
-    background:
-        rgba(255,255,255,.02);
+padding:18px;
+border-left:2px solid var(--purple);
+background:rgba(255,255,255,.02)
 }
 
 .term strong{
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:11px;
-
-    color:var(--pink);
+font-family:'Orbitron',sans-serif;
+font-size:11px;
+color:var(--pink)
 }
 
 .term p{
-
-    font-size:12px;
-
-    margin-top:7px;
-
-    color:#888394;
+font-size:12px;
+margin-top:7px;
+color:#888394
 }
 
-
-/* =========================================================
-   ENTER CORE
-========================================================= */
-
 .enter{
-
-    text-align:center;
-
-    margin-top:45px;
+text-align:center;
+margin-top:45px
 }
 
 .enter button{
-
-    padding:18px 35px;
-
-    border:none;
-
-    color:#fff;
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:11px;
-
-    letter-spacing:2px;
-
-    cursor:pointer;
-
-    background:
-        linear-gradient(
-            90deg,
-            #7c3aed,
-            #0891b2
-        );
-
-    box-shadow:
-        0 0 30px rgba(124,58,237,.2);
-
-    transition:.3s;
+padding:18px 35px;
+border:none;
+color:#fff;
+font-family:'Orbitron',sans-serif;
+font-size:11px;
+letter-spacing:2px;
+cursor:pointer;
+background:
+linear-gradient(
+90deg,
+#7c3aed,
+#0891b2
+);
+box-shadow:
+0 0 30px rgba(124,58,237,.2);
+transition:.3s
 }
 
 .enter button:hover{
-
-    transform:
-        translateY(-3px)
-        scale(1.02);
-
-    box-shadow:
-        0 0 45px rgba(34,211,238,.35);
+transform:translateY(-3px) scale(1.02);
+box-shadow:
+0 0 45px rgba(34,211,238,.35)
 }
 
 .ready{
-
-    min-height:15px;
-
-    margin-top:18px;
-
-    font-family:'Orbitron',sans-serif;
-
-    font-size:10px;
-
-    letter-spacing:3px;
-
-    color:var(--green);
-
-    text-shadow:
-        0 0 15px var(--green);
+min-height:15px;
+margin-top:18px;
+font-family:'Orbitron',sans-serif;
+font-size:10px;
+letter-spacing:3px;
+color:var(--green);
+text-shadow:
+0 0 15px var(--green)
 }
 
 
 /* =========================================================
-   YOUR ORIGINAL LOGIN PAGE
+   SETUP LOGIN BUTTON
+========================================================= */
+
+#setupLoginBtn{
+position:fixed;
+top:82px;
+left:24px;
+z-index:99999;
+padding:9px 16px;
+border:1px solid rgba(34,211,238,.45);
+border-radius:5px;
+background:rgba(5,3,18,.82);
+color:#22d3ee;
+font-family:Arial,Helvetica,sans-serif;
+font-size:9px;
+letter-spacing:2px;
+cursor:pointer;
+box-shadow:
+0 0 12px rgba(34,211,238,.18);
+transition:.25s
+}
+
+#setupLoginBtn:hover{
+color:white;
+border-color:#22d3ee;
+box-shadow:
+0 0 22px rgba(34,211,238,.65);
+transform:translateY(-1px)
+}
+
+
+/* =========================================================
+   LOGIN PAGE
 ========================================================= */
 
 #loginStage{
-    min-height:100vh;
-
-    background:
-        radial-gradient(
-            circle at 50% 50%,
-            rgba(80,0,150,.10),
-            transparent 40%
-        ),
-        #020207;
+min-height:100vh;
+background:
+radial-gradient(
+circle at 50% 50%,
+rgba(80,0,150,.10),
+transparent 40%
+),
+#020207
 }
 
 #loginPage{
-    width:100vw;
-    min-height:100vh;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    padding:80px 20px 30px;
+width:100vw;
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:80px 20px 30px
 }
 
 .login-box{
-    width:360px;
-    padding:35px;
-
-    border:1px solid #9d00ff;
-    border-radius:18px;
-
-    background:rgba(5,5,15,.88);
-
-    box-shadow:
-        0 0 25px rgba(157,0,255,.35),
-        inset 0 0 25px rgba(157,0,255,.05);
+width:360px;
+padding:35px;
+border:1px solid #9d00ff;
+border-radius:18px;
+background:rgba(5,5,15,.88);
+box-shadow:
+0 0 25px rgba(157,0,255,.35),
+inset 0 0 25px rgba(157,0,255,.05)
 }
 
 .login-box h1{
-    text-align:center;
-
-    font-size:34px;
-    letter-spacing:6px;
-
-    color:white;
-
-    text-shadow:
-        0 0 8px #9d00ff,
-        0 0 20px #5c00ff;
+text-align:center;
+font-size:34px;
+letter-spacing:6px;
+color:white;
+text-shadow:
+0 0 8px #9d00ff,
+0 0 20px #5c00ff
 }
 
 .login-subtitle{
-    text-align:center;
-
-    margin-top:8px;
-    margin-bottom:30px;
-
-    font-size:11px;
-    letter-spacing:4px;
-
-    color:#9d7cff;
+text-align:center;
+margin-top:8px;
+margin-bottom:30px;
+font-size:11px;
+letter-spacing:4px;
+color:#9d7cff
 }
 
 .login-label{
-    display:block;
-
-    font-size:10px;
-    letter-spacing:2px;
-
-    color:#8e8eaa;
-
-    margin-bottom:7px;
+display:block;
+font-size:10px;
+letter-spacing:2px;
+color:#8e8eaa;
+margin-bottom:7px
 }
 
 .login-input{
-    width:100%;
-
-    padding:13px;
-    margin-bottom:18px;
-
-    border:1px solid #3b2460;
-    border-radius:7px;
-
-    outline:none;
-
-    background:#080810;
-    color:white;
-
-    font-size:14px;
+width:100%;
+padding:13px;
+margin-bottom:18px;
+border:1px solid #3b2460;
+border-radius:7px;
+outline:none;
+background:#080810;
+color:white;
+font-size:14px
 }
 
 .login-input:focus{
-    border-color:#9d00ff;
-
-    box-shadow:
-        0 0 10px rgba(157,0,255,.25);
+border-color:#9d00ff;
+box-shadow:
+0 0 10px rgba(157,0,255,.25)
 }
 
 .login-button{
-    width:100%;
-
-    padding:13px;
-
-    border:none;
-    border-radius:7px;
-
-    background:
-        linear-gradient(
-            90deg,
-            #7d00ff,
-            #b000ff
-        );
-
-    color:white;
-
-    font-weight:bold;
-    letter-spacing:3px;
-
-    cursor:pointer;
-
-    box-shadow:
-        0 0 18px rgba(157,0,255,.4);
+width:100%;
+padding:13px;
+border:none;
+border-radius:7px;
+background:
+linear-gradient(
+90deg,
+#7d00ff,
+#b000ff
+);
+color:white;
+font-weight:bold;
+letter-spacing:3px;
+cursor:pointer;
+box-shadow:
+0 0 18px rgba(157,0,255,.4)
 }
 
 .login-button:hover{
-    box-shadow:
-        0 0 28px rgba(157,0,255,.7);
+box-shadow:
+0 0 28px rgba(157,0,255,.7)
 }
 
 #error{
-    text-align:center;
-
-    color:#ff3b6b;
-
-    font-size:11px;
-
-    margin-top:12px;
-
-    display:none;
+text-align:center;
+color:#ff3b6b;
+font-size:11px;
+margin-top:12px;
+display:none
 }
 
 
 /* =========================================================
-   CREATE NEW ID BUTTON
-   ONLY ADDED TO YOUR ORIGINAL FIRST PAGE
+   CREATE NEW ID
 ========================================================= */
 
 #createNewIdBtn{
-
-    position:fixed;
-
-    top:16px;
-    left:18px;
-
-    width:auto;
-
-    padding:9px 14px;
-
-    border:
-        1px solid rgba(157,0,255,.55);
-
-    border-radius:5px;
-
-    background:
-        rgba(5,3,18,.82);
-
-    color:#c084fc;
-
-    font-family:Arial,Helvetica,sans-serif;
-
-    font-size:9px;
-
-    letter-spacing:2px;
-
-    cursor:pointer;
-
-    z-index:99999;
-
-    box-shadow:
-        0 0 12px rgba(157,0,255,.2);
-
-    transition:.25s;
+position:fixed;
+top:82px;
+right:24px;
+width:auto;
+padding:9px 14px;
+border:1px solid rgba(157,0,255,.55);
+border-radius:5px;
+background:rgba(5,3,18,.82);
+color:#c084fc;
+font-family:Arial,Helvetica,sans-serif;
+font-size:9px;
+letter-spacing:2px;
+cursor:pointer;
+z-index:99999;
+box-shadow:
+0 0 12px rgba(157,0,255,.2);
+transition:.25s
 }
 
 #createNewIdBtn:hover{
-
-    color:white;
-
-    border-color:#9d00ff;
-
-    box-shadow:
-        0 0 22px rgba(157,0,255,.65);
-
-    transform:translateY(-1px);
+color:white;
+border-color:#9d00ff;
+box-shadow:
+0 0 22px rgba(157,0,255,.65);
+transform:translateY(-1px)
 }
 
 
 /* =========================================================
-   YOUR ORIGINAL DASHBOARD
+   DASHBOARD
 ========================================================= */
 
 #dashboardStage{
-    width:100vw;
-    height:100vh;
-
-    overflow:hidden;
-
-    background:#020207;
+width:100vw;
+height:100vh;
+overflow:hidden;
+background:#020207
 }
 
 #dashboard{
-    display:block;
-
-    width:100vw;
-    height:100vh;
-
-    position:relative;
-
-    overflow:hidden;
-
-    background:
-        radial-gradient(
-            circle at 50% 48%,
-            rgba(90,0,255,.12),
-            transparent 25%
-        ),
-        radial-gradient(
-            circle at 50% 48%,
-            rgba(0,180,255,.07),
-            transparent 48%
-        ),
-        #020207;
+display:block;
+width:100vw;
+height:100vh;
+position:relative;
+overflow:hidden;
+background:
+radial-gradient(
+circle at 50% 48%,
+rgba(90,0,255,.12),
+transparent 25%
+),
+radial-gradient(
+circle at 50% 48%,
+rgba(0,180,255,.07),
+transparent 48%
+),
+#020207
 }
-
-
-/* =========================================================
-   GRID
-========================================================= */
 
 .grid{
-    position:absolute;
-
-    inset:0;
-
-    opacity:.16;
-
-    background-image:
-        linear-gradient(
-            rgba(100,70,255,.15) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            90deg,
-            rgba(0,180,255,.12) 1px,
-            transparent 1px
-        );
-
-    background-size:55px 55px;
-
-    transform:
-        perspective(500px)
-        rotateX(60deg)
-        scale(1.8);
-
-    transform-origin:center bottom;
-
-    bottom:-35%;
-
-    pointer-events:none;
+position:absolute;
+inset:0;
+opacity:.16;
+background-image:
+linear-gradient(
+rgba(100,70,255,.15) 1px,
+transparent 1px
+),
+linear-gradient(
+90deg,
+rgba(0,180,255,.12) 1px,
+transparent 1px
+);
+background-size:55px 55px;
+transform:
+perspective(500px)
+rotateX(60deg)
+scale(1.8);
+transform-origin:center bottom;
+bottom:-35%;
+pointer-events:none
 }
 
-
-/* =========================================================
-   DASHBOARD STARS
-========================================================= */
-
 #dashboardStars{
-    position:absolute;
-
-    inset:0;
-
-    pointer-events:none;
-
-    z-index:0;
+position:absolute;
+inset:0;
+pointer-events:none;
+z-index:0
 }
 
 .star{
-    position:absolute;
-
-    width:2px;
-    height:2px;
-
-    border-radius:50%;
-
-    background:white;
-
-    opacity:.5;
-
-    box-shadow:
-        0 0 5px white;
+position:absolute;
+width:2px;
+height:2px;
+border-radius:50%;
+background:white;
+opacity:.5;
+box-shadow:0 0 5px white
 }
 
 
 /* =========================================================
-   DASHBOARD TOP BAR
+   DASHBOARD GREETING
+   FIXED + RGB LETTERS
 ========================================================= */
 
-.topbar{
-    position:absolute;
+.jarvis-title{
+position:fixed;
 
-    top:0;
-    left:0;
+left:50%;
+top:25px;
 
-    width:100%;
-    height:75px;
+transform:translateX(-50%);
 
-    display:flex;
+z-index:999999;
 
-    align-items:center;
-    justify-content:space-between;
+display:block;
+visibility:visible;
+opacity:1;
 
-    padding:0 35px;
+font-family:'Rajdhani',Arial,sans-serif;
 
-    border-bottom:
-        1px solid rgba(157,0,255,.25);
+font-size:clamp(
+18px,
+2.2vw,
+28px
+);
 
-    background:
-        linear-gradient(
-            90deg,
-            rgba(5,0,20,.8),
-            rgba(5,5,15,.25),
-            rgba(5,0,20,.8)
-        );
+font-weight:500;
 
-    z-index:10;
-}
+letter-spacing:2px;
 
-.dashboard-logo{
-    font-size:17px;
+white-space:nowrap;
 
-    font-weight:bold;
+text-align:center;
 
-    letter-spacing:6px;
+pointer-events:none;
 
-    color:#fff;
+/* RGB COLOUR INSIDE THE LETTERS */
 
-    text-shadow:
-        0 0 5px #fff,
-        0 0 15px #a000ff,
-        0 0 30px #6200ff;
-}
+background:
+linear-gradient(
+90deg,
+#ff1744,
+#ff00ff,
+#7a00ff,
+#008cff,
+#00ffff,
+#00ff88,
+#d8ff00,
+#ff1744
+);
 
-.system{
-    display:flex;
+background-size:100% 100%;
 
-    align-items:center;
+-webkit-background-clip:text;
+background-clip:text;
 
-    gap:10px;
+-webkit-text-fill-color:transparent;
 
-    font-size:9px;
+color:transparent;
 
-    letter-spacing:3px;
+/* FIXED GLOW */
 
-    color:#d8ff00;
+filter:
+drop-shadow(0 0 4px rgba(255,23,68,.85))
+drop-shadow(0 0 10px rgba(157,0,255,.75))
+drop-shadow(0 0 18px rgba(0,210,255,.55));
 
-    text-shadow:
-        0 0 8px #d8ff00;
-}
+/* IMPORTANT:
+   NO FLOATING
+   NO MOVING
+   NO POSITION ANIMATION
+*/
 
-.system-dot{
-    width:7px;
-    height:7px;
-
-    border-radius:50%;
-
-    background:#d8ff00;
-
-    box-shadow:
-        0 0 7px #d8ff00,
-        0 0 18px #d8ff00;
-
-    animation:
-        blink 1.5s infinite;
-}
-
-@keyframes blink{
-
-    0%,100%{
-        opacity:1;
-    }
-
-    50%{
-        opacity:.35;
-    }
+animation:none;
 }
 
 
 /* =========================================================
-   MAIN CORE AREA
+   GREETING UNDERLINE
+========================================================= */
+
+.title-line{
+position:fixed;
+
+left:50%;
+top:70px;
+
+transform:translateX(-50%);
+
+width:180px;
+height:1px;
+
+z-index:999998;
+
+background:
+linear-gradient(
+90deg,
+transparent,
+#d8ff00,
+#00cfff,
+#9d00ff,
+transparent
+);
+
+box-shadow:
+0 0 10px #d8ff00,
+0 0 20px #9d00ff;
+
+pointer-events:none
+}
+
+
+/* =========================================================
+   CORE AREA
 ========================================================= */
 
 .core-area{
-    position:absolute;
-
-    left:50%;
-    top:52%;
-
-    transform:
-        translate(-50%,-50%);
-
-    width:min(720px,90vw);
-    height:min(600px,75vh);
-
-    display:flex;
-
-    align-items:center;
-    justify-content:center;
-
-    overflow:visible;
+position:absolute;
+left:50%;
+top:52%;
+transform:translate(-50%,-50%);
+width:min(720px,90vw);
+height:min(600px,75vh);
+display:flex;
+align-items:center;
+justify-content:center;
+overflow:visible
 }
 
-
-/* =========================================================
-   HUD RINGS
-========================================================= */
-
 .hud-ring{
-    position:absolute;
-
-    left:50%;
-    top:50%;
-
-    border-radius:50%;
-
-    transform:
-        translate(-50%,-50%);
-
-    pointer-events:none;
+position:absolute;
+left:50%;
+top:50%;
+border-radius:50%;
+transform:translate(-50%,-50%);
+pointer-events:none
 }
 
 .ring1{
-    width:340px;
-    height:340px;
-
-    border:
-        1px solid rgba(0,180,255,.28);
-
-    box-shadow:
-        0 0 20px rgba(0,180,255,.12),
-        inset 0 0 20px rgba(0,180,255,.05);
-
-    animation:
-        rotateClockwise 18s linear infinite;
+width:340px;
+height:340px;
+border:1px solid rgba(0,180,255,.28);
+box-shadow:
+0 0 20px rgba(0,180,255,.12),
+inset 0 0 20px rgba(0,180,255,.05);
+animation:
+rotateClockwise 18s linear infinite
 }
 
 .ring2{
-    width:390px;
-    height:390px;
-
-    border:
-        1px dashed rgba(157,0,255,.35);
-
-    animation:
-        rotateReverse 25s linear infinite;
+width:390px;
+height:390px;
+border:1px dashed rgba(157,0,255,.35);
+animation:
+rotateReverse 25s linear infinite
 }
 
 .ring3{
-    width:450px;
-    height:450px;
-
-    border:
-        1px solid rgba(255,220,0,.12);
-
-    animation:
-        rotateClockwise 35s linear infinite;
+width:450px;
+height:450px;
+border:1px solid rgba(255,220,0,.12);
+animation:
+rotateClockwise 35s linear infinite
 }
 
 .ring4{
-    width:500px;
-    height:500px;
-
-    border:
-        1px dashed rgba(255,40,70,.10);
-
-    animation:
-        rotateReverse 45s linear infinite;
+width:500px;
+height:500px;
+border:1px dashed rgba(255,40,70,.10);
+animation:
+rotateReverse 45s linear infinite
 }
 
 @keyframes rotateClockwise{
 
-    from{
-        transform:
-            translate(-50%,-50%)
-            rotate(0deg);
-    }
+from{
+transform:
+translate(-50%,-50%)
+rotate(0deg)
+}
 
-    to{
-        transform:
-            translate(-50%,-50%)
-            rotate(360deg);
-    }
+to{
+transform:
+translate(-50%,-50%)
+rotate(360deg)
+}
+
 }
 
 @keyframes rotateReverse{
 
-    from{
-        transform:
-            translate(-50%,-50%)
-            rotate(360deg);
-    }
+from{
+transform:
+translate(-50%,-50%)
+rotate(360deg)
+}
 
-    to{
-        transform:
-            translate(-50%,-50%)
-            rotate(0deg);
-    }
+to{
+transform:
+translate(-50%,-50%)
+rotate(0deg)
+}
+
 }
 
 
@@ -2035,499 +1504,328 @@ body::after{
 ========================================================= */
 
 .marker{
-    position:absolute;
-
-    left:50%;
-    top:50%;
-
-    width:470px;
-    height:470px;
-
-    transform:
-        translate(-50%,-50%);
-
-    pointer-events:none;
+position:absolute;
+left:50%;
+top:50%;
+width:470px;
+height:470px;
+transform:translate(-50%,-50%);
+pointer-events:none
 }
 
 .marker span{
-    position:absolute;
-
-    width:7px;
-    height:7px;
-
-    border-radius:50%;
-
-    background:#00cfff;
-
-    box-shadow:
-        0 0 7px #00cfff,
-        0 0 15px #00cfff;
+position:absolute;
+width:7px;
+height:7px;
+border-radius:50%;
+background:#00cfff;
+box-shadow:
+0 0 7px #00cfff,
+0 0 15px #00cfff
 }
 
 .marker span:nth-child(1){
-    top:0;
-    left:50%;
+top:0;
+left:50%
 }
 
 .marker span:nth-child(2){
-    bottom:0;
-    left:50%;
+bottom:0;
+left:50%
 }
 
 .marker span:nth-child(3){
-    left:0;
-    top:50%;
+left:0;
+top:50%
 }
 
 .marker span:nth-child(4){
-    right:0;
-    top:50%;
+right:0;
+top:50%
 }
 
 
 /* =========================================================
-   CORE VIDEO
+   ORB
 ========================================================= */
 
 .core-video-wrap{
-    position:absolute;
-
-    left:50%;
-    top:50%;
-
-    transform:
-        translate(-50%,-50%);
-
-    width:210px;
-    height:210px;
-
-    display:flex;
-
-    align-items:center;
-    justify-content:center;
-
-    z-index:5;
+position:absolute;
+left:50%;
+top:50%;
+transform:translate(-50%,-50%);
+width:210px;
+height:210px;
+display:flex;
+align-items:center;
+justify-content:center;
+z-index:5
 }
 
 .core-video-wrap::before{
-    content:"";
-
-    position:absolute;
-
-    width:230px;
-    height:230px;
-
-    border-radius:50%;
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(255,220,0,.20),
-            rgba(80,0,255,.14),
-            transparent 70%
-        );
-
-    filter:blur(15px);
-
-    animation:
-        coreGlow 2.2s ease-in-out infinite;
+content:"";
+position:absolute;
+width:230px;
+height:230px;
+border-radius:50%;
+background:
+radial-gradient(
+circle,
+rgba(255,220,0,.20),
+rgba(80,0,255,.14),
+transparent 70%
+);
+filter:blur(15px);
+animation:
+coreGlow 2.2s ease-in-out infinite
 }
 
 @keyframes coreGlow{
 
-    0%,100%{
-        transform:scale(.92);
-        opacity:.7;
-    }
-
-    50%{
-        transform:scale(1.08);
-        opacity:1;
-    }
+0%,100%{
+transform:scale(.92);
+opacity:.7
 }
 
+50%{
+transform:scale(1.08);
+opacity:1
+}
 
-/* =========================================================
-   MULTICOLOR CORE BORDER
-========================================================= */
+}
 
 .core-video-wrap::after{
-    content:"";
+content:"";
+position:absolute;
+width:218px;
+height:218px;
+border-radius:50%;
+border:2px solid transparent;
 
-    position:absolute;
+background:
+linear-gradient(
+#020207,
+#020207
+) padding-box,
 
-    width:218px;
-    height:218px;
+linear-gradient(
+90deg,
+#ff1744,
+#ff7300,
+#d8ff00,
+#00ff66,
+#00d9ff,
+#7a00ff,
+#ff1744
+) border-box;
 
-    border-radius:50%;
+background-size:
+100% 100%,
+300% 100%;
 
-    border:2px solid transparent;
+animation:
+coreBorderFlow 4s linear infinite;
 
-    background:
-        linear-gradient(#020207,#020207) padding-box,
-        linear-gradient(
-            90deg,
-            #ff1744,
-            #ff7300,
-            #d8ff00,
-            #00ff66,
-            #00d9ff,
-            #7a00ff,
-            #ff1744
-        ) border-box;
+opacity:.8;
 
-    background-size:
-        100% 100%,
-        300% 100%;
+box-shadow:
+0 0 8px rgba(0,217,255,.4),
+0 0 18px rgba(157,0,255,.3);
 
-    animation:
-        coreBorderFlow 4s linear infinite;
-
-    opacity:.8;
-
-    box-shadow:
-        0 0 8px rgba(0,217,255,.4),
-        0 0 18px rgba(157,0,255,.3);
-
-    z-index:2;
-
-    pointer-events:none;
+z-index:2;
+pointer-events:none
 }
 
 @keyframes coreBorderFlow{
 
-    0%{
-        background-position:
-            0 0,
-            0% 50%;
-    }
-
-    100%{
-        background-position:
-            0 0,
-            300% 50%;
-    }
+0%{
+background-position:
+0 0,
+0% 50%
 }
 
+100%{
+background-position:
+0 0,
+300% 50%
+}
 
-/* =========================================================
-   LISTENING
-========================================================= */
+}
 
 .core-video-wrap.listening::after{
+width:224px;
+height:224px;
+border:2px solid #ff1744;
+background:transparent;
+opacity:1;
 
-    width:224px;
-    height:224px;
+box-shadow:
+0 0 5px #ff1744,
+0 0 12px #ff1744,
+0 0 25px #ff1744,
+0 0 45px rgba(255,23,68,.9),
+0 0 75px rgba(255,23,68,.45);
 
-    border:
-        2px solid #ff1744;
-
-    background:
-        transparent;
-
-    opacity:1;
-
-    box-shadow:
-        0 0 5px #ff1744,
-        0 0 12px #ff1744,
-        0 0 25px #ff1744,
-        0 0 45px rgba(255,23,68,.9),
-        0 0 75px rgba(255,23,68,.45);
-
-    animation:
-        listeningPulse 1s ease-in-out infinite;
+animation:
+listeningPulse 1s ease-in-out infinite
 }
 
 @keyframes listeningPulse{
 
-    0%,100%{
-        transform:
-            scale(.97);
-
-        opacity:.75;
-    }
-
-    50%{
-        transform:
-            scale(1.05);
-
-        opacity:1;
-    }
+0%,100%{
+transform:scale(.97);
+opacity:.75
 }
 
+50%{
+transform:scale(1.05);
+opacity:1
+}
 
-/* =========================================================
-   RESPONDING
-========================================================= */
+}
 
 .core-video-wrap.responding::after{
+width:224px;
+height:224px;
+border:2px solid #00ff66;
+background:transparent;
+opacity:1;
 
-    width:224px;
-    height:224px;
+box-shadow:
+0 0 5px #00ff66,
+0 0 12px #00ff66,
+0 0 25px #00ff66,
+0 0 45px rgba(0,255,102,.9),
+0 0 75px rgba(0,255,102,.45);
 
-    border:
-        2px solid #00ff66;
-
-    background:
-        transparent;
-
-    opacity:1;
-
-    box-shadow:
-        0 0 5px #00ff66,
-        0 0 12px #00ff66,
-        0 0 25px #00ff66,
-        0 0 45px rgba(0,255,102,.9),
-        0 0 75px rgba(0,255,102,.45);
-
-    animation:
-        respondingPulse 1s ease-in-out infinite;
+animation:
+respondingPulse 1s ease-in-out infinite
 }
 
 @keyframes respondingPulse{
 
-    0%,100%{
-        transform:
-            scale(.97);
-
-        opacity:.75;
-    }
-
-    50%{
-        transform:
-            scale(1.05);
-
-        opacity:1;
-    }
+0%,100%{
+transform:scale(.97);
+opacity:.75
 }
 
+50%{
+transform:scale(1.05);
+opacity:1
+}
 
-/* =========================================================
-   VIDEO
-========================================================= */
+}
 
 #ballVideo{
-    position:relative;
+position:relative;
+width:190px;
+height:190px;
+object-fit:contain;
+border-radius:50%;
+z-index:3;
 
-    width:190px;
-    height:190px;
+filter:
+drop-shadow(0 0 8px #00cfff)
+drop-shadow(0 0 22px rgba(120,0,255,.8));
 
-    object-fit:contain;
-
-    border-radius:50%;
-
-    z-index:3;
-
-    filter:
-        drop-shadow(0 0 8px #00cfff)
-        drop-shadow(
-            0 0 22px
-            rgba(120,0,255,.8)
-        );
-
-    mix-blend-mode:screen;
+mix-blend-mode:screen
 }
 
 
 /* =========================================================
-   CONNECTION WIRES
+   CONNECTIONS
 ========================================================= */
 
 .core-connections{
-    position:absolute;
-
-    left:50%;
-    top:50%;
-
-    width:100vw;
-    height:1px;
-
-    transform:
-        translate(-50%,-50%);
-
-    pointer-events:none;
-
-    z-index:4;
+position:absolute;
+left:50%;
+top:50%;
+width:100vw;
+height:1px;
+transform:translate(-50%,-50%);
+pointer-events:none;
+z-index:4
 }
 
 .connection{
-    position:absolute;
+position:absolute;
+height:1px;
+transform-origin:left center;
 
-    height:1px;
+background:
+linear-gradient(
+90deg,
+transparent,
+#00d9ff,
+#9d00ff,
+#d8ff00,
+transparent
+);
 
-    transform-origin:left center;
+box-shadow:
+0 0 5px #00d9ff,
+0 0 12px #9d00ff;
 
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            #00d9ff,
-            #9d00ff,
-            #d8ff00,
-            transparent
-        );
-
-    box-shadow:
-        0 0 5px #00d9ff,
-        0 0 12px #9d00ff;
-
-    opacity:.35;
+opacity:.35
 }
 
 .connection-left{
-    width:calc(50% - 110px);
-
-    left:0;
-
-    top:0;
+width:calc(50% - 110px);
+left:0;
+top:0
 }
 
 .connection-right{
-    width:calc(50% - 110px);
-
-    right:0;
-
-    top:0;
-
-    transform-origin:right center;
+width:calc(50% - 110px);
+right:0;
+top:0;
+transform-origin:right center
 }
 
 .connection-top{
-    position:absolute;
+position:absolute;
+width:1px;
+height:calc(50vh - 120px);
+left:50%;
+bottom:105px;
 
-    width:1px;
-    height:calc(50vh - 120px);
+background:
+linear-gradient(
+to top,
+transparent,
+#00d9ff,
+#9d00ff,
+transparent
+);
 
-    left:50%;
-    bottom:105px;
+box-shadow:
+0 0 6px #00d9ff,
+0 0 12px #9d00ff;
 
-    background:
-        linear-gradient(
-            to top,
-            transparent,
-            #00d9ff,
-            #9d00ff,
-            transparent
-        );
-
-    box-shadow:
-        0 0 6px #00d9ff,
-        0 0 12px #9d00ff;
-
-    opacity:.3;
+opacity:.3
 }
 
 .connection-bottom{
-    position:absolute;
+position:absolute;
+width:1px;
+height:calc(50vh - 130px);
+left:50%;
+top:105px;
 
-    width:1px;
-    height:calc(50vh - 130px);
+background:
+linear-gradient(
+to bottom,
+transparent,
+#d8ff00,
+#ff1744,
+transparent
+);
 
-    left:50%;
-    top:105px;
+box-shadow:
+0 0 6px #d8ff00,
+0 0 12px #ff1744;
 
-    background:
-        linear-gradient(
-            to bottom,
-            transparent,
-            #d8ff00,
-            #ff1744,
-            transparent
-        );
-
-    box-shadow:
-        0 0 6px #d8ff00,
-        0 0 12px #ff1744;
-
-    opacity:.3;
-}
-
-
-/* =========================================================
-   FLOATING JARVIS
-========================================================= */
-
-.jarvis-title{
-    position:absolute;
-    left:50%;
-    top:4%;
-    transform:translateX(-50%);
-    z-index:8;
-
-    font-size:16px;
-    font-weight:400;
-    letter-spacing:1px;
-    white-space:nowrap;
-
-    color:rgba(255,255,255,.92);
-
-    background:transparent;
-    border:none;
-    box-shadow:none;
-
-    text-shadow:
-        0 0 5px rgba(255,255,255,.7),
-        0 0 12px rgba(168,85,247,.45);
-
-    pointer-events:none;
-}
-
-@keyframes titleFloat{
-
-    0%,100%{
-        transform:
-            translateX(-50%)
-            translateY(0);
-    }
-
-    50%{
-        transform:
-            translateX(-50%)
-            translateY(-9px);
-    }
-}
-
-@keyframes titlePulse{
-
-    0%,100%{
-        opacity:.9;
-    }
-
-    50%{
-        opacity:1;
-    }
-}
-
-
-/* =========================================================
-   TITLE LINE
-========================================================= */
-
-.title-line{
-    position:absolute;
-
-    left:50%;
-    top:13%;
-
-    transform:
-        translateX(-50%);
-
-    width:180px;
-    height:1px;
-
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            #d8ff00,
-            #00cfff,
-            #9d00ff,
-            transparent
-        );
-
-    box-shadow:
-        0 0 10px #d8ff00,
-        0 0 20px #9d00ff;
+opacity:.3
 }
 
 
@@ -2536,77 +1834,68 @@ body::after{
 ========================================================= */
 
 .core-label{
-    position:absolute;
-
-    left:50%;
-    top:52%;
-
-    transform:
-        translate(-50%,-50%);
-
-    z-index:12;
-
-    text-align:center;
-
-    white-space:nowrap;
-
-    pointer-events:none;
+position:absolute;
+left:50%;
+top:52%;
+transform:translate(-50%,-50%);
+z-index:12;
+text-align:center;
+white-space:nowrap;
+pointer-events:none
 }
 
 .core-main{
+font-size:12px;
+letter-spacing:5px;
+font-weight:bold;
 
-    font-size:12px;
+background:
+linear-gradient(
+90deg,
+#ff1744,
+#ff7300,
+#d8ff00,
+#00ff66,
+#00d9ff,
+#7a00ff,
+#ff1744
+);
 
-    letter-spacing:5px;
+background-size:300% 100%;
 
-    font-weight:bold;
+-webkit-background-clip:text;
+background-clip:text;
+-webkit-text-fill-color:transparent;
 
-    background:
-        linear-gradient(
-            90deg,
-            #ff1744,
-            #ff7300,
-            #d8ff00,
-            #00ff66,
-            #00d9ff,
-            #7a00ff,
-            #ff1744
-        );
+animation:
+neonTextFlow 3s linear infinite;
 
-    background-size:300% 100%;
-
-    -webkit-background-clip:text;
-    background-clip:text;
-
-    -webkit-text-fill-color:transparent;
-
-    animation:
-        neonTextFlow 3s linear infinite;
-
-    filter:
-        drop-shadow(0 0 5px rgba(255,23,68,.7))
-        drop-shadow(0 0 10px rgba(0,217,255,.5));
+filter:
+drop-shadow(
+0 0 5px rgba(255,23,68,.7)
+)
+drop-shadow(
+0 0 10px rgba(0,217,255,.5)
+)
 }
 
 @keyframes neonTextFlow{
 
-    0%{
-        background-position:0% 50%;
-    }
+0%{
+background-position:0% 50%
+}
 
-    100%{
-        background-position:300% 50%;
-    }
+100%{
+background-position:300% 50%
+}
+
 }
 
 .core-sub{
-    margin-top:8px;
-
-    font-size:8px;
-
-    letter-spacing:4px;
-
-    color:#766f9c;
+margin-top:8px;
+font-size:8px;
+letter-spacing:4px;
+color:#766f9c
 }
 
 
@@ -2615,171 +1904,135 @@ body::after{
 ========================================================= */
 
 .status{
-    position:absolute;
+position:absolute;
+bottom:62px;
+left:50%;
+transform:translateX(-50%);
+z-index:15;
 
-    bottom:62px;
+font-size:10px;
+letter-spacing:5px;
 
-    left:50%;
+color:#00d9ff;
 
-    transform:
-        translateX(-50%);
+text-shadow:
+0 0 8px #00d9ff,
+0 0 18px rgba(0,217,255,.5);
 
-    z-index:15;
+transition:.3s;
 
-    font-size:10px;
-
-    letter-spacing:5px;
-
-    color:#00d9ff;
-
-    text-shadow:
-        0 0 8px #00d9ff,
-        0 0 18px rgba(0,217,255,.5);
-
-    transition:.3s;
-
-    white-space:nowrap;
+white-space:nowrap
 }
 
 
 /* =========================================================
-   PANELS
+   SIDE PANELS
 ========================================================= */
 
 .panel{
-    position:absolute;
+position:absolute;
+width:185px;
+padding:17px;
 
-    width:185px;
+border:1px solid rgba(100,80,255,.3);
 
-    padding:17px;
+background:
+linear-gradient(
+135deg,
+rgba(15,5,35,.65),
+rgba(3,8,20,.45)
+);
 
-    border:
-        1px solid rgba(100,80,255,.3);
+backdrop-filter:blur(8px);
 
-    background:
-        linear-gradient(
-            135deg,
-            rgba(15,5,35,.65),
-            rgba(3,8,20,.45)
-        );
+box-shadow:
+0 0 20px rgba(80,0,255,.08),
+inset 0 0 20px rgba(80,0,255,.04);
 
-    backdrop-filter:blur(8px);
-
-    box-shadow:
-        0 0 20px rgba(80,0,255,.08),
-        inset 0 0 20px rgba(80,0,255,.04);
-
-    z-index:7;
+z-index:7
 }
 
 .panel-left{
-    left:28px;
-    top:50%;
-
-    transform:
-        translateY(-50%);
+left:28px;
+top:50%;
+transform:translateY(-50%)
 }
 
 .panel-right{
-    right:28px;
-    top:50%;
-
-    transform:
-        translateY(-50%);
+right:28px;
+top:50%;
+transform:translateY(-50%)
 }
 
 .panel-title{
-    font-size:8px;
-
-    letter-spacing:3px;
-
-    color:#6f6a92;
-
-    margin-bottom:13px;
+font-size:8px;
+letter-spacing:3px;
+color:#6f6a92;
+margin-bottom:13px
 }
 
 .panel-row{
-    display:flex;
-
-    justify-content:space-between;
-
-    padding:7px 0;
-
-    border-bottom:
-        1px solid rgba(255,255,255,.05);
-
-    font-size:8px;
-
-    letter-spacing:1px;
+display:flex;
+justify-content:space-between;
+padding:7px 0;
+border-bottom:1px solid rgba(255,255,255,.05);
+font-size:8px;
+letter-spacing:1px
 }
 
 .panel-row:last-child{
-    border-bottom:none;
+border-bottom:none
 }
 
 .panel-value{
-    color:#d8ff00;
-
-    text-shadow:
-        0 0 6px rgba(216,255,0,.6);
+color:#d8ff00;
+text-shadow:
+0 0 6px rgba(216,255,0,.6)
 }
 
 .blue{
-    color:#00cfff;
-
-    text-shadow:
-        0 0 7px rgba(0,207,255,.7);
+color:#00cfff;
+text-shadow:
+0 0 7px rgba(0,207,255,.7)
 }
 
 .purple{
-    color:#b45cff;
-
-    text-shadow:
-        0 0 7px rgba(180,92,255,.7);
+color:#b45cff;
+text-shadow:
+0 0 7px rgba(180,92,255,.7)
 }
 
 
 /* =========================================================
-   BOTTOM HUD
+   BOTTOM
 ========================================================= */
 
 .bottom{
-    position:absolute;
+position:absolute;
+bottom:18px;
+left:0;
+width:100%;
 
-    bottom:18px;
+display:flex;
+justify-content:space-between;
+align-items:center;
 
-    left:0;
+padding:0 30px;
 
-    width:100%;
+font-size:8px;
+letter-spacing:2px;
+line-height:1.5;
 
-    display:flex;
+color:#4d4d61;
 
-    justify-content:space-between;
-
-    align-items:center;
-
-    padding:0 30px;
-
-    font-size:8px;
-
-    letter-spacing:2px;
-
-    line-height:1.5;
-
-    color:#4d4d61;
-
-    z-index:10;
+z-index:10
 }
 
 .bottom-center{
-    position:absolute;
-
-    left:50%;
-
-    transform:
-        translateX(-50%);
-
-    color:#625c82;
+position:absolute;
+left:50%;
+transform:translateX(-50%);
+color:#625c82
 }
 
 
@@ -2788,99 +2041,95 @@ body::after{
 ========================================================= */
 
 .scanline{
-    position:absolute;
+position:absolute;
+left:0;
+top:-10%;
+width:100%;
+height:2px;
 
-    left:0;
-    top:-10%;
+background:
+linear-gradient(
+90deg,
+transparent,
+rgba(0,220,255,.2),
+rgba(157,0,255,.3),
+transparent
+);
 
-    width:100%;
-    height:2px;
+box-shadow:
+0 0 15px rgba(0,180,255,.4);
 
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            rgba(0,220,255,.2),
-            rgba(157,0,255,.3),
-            transparent
-        );
+animation:
+scanDashboard 7s linear infinite;
 
-    box-shadow:
-        0 0 15px rgba(0,180,255,.4);
+pointer-events:none;
 
-    animation:
-        scanDashboard 7s linear infinite;
-
-    pointer-events:none;
-
-    z-index:20;
+z-index:20
 }
 
 @keyframes scanDashboard{
 
-    0%{
-        top:-5%;
-    }
+0%{
+top:-5%
+}
 
-    100%{
-        top:105%;
-    }
+100%{
+top:105%
+}
+
 }
 
 
 /* =========================================================
-   INITIALIZATION WIRES
+   INITIALIZATION LINES
 ========================================================= */
 
 #initLines{
-    position:fixed;
-
-    inset:0;
-
-    pointer-events:none;
-
-    z-index:50;
+position:fixed;
+inset:0;
+pointer-events:none;
+z-index:50
 }
 
 .wire{
-    position:absolute;
+position:absolute;
+width:1px;
+height:0;
 
-    width:1px;
-    height:0;
+background:
+linear-gradient(
+to bottom,
+#fff,
+#00aaff,
+#9d00ff,
+transparent
+);
 
-    background:
-        linear-gradient(
-            to bottom,
-            #fff,
-            #00aaff,
-            #9d00ff,
-            transparent
-        );
+box-shadow:
+0 0 5px #00aaff,
+0 0 12px #9d00ff;
 
-    box-shadow:
-        0 0 5px #00aaff,
-        0 0 12px #9d00ff;
+transform-origin:top center;
 
-    transform-origin:top center;
-
-    opacity:0;
+opacity:0
 }
 
 @keyframes wireShoot{
 
-    0%{
-        height:0;
-        opacity:0;
-    }
+0%{
+height:0;
+opacity:0
+}
 
-    15%{
-        opacity:1;
-    }
+15%{
+opacity:1
+}
 
-    100%{
-        height:100vh;
-        opacity:0;
-    }
+100%{
+height:100vh;
+opacity:0
+}
+
 }
 
 
@@ -2890,221 +2139,256 @@ body::after{
 
 @media(max-width:760px){
 
-    .core-top{
-        padding:0 17px;
-    }
-
-    .core-logo{
-        font-size:11px;
-        letter-spacing:2px;
-    }
-
-    .core-system{
-        font-size:8px;
-    }
-
-    .layout{
-        grid-template-columns:1fr;
-    }
-
-    .coreBox{
-        display:none;
-    }
-
-    .inner{
-        min-height:650px;
-        padding:42px 28px;
-    }
-
-    .chamber{
-        min-height:auto;
-    }
-
-    .cards{
-        grid-template-columns:1fr;
-    }
-
-    .flow{
-        grid-template-columns:1fr 1fr;
-    }
-
-    .terms{
-        grid-template-columns:1fr;
-    }
-
-    .hero2 h1{
-        font-size:38px;
-    }
-
-    .hud{
-        display:none;
-    }
+.core-top{
+padding:0 17px
 }
+
+.core-logo{
+font-size:11px;
+letter-spacing:2px
+}
+
+.core-system{
+font-size:8px
+}
+
+.layout{
+grid-template-columns:1fr
+}
+
+.coreBox{
+display:none
+}
+
+.inner{
+min-height:650px;
+padding:42px 28px
+}
+
+.chamber{
+min-height:auto
+}
+
+.cards{
+grid-template-columns:1fr
+}
+
+.flow{
+grid-template-columns:1fr 1fr
+}
+
+.terms{
+grid-template-columns:1fr
+}
+
+.hero2 h1{
+font-size:38px
+}
+
+.hud{
+display:none
+}
+
+}
+
 
 @media(max-width:700px){
 
-    .topbar{
-        padding:0 18px;
-    }
-
-    .dashboard-logo{
-        font-size:12px;
-        letter-spacing:4px;
-    }
-
-    .system{
-        font-size:7px;
-    }
-
-    .panel{
-        display:none;
-    }
-
-    .ring1{
-        width:280px;
-        height:280px;
-    }
-
-    .ring2{
-        width:320px;
-        height:320px;
-    }
-
-    .ring3{
-        width:360px;
-        height:360px;
-    }
-
-    .ring4{
-        width:400px;
-        height:400px;
-    }
-
-    .marker{
-        width:380px;
-        height:380px;
-    }
-
-    .core-video-wrap{
-        width:180px;
-        height:180px;
-    }
-
-    #ballVideo{
-        width:160px;
-        height:160px;
-    }
-
-    .core-video-wrap::after{
-        width:170px;
-        height:170px;
-    }
-
-    .core-video-wrap.listening::after{
-        width:176px;
-        height:176px;
-    }
-
-    .core-video-wrap.responding::after{
-        width:176px;
-        height:176px;
-    }
-
-    .core-label{
-        top:50%;
-    }
-
-    .core-main{
-        font-size:10px;
-        letter-spacing:3px;
-    }
-
-    .core-sub{
-        font-size:6px;
-        letter-spacing:2px;
-    }
-
-    .connection-left,
-    .connection-right{
-        display:none;
-    }
-
-    .bottom{
-        padding:0 12px;
-        font-size:6px;
-    }
-
-    .bottom-center{
-        display:none;
-    }
-
-    .status{
-        bottom:55px;
-        font-size:8px;
-        letter-spacing:3px;
-    }
-
-    #createNewIdBtn{
-        top:10px;
-        left:10px;
-        font-size:8px;
-        padding:8px 10px;
-    }
+.panel{
+display:none
 }
+
+.ring1{
+width:280px;
+height:280px
+}
+
+.ring2{
+width:320px;
+height:320px
+}
+
+.ring3{
+width:360px;
+height:360px
+}
+
+.ring4{
+width:400px;
+height:400px
+}
+
+.marker{
+width:380px;
+height:380px
+}
+
+.core-video-wrap{
+width:180px;
+height:180px
+}
+
+#ballVideo{
+width:160px;
+height:160px
+}
+
+.core-video-wrap::after{
+width:170px;
+height:170px
+}
+
+.core-video-wrap.listening::after,
+.core-video-wrap.responding::after{
+width:176px;
+height:176px
+}
+
+.core-label{
+top:50%
+}
+
+.core-main{
+font-size:10px;
+letter-spacing:3px
+}
+
+.core-sub{
+font-size:6px;
+letter-spacing:2px
+}
+
+.connection-left,
+.connection-right{
+display:none
+}
+
+.bottom{
+padding:0 12px;
+font-size:6px
+}
+
+.bottom-center{
+display:none
+}
+
+.status{
+bottom:55px;
+font-size:8px;
+letter-spacing:3px
+}
+
+#createNewIdBtn{
+top:78px;
+right:12px;
+font-size:8px;
+padding:8px 10px
+}
+
+#setupLoginBtn{
+top:78px;
+left:12px;
+font-size:8px;
+padding:8px 10px
+}
+
+
+/* THE GREETING STAYS ABOVE EVERYTHING ON MOBILE */
+
+.jarvis-title{
+position:fixed;
+top:20px;
+left:50%;
+
+z-index:999999;
+
+font-size:15px;
+letter-spacing:1.5px;
+
+visibility:visible;
+opacity:1;
+
+transform:translateX(-50%);
+}
+
+.title-line{
+position:fixed;
+top:58px;
+z-index:999998;
+width:150px;
+}
+
+}
+
 
 @media(max-width:450px){
 
-    .flow{
-        grid-template-columns:1fr;
-    }
-
-    .inner{
-        padding:38px 22px;
-    }
-
-    .title{
-        font-size:30px;
-    }
-
-    .small{
-        flex-wrap:wrap;
-    }
+.flow{
+grid-template-columns:1fr
 }
 
-@media(
-    max-height:700px
-) and (
-    min-width:701px
-){
+.inner{
+padding:38px 22px
+}
 
-    .core-area{
-        top:47%;
-        height:470px;
-    }
+.title{
+font-size:30px
+}
 
-    .core-label{
-        top:47%;
-    }
+.jarvis-title{
+position:fixed;
 
-    .status{
-        bottom:48px;
-    }
+top:20px;
+left:50%;
 
-    .bottom{
-        bottom:12px;
-    }
+font-size:13px;
+letter-spacing:1px;
+
+max-width:90vw;
+
+text-align:center;
+
+z-index:999999;
+
+visibility:visible;
+opacity:1;
+}
+
+.title-line{
+position:fixed;
+top:55px;
+z-index:999998;
+width:130px;
+}
+
+}
+
+
+@media(max-height:700px) and (min-width:701px){
+
+.core-area{
+top:47%;
+height:470px
+}
+
+.core-label{
+top:47%
+}
+
+.status{
+bottom:48px
+}
+
+.bottom{
+bottom:12px
+}
+
 }
 
 </style>
 </head>
 
-
 <body>
-
-
-<!-- =========================================================
-     SHARED BACKGROUND
-========================================================= -->
 
 <canvas id="spaceCanvas"></canvas>
 
@@ -3114,983 +2398,1114 @@ body::after{
 
 
 <!-- =========================================================
-     TOP BAR
+     MAIN TOP BAR
 ========================================================= -->
 
 <header class="core-top">
 
-    <div class="core-logo">
-        J.A.R.V.I.S.
-        <span>// EDITH CORE</span>
-    </div>
+<div class="core-logo">
+J.A.R.V.I.S.
+<span>// CORE</span>
+</div>
 
-    <div class="core-system">
-        <span class="core-dot"></span>
-        SYSTEM ONLINE
-    </div>
+<div class="core-system">
+<span class="core-dot"></span>
+SYSTEM ONLINE
+</div>
 
 </header>
 
 
 <!-- =========================================================
      STAGE 1
-     YOUR FIRST PAGE
 ========================================================= -->
 
-<section
-    id="setupStage"
-    class="stage active"
+<section id="setupStage" class="stage active">
+
+<button
+id="setupLoginBtn"
+onclick="setupLogin()"
+>
+LOGIN
+</button>
+
+<main class="access">
+
+<div class="hud h1">
+NEURAL INTERFACE // 01
+</div>
+
+<div class="hud h2">
+QUANTUM LINK // STABLE
+</div>
+
+<div class="hud h3">
+AUTH CHANNEL // ENCRYPTED
+</div>
+
+<div class="hud h4">
+CORE STATUS // WAITING
+</div>
+
+<div class="chamber">
+
+<div class="inner">
+
+<div class="scan"></div>
+
+<div class="corner c1"></div>
+<div class="corner c2"></div>
+<div class="corner c3"></div>
+<div class="corner c4"></div>
+
+<div class="chip">
+J.A.R.V.I.S. // SECURE INITIALIZATION PROTOCOL
+</div>
+
+<h1 class="title">
+
+Welcome to
+<b>J.A.R.V.I.S.</b>
+
+<br>
+
+<i>Core Access</i>
+
+</h1>
+
+<p class="subtitle">
+
+A private interface for your intelligent
+digital system. Create your identity below
+and initialize the core environment.
+
+</p>
+
+<div class="layout">
+
+<div>
+
+<div class="fields">
+
+<div class="setup-field">
+
+<label class="setup-label">
+NAME
+</label>
+
+<input
+id="setupName"
+class="setup-input"
+type="text"
+placeholder="Enter your name"
+autocomplete="off"
 >
 
-    <main class="access">
+</div>
 
-        <div class="hud h1">
-            NEURAL INTERFACE // 01
-        </div>
 
-        <div class="hud h2">
-            QUANTUM LINK // STABLE
-        </div>
+<div class="setup-field">
 
-        <div class="hud h3">
-            AUTH CHANNEL // ENCRYPTED
-        </div>
+<label class="setup-label">
+CREATE ACCESS ID
+</label>
 
-        <div class="hud h4">
-            CORE STATUS // WAITING
-        </div>
+<input
+id="setupAccess"
+class="setup-input"
+type="text"
+placeholder="Choose an access ID"
+autocomplete="off"
+>
 
+</div>
 
-        <div class="chamber">
 
-            <div class="inner">
+<div class="setup-field">
 
-                <div class="scan"></div>
+<label class="setup-label">
+CREATE PASSWORD
+</label>
 
-                <div class="corner c1"></div>
-                <div class="corner c2"></div>
-                <div class="corner c3"></div>
-                <div class="corner c4"></div>
+<input
+id="setupPass"
+class="setup-input"
+type="password"
+placeholder="Create a secure password"
+>
 
+</div>
 
-                <div class="chip">
-                    J.A.R.V.I.S. // SECURE INITIALIZATION PROTOCOL
-                </div>
 
+<button
+class="init"
+id="saveSetup"
+>
+INITIALIZE J.A.R.V.I.S. →
+</button>
 
-                <h1 class="title">
+</div>
 
-                    Welcome to
-                    <b>J.A.R.V.I.S.</b>
 
-                    <br>
+<div class="small">
 
-                    <i>Core Access</i>
+<span>
+LOCAL CORE
+</span>
 
-                </h1>
+<span>
+AI READY
+</span>
 
+<span>
+AUTH SECURE
+</span>
 
-                <p class="subtitle">
+</div>
 
-                    A private interface for your intelligent
-                    digital system. Create your identity below
-                    and initialize the core environment.
+</div>
 
-                </p>
 
+<div class="coreBox">
 
-                <div class="layout">
+<div class="jarvisLogo">
 
+<div class="logoMarks"></div>
 
-                    <div>
+<div class="emblem">
 
-                        <div class="fields">
+<div class="emblemJ">
+J
+</div>
 
-                            <div class="setup-field">
+</div>
 
-                                <label class="setup-label">
-                                    NAME
-                                </label>
+<div class="techLine line1"></div>
+<div class="techLine line2"></div>
+<div class="techLine line3"></div>
+<div class="techLine line4"></div>
 
-                                <input
-                                    id="setupName"
-                                    class="setup-input"
-                                    type="text"
-                                    placeholder="Enter your name"
-                                    autocomplete="off"
-                                >
+<div class="logoLabel">
 
-                            </div>
+J.A.R.V.I.S.
 
+<strong>
+INTELLIGENCE CORE
+</strong>
 
-                            <div class="setup-field">
+</div>
 
-                                <label class="setup-label">
-                                    CREATE ACCESS ID
-                                </label>
+</div>
 
-                                <input
-                                    id="setupAccess"
-                                    class="setup-input"
-                                    type="text"
-                                    placeholder="Choose an access ID"
-                                    autocomplete="off"
-                                >
+</div>
 
-                            </div>
+</div>
 
+</div>
 
-                            <div class="setup-field">
+</div>
 
-                                <label class="setup-label">
-                                    CREATE PASSWORD
-                                </label>
-
-                                <input
-                                    id="setupPass"
-                                    class="setup-input"
-                                    type="password"
-                                    placeholder="Create a secure password"
-                                >
-
-                            </div>
-
-
-                            <button
-                                class="init"
-                                id="saveSetup"
-                            >
-                                INITIALIZE J.A.R.V.I.S. →
-                            </button>
-
-                        </div>
-
-
-                        <div class="small">
-
-                            <span>
-                                LOCAL CORE
-                            </span>
-
-                            <span>
-                                AI READY
-                            </span>
-
-                            <span>
-                                AUTH SECURE
-                            </span>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="coreBox">
-
-                        <div class="jarvisLogo">
-
-                            <div class="logoMarks"></div>
-
-                            <div class="emblem">
-
-                                <div class="emblemJ">
-                                    J
-                                </div>
-
-                            </div>
-
-
-                            <div class="techLine line1"></div>
-                            <div class="techLine line2"></div>
-                            <div class="techLine line3"></div>
-                            <div class="techLine line4"></div>
-
-
-                            <div class="logoLabel">
-
-                                J.A.R.V.I.S.
-
-                                <strong>
-                                    INTELLIGENCE CORE
-                                </strong>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </main>
+</main>
 
 </section>
 
 
 <!-- =========================================================
-     GREEN AUTHORIZATION
+     AUTHORIZATION
 ========================================================= -->
 
 <div
-    class="overlay"
-    id="authorizationOverlay"
+class="overlay"
+id="authorizationOverlay"
 >
 
-    <div class="auth">
+<div class="auth">
 
-        <div class="authCore"></div>
+<div class="authCore"></div>
 
-        <h2>
-            ACCESS VERIFIED
-        </h2>
+<h2>
+ACCESS VERIFIED
+</h2>
 
-        <p>
-            J.A.R.V.I.S. CORE INITIALIZING
-        </p>
+<p>
+J.A.R.V.I.S. CORE INITIALIZING
+</p>
 
-    </div>
+</div>
 
 </div>
 
 
 <!-- =========================================================
      STAGE 2
-     YOUR TERMS / INFORMATION PAGE
 ========================================================= -->
 
 <section
-    id="infoStage"
-    class="stage"
+id="infoStage"
+class="stage"
 >
 
-    <section class="hero2">
+<section class="hero2">
 
-        <div>
+<div>
 
-            <div class="eyebrow">
-                J.A.R.V.I.S. // CORE SYSTEM ONLINE
-            </div>
+<div class="eyebrow">
+J.A.R.V.I.S. // CORE SYSTEM ONLINE
+</div>
 
-            <h1 id="welcomeName">
-                WELCOME
-            </h1>
+<h1 id="welcomeName">
+WELCOME
+</h1>
 
-            <p>
+<p>
 
-                Your personal intelligent interface —
-                designed to listen, understand, respond
-                and evolve with the systems you authorize.
+Your personal intelligent interface —
+designed to listen, understand, respond
+and evolve with the systems you authorize.
 
-            </p>
+</p>
 
-        </div>
+</div>
 
-    </section>
+</section>
 
 
-    <div class="content">
+<div class="content">
 
 
-        <section class="section">
+<section class="section">
 
-            <h2>
-                01 // WHAT IS J.A.R.V.I.S.?
-            </h2>
+<h2>
+01 // WHAT IS J.A.R.V.I.S.?
+</h2>
 
-            <p>
+<p>
 
-                J.A.R.V.I.S. is a modular personal AI interface
-                designed to connect voice interaction,
-                artificial intelligence, computer control and
-                visual system feedback into one unified
-                environment.
+J.A.R.V.I.S. is a modular personal AI interface
+designed to connect voice interaction,
+artificial intelligence, computer control and
+visual system feedback into one unified
+environment.
 
-                The interface can act as the command center
-                for your own projects while keeping the system
-                architecture expandable.
+The interface can act as the command center
+for your own projects while keeping the system
+architecture expandable.
 
-            </p>
+</p>
 
-        </section>
+</section>
 
 
-        <section class="section">
+<section class="section">
 
-            <h2>
-                02 // CAPABILITY MATRIX
-            </h2>
+<h2>
+02 // CAPABILITY MATRIX
+</h2>
 
+<div class="cards">
 
-            <div class="cards">
+<div class="card">
 
-                <div class="card">
+<b>
+VOICE INTERACTION
+</b>
 
-                    <b>
-                        VOICE INTERACTION
-                    </b>
+<p>
+Listen for authorized voice commands,
+understand speech and respond through
+a conversational AI layer.
+</p>
 
-                    <p>
-                        Listen for authorized voice commands,
-                        understand speech and respond through
-                        a conversational AI layer.
-                    </p>
+</div>
 
-                </div>
 
+<div class="card">
 
-                <div class="card">
+<b>
+AI INTELLIGENCE
+</b>
 
-                    <b>
-                        AI INTELLIGENCE
-                    </b>
+<p>
+Connect an AI model to interpret questions,
+reason about tasks and generate useful
+responses.
+</p>
 
-                    <p>
-                        Connect an AI model to interpret questions,
-                        reason about tasks and generate useful
-                        responses.
-                    </p>
+</div>
 
-                </div>
 
+<div class="card">
 
-                <div class="card">
+<b>
+COMPUTER CONTROL
+</b>
 
-                    <b>
-                        COMPUTER CONTROL
-                    </b>
+<p>
+Perform predefined local actions such as
+opening approved applications, websites
+and system utilities.
+</p>
 
-                    <p>
-                        Perform predefined local actions such as
-                        opening approved applications, websites
-                        and system utilities.
-                    </p>
+</div>
 
-                </div>
 
+<div class="card">
 
-                <div class="card">
+<b>
+WEB INTERFACE
+</b>
 
-                    <b>
-                        WEB INTERFACE
-                    </b>
+<p>
+A cinematic visual layer can display
+system state, animations, notifications
+and interaction feedback.
+</p>
 
-                    <p>
-                        A cinematic visual layer can display
-                        system state, animations, notifications
-                        and interaction feedback.
-                    </p>
+</div>
 
-                </div>
 
+<div class="card">
 
-                <div class="card">
+<b>
+AUTOMATION
+</b>
 
-                    <b>
-                        AUTOMATION
-                    </b>
+<p>
+Build repeatable workflows around tasks
+you personally authorize the system
+to perform.
+</p>
 
-                    <p>
-                        Build repeatable workflows around tasks
-                        you personally authorize the system
-                        to perform.
-                    </p>
+</div>
 
-                </div>
 
+<div class="card">
 
-                <div class="card">
+<b>
+MODULAR EXPANSION
+</b>
 
-                    <b>
-                        MODULAR EXPANSION
-                    </b>
+<p>
+New capabilities can be added later
+without redesigning the entire core
+architecture.
+</p>
 
-                    <p>
-                        New capabilities can be added later
-                        without redesigning the entire core
-                        architecture.
-                    </p>
+</div>
 
-                </div>
+</div>
 
-            </div>
+</section>
 
-        </section>
 
+<section class="section">
 
-        <section class="section">
+<h2>
+03 // CORE ARCHITECTURE
+</h2>
 
-            <h2>
-                03 // HOW THE CORE THINKS
-            </h2>
+<div class="cards">
 
+<div class="card">
 
-            <div class="flow">
+<b>
+PERSONALIZATION
+</b>
 
-                <div class="step">
+<p>
+The interface can adapt its responses,
+voice behavior and visual feedback around
+your preferred workflow.
+</p>
 
-                    <div class="num">
-                        01
-                    </div>
+</div>
 
-                    <h3>
-                        LISTEN
-                    </h3>
 
-                    <p>
-                        Receive the authorized input.
-                    </p>
+<div class="card">
 
-                </div>
+<b>
+SYSTEM MONITORING
+</b>
 
+<p>
+The visual core can represent important
+system states such as listening, processing,
+responding and ready conditions.
+</p>
 
-                <div class="step">
+</div>
 
-                    <div class="num">
-                        02
-                    </div>
 
-                    <h3>
-                        UNDERSTAND
-                    </h3>
+<div class="card">
 
-                    <p>
-                        Interpret the request.
-                    </p>
+<b>
+VOICE-FIRST CONTROL
+</b>
 
-                </div>
+<p>
+Hands-free interaction allows commands
+to be sent naturally while the system
+remains visually active.
+</p>
 
+</div>
 
-                <div class="step">
 
-                    <div class="num">
-                        03
-                    </div>
+<div class="card">
 
-                    <h3>
-                        DECIDE
-                    </h3>
+<b>
+LOCAL-FIRST DESIGN
+</b>
 
-                    <p>
-                        Select an appropriate action.
-                    </p>
+<p>
+Local computer actions can be separated
+from external services so the architecture
+remains easier to manage.
+</p>
 
-                </div>
+</div>
 
 
-                <div class="step">
+<div class="card">
 
-                    <div class="num">
-                        04
-                    </div>
+<b>
+MODULAR COMPONENTS
+</b>
 
-                    <h3>
-                        RESPOND
-                    </h3>
+<p>
+Voice recognition, AI processing, computer
+control and the visual interface can be
+developed as independent modules.
+</p>
 
-                    <p>
-                        Return the result.
-                    </p>
+</div>
 
-                </div>
 
-            </div>
+<div class="card">
 
-        </section>
+<b>
+FUTURE EXPANSION
+</b>
 
+<p>
+Additional devices, services and automation
+modules can be connected as the project
+continues to evolve.
+</p>
 
-        <section class="section">
+</div>
 
-            <h2>
-                04 // SECURITY & PRIVACY
-            </h2>
+</div>
 
+</section>
 
-            <div class="cards">
 
-                <div class="card">
+<section class="section">
 
-                    <b>
-                        LOCAL CONTROL
-                    </b>
+<h2>
+04 // HOW THE CORE THINKS
+</h2>
 
-                    <p>
-                        Computer actions should remain on
-                        systems you own or are explicitly
-                        authorized to control.
-                    </p>
+<div class="flow">
 
-                </div>
+<div class="step">
 
+<div class="num">
+01
+</div>
 
-                <div class="card">
+<h3>
+LISTEN
+</h3>
 
-                    <b>
-                        CREDENTIAL STORAGE
-                    </b>
+<p>
+Receive the authorized input.
+</p>
 
-                    <p>
-                        This demo stores access values locally
-                        in your browser using localStorage.
-                    </p>
+</div>
 
-                </div>
 
+<div class="step">
 
-                <div class="card">
+<div class="num">
+02
+</div>
 
-                    <b>
-                        PERMISSIONS
-                    </b>
+<h3>
+UNDERSTAND
+</h3>
 
-                    <p>
-                        Future integrations should request
-                        clear permission before accessing
-                        devices or services.
-                    </p>
+<p>
+Interpret the request.
+</p>
 
-                </div>
+</div>
 
-            </div>
 
-        </section>
+<div class="step">
 
+<div class="num">
+03
+</div>
 
-        <section class="section">
+<h3>
+DECIDE
+</h3>
 
-            <h2>
-                05 // TERMS & CONDITIONS
-            </h2>
+<p>
+Select an appropriate action.
+</p>
 
+</div>
 
-            <div class="terms">
 
-                <div class="term">
+<div class="step">
 
-                    <strong>
-                        PERSONAL USE
-                    </strong>
+<div class="num">
+04
+</div>
 
-                    <p>
-                        Use this interface for your own
-                        projects and systems.
-                    </p>
+<h3>
+RESPOND
+</h3>
 
-                </div>
+<p>
+Return the result.
+</p>
 
+</div>
 
-                <div class="term">
+</div>
 
-                    <strong>
-                        AUTHORIZATION
-                    </strong>
+</section>
 
-                    <p>
-                        Only connect J.A.R.V.I.S. to devices,
-                        accounts or services you are authorized
-                        to control.
-                    </p>
 
-                </div>
+<section class="section">
 
+<h2>
+05 // SECURITY & PRIVACY
+</h2>
 
-                <div class="term">
+<div class="cards">
 
-                    <strong>
-                        COMPUTER ACTIONS
-                    </strong>
+<div class="card">
 
-                    <p>
-                        Automated actions should be limited
-                        to safe, intentional and authorized
-                        operations.
-                    </p>
+<b>
+LOCAL CONTROL
+</b>
 
-                </div>
+<p>
+Computer actions should remain on
+systems you own or are explicitly
+authorized to control.
+</p>
 
+</div>
 
-                <div class="term">
 
-                    <strong>
-                        THIRD-PARTY SERVICES
-                    </strong>
+<div class="card">
 
-                    <p>
-                        External APIs and services may have
-                        their own rules, limits and privacy
-                        policies.
-                    </p>
+<b>
+CREDENTIAL STORAGE
+</b>
 
-                </div>
+<p>
+This demo stores access values locally
+in your browser using localStorage.
+</p>
 
+</div>
 
-                <div class="term">
 
-                    <strong>
-                        AI ACCURACY
-                    </strong>
+<div class="card">
 
-                    <p>
-                        AI-generated information can be
-                        incorrect. Important decisions should
-                        be independently verified.
-                    </p>
+<b>
+PERMISSIONS
+</b>
 
-                </div>
+<p>
+Future integrations should request
+clear permission before accessing
+devices or services.
+</p>
 
+</div>
 
-                <div class="term">
+</div>
 
-                    <strong>
-                        DEVELOPMENT STATUS
-                    </strong>
+</section>
 
-                    <p>
-                        This interface is a personal development
-                        project and features may change over
-                        time.
-                    </p>
 
-                </div>
+<section class="section">
 
-            </div>
+<h2>
+06 // TERMS & CONDITIONS
+</h2>
 
-        </section>
+<div class="terms">
 
+<div class="term">
 
-        <div class="enter">
+<strong>
+PERSONAL USE
+</strong>
 
-            <button id="enterCore">
-                ENTER J.A.R.V.I.S. CORE →
-            </button>
+<p>
+Use this interface for your own
+projects and systems.
+</p>
 
-            <div
-                class="ready"
-                id="ready"
-            ></div>
+</div>
 
-        </div>
 
+<div class="term">
 
-    </div>
+<strong>
+AUTHORIZATION
+</strong>
+
+<p>
+Only connect J.A.R.V.I.S. to devices,
+accounts or services you are authorized
+to control.
+</p>
+
+</div>
+
+
+<div class="term">
+
+<strong>
+COMPUTER ACTIONS
+</strong>
+
+<p>
+Automated actions should be limited
+to safe, intentional and authorized
+operations.
+</p>
+
+</div>
+
+
+<div class="term">
+
+<strong>
+THIRD-PARTY SERVICES
+</strong>
+
+<p>
+External APIs and services may have
+their own rules, limits and privacy
+policies.
+</p>
+
+</div>
+
+
+<div class="term">
+
+<strong>
+AI ACCURACY
+</strong>
+
+<p>
+AI-generated information can be
+incorrect. Important decisions should
+be independently verified.
+</p>
+
+</div>
+
+
+<div class="term">
+
+<strong>
+DEVELOPMENT STATUS
+</strong>
+
+<p>
+This interface is a personal development
+project and features may change over
+time.
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+
+<div class="enter">
+
+<button id="enterCore">
+ENTER J.A.R.V.I.S. CORE →
+</button>
+
+<div
+class="ready"
+id="ready"
+></div>
+
+</div>
+
+</div>
 
 </section>
 
 
 <!-- =========================================================
-     STAGE 3
-     YOUR ORIGINAL FIRST PAGE / LOGIN
+     STAGE 3 LOGIN
 ========================================================= -->
 
 <section
-    id="loginStage"
-    class="stage"
+id="loginStage"
+class="stage"
 >
 
-    <button
-        id="createNewIdBtn"
-        onclick="createNewId()"
-    >
-        CREATE NEW ID
-    </button>
+<button
+id="createNewIdBtn"
+onclick="createNewId()"
+>
+CREATE NEW ID
+</button>
 
+<div id="loginPage">
 
-    <div id="loginPage">
+<div class="login-box">
 
-        <div class="login-box">
+<h1>
+J.A.R.V.I.S.
+</h1>
 
-            <h1>
-                J.A.R.V.I.S.
-            </h1>
+<div class="login-subtitle">
+JARVIS CORE ACCESS
+</div>
 
-            <div class="login-subtitle">
-                JARVIS CORE ACCESS
-            </div>
+<label class="login-label">
+IDENTIFICATION
+</label>
 
+<input
+id="loginName"
+class="login-input"
+type="text"
+placeholder="Enter identification"
+autocomplete="off"
+>
 
-            <label class="login-label">
-                IDENTIFICATION
-            </label>
+<label class="login-label">
+ACCESS ID
+</label>
 
-            <input
-                id="loginName"
-                class="login-input"
-                type="text"
-                placeholder="Enter identification"
-                autocomplete="off"
-            >
+<input
+id="loginAccess"
+class="login-input"
+type="text"
+placeholder="Enter access ID"
+autocomplete="off"
+>
 
+<label class="login-label">
+PASSWORD
+</label>
 
-            <label class="login-label">
-                ACCESS ID
-            </label>
+<input
+id="loginPassword"
+class="login-input"
+type="password"
+placeholder="Enter password"
+>
 
-            <input
-                id="loginAccess"
-                class="login-input"
-                type="text"
-                placeholder="Enter access ID"
-                autocomplete="off"
-            >
+<button
+class="login-button"
+onclick="initializeJarvis()"
+>
+INITIALIZE
+</button>
 
+<div id="error">
+ACCESS DENIED
+</div>
 
-            <label class="login-label">
-                PASSWORD
-            </label>
+</div>
 
-            <input
-                id="loginPassword"
-                class="login-input"
-                type="password"
-                placeholder="Enter password"
-            >
-
-
-            <button
-                class="login-button"
-                onclick="initializeJarvis()"
-            >
-                INITIALIZE
-            </button>
-
-
-            <div id="error">
-                ACCESS DENIED
-            </div>
-
-        </div>
-
-    </div>
+</div>
 
 </section>
 
 
 <!-- =========================================================
-     STAGE 4
-     YOUR ORIGINAL DASHBOARD
+     FINAL DASHBOARD
 ========================================================= -->
 
 <section
-    id="dashboardStage"
-    class="stage"
+id="dashboardStage"
+class="stage"
 >
 
-    <div id="dashboard">
+<div id="dashboard">
 
-        <div id="dashboardStars"></div>
+<div id="dashboardStars"></div>
 
-        <div class="grid"></div>
+<div class="grid"></div>
 
-        <div class="scanline"></div>
+<div class="scanline"></div>
 
 
-        <div class="topbar">
+<!-- =====================================================
+     NO DASHBOARD TOP BAR HERE
+     
+     GREETING IS ABOVE EVERYTHING
+===================================================== -->
 
-            <div class="dashboard-logo">
-                J.A.R.V.I.S.
-            </div>
+<div class="jarvis-title">
+Hi, how can I help you?
+</div>
 
-            <div class="system">
+<div class="title-line"></div>
 
-                <span class="system-dot"></span>
 
-                SYSTEM ONLINE
+<!-- =====================================================
+     LEFT PANEL
+===================================================== -->
 
-            </div>
+<div class="panel panel-left">
 
-        </div>
+<div class="panel-title">
+JARVIS CORE
+</div>
 
+<div class="panel-row">
 
-        <div class="jarvis-title">
-            Hi, how can I help you today?
-        </div>
+<span>
+AI
+</span>
 
-        <div class="title-line"></div>
+<span class="panel-value">
+ONLINE
+</span>
 
+</div>
 
-        <div class="panel panel-left">
 
-            <div class="panel-title">
-                JARVIS CORE
-            </div>
+<div class="panel-row">
 
-            <div class="panel-row">
-                <span>AI</span>
+<span>
+GEMINI
+</span>
 
-                <span class="panel-value">
-                    ONLINE
-                </span>
-            </div>
+<span class="blue">
+READY
+</span>
 
-            <div class="panel-row">
-                <span>GEMINI</span>
+</div>
 
-                <span class="blue">
-                    READY
-                </span>
-            </div>
 
-            <div class="panel-row">
-                <span>VOICE</span>
+<div class="panel-row">
 
-                <span class="purple">
-                    ACTIVE
-                </span>
-            </div>
+<span>
+VOICE
+</span>
 
-            <div class="panel-row">
-                <span>MIC</span>
+<span class="purple">
+ACTIVE
+</span>
 
-                <span class="panel-value">
-                    READY
-                </span>
-            </div>
+</div>
 
-        </div>
 
+<div class="panel-row">
 
-        <div class="panel panel-right">
+<span>
+MIC
+</span>
 
-            <div class="panel-title">
-                SYSTEM STATUS
-            </div>
+<span class="panel-value">
+READY
+</span>
 
-            <div class="panel-row">
-                <span>CORE</span>
+</div>
 
-                <span class="blue">
-                    100%
-                </span>
-            </div>
+</div>
 
-            <div class="panel-row">
-                <span>NETWORK</span>
 
-                <span class="panel-value">
-                    STABLE
-                </span>
-            </div>
+<!-- =====================================================
+     RIGHT PANEL
+===================================================== -->
 
-            <div class="panel-row">
-                <span>WAKE</span>
+<div class="panel panel-right">
 
-                <span class="purple">
-                    ACTIVE
-                </span>
-            </div>
+<div class="panel-title">
+SYSTEM STATUS
+</div>
 
-            <div class="panel-row">
-                <span>PC LINK</span>
+<div class="panel-row">
 
-                <span class="panel-value">
-                    READY
-                </span>
-            </div>
+<span>
+CORE
+</span>
 
-        </div>
+<span class="blue">
+100%
+</span>
 
+</div>
 
-        <div class="core-area">
 
-            <div class="hud-ring ring4"></div>
+<div class="panel-row">
 
-            <div class="hud-ring ring3"></div>
+<span>
+NETWORK
+</span>
 
-            <div class="hud-ring ring2"></div>
+<span class="panel-value">
+STABLE
+</span>
 
-            <div class="hud-ring ring1"></div>
+</div>
 
 
-            <div class="marker">
+<div class="panel-row">
 
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
+<span>
+WAKE
+</span>
 
-            </div>
+<span class="purple">
+ACTIVE
+</span>
 
+</div>
 
-            <div class="core-connections">
 
-                <div class="connection connection-left"></div>
+<div class="panel-row">
 
-                <div class="connection connection-right"></div>
+<span>
+PC LINK
+</span>
 
-                <div class="connection-top"></div>
+<span class="panel-value">
+READY
+</span>
 
-                <div class="connection-bottom"></div>
+</div>
 
-            </div>
+</div>
 
 
-            <div class="core-video-wrap">
+<!-- =====================================================
+     CORE
+===================================================== -->
 
-                <video
-                    id="ballVideo"
-                    autoplay
-                    loop
-                    muted
-                    playsinline
-                    preload="auto"
-                >
+<div class="core-area">
 
-                    <source
-                        src="ball.mp4"
-                        type="video/mp4"
-                    >
+<div class="hud-ring ring4"></div>
+<div class="hud-ring ring3"></div>
+<div class="hud-ring ring2"></div>
+<div class="hud-ring ring1"></div>
 
-                </video>
 
-            </div>
+<div class="marker">
 
-        </div>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
 
+</div>
 
-        <div class="core-label">
 
-            <div
-                id="coreMain"
-                class="core-main"
-            >
-                JARVIS CORE // ONLINE
-            </div>
+<div class="core-connections">
 
-            <div class="core-sub">
-                ARTIFICIAL INTELLIGENCE SYSTEM
-            </div>
+<div class="connection connection-left"></div>
 
-        </div>
+<div class="connection connection-right"></div>
 
+<div class="connection-top"></div>
 
-        <div
-            id="status"
-            class="status"
-        >
-            READY // SAY "HEY JARVIS"
-        </div>
+<div class="connection-bottom"></div>
 
+</div>
 
-        <div class="bottom">
 
-            <span>
-                JARVIS CORE // CONNECTED
-            </span>
+<div class="core-video-wrap">
 
-            <span class="bottom-center">
-                SECURE NEURAL LINK
-            </span>
+<video
+id="ballVideo"
+autoplay
+loop
+muted
+playsinline
+preload="auto"
+>
 
-            <span>
-                AI // READY
-            </span>
+<source
+src="ball.mp4"
+type="video/mp4"
+>
 
-        </div>
+</video>
 
-    </div>
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     CORE LABEL
+===================================================== -->
+
+<div class="core-label">
+
+<div
+id="coreMain"
+class="core-main"
+>
+JARVIS CORE // ONLINE
+</div>
+
+<div class="core-sub">
+ARTIFICIAL INTELLIGENCE SYSTEM
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     STATUS
+===================================================== -->
+
+<div
+id="status"
+class="status"
+>
+READY // SAY "HEY JARVIS"
+</div>
+
+
+<!-- =====================================================
+     BOTTOM
+===================================================== -->
+
+<div class="bottom">
+
+<span>
+JARVIS CORE // CONNECTED
+</span>
+
+<span class="bottom-center">
+SECURE NEURAL LINK
+</span>
+
+<span>
+AI // READY
+</span>
+
+</div>
+
+</div>
 
 </section>
 
@@ -4101,647 +3516,617 @@ body::after{
 <script>
 
 /* =========================================================
-   GLOBAL STORAGE KEYS
+   STORAGE
 ========================================================= */
 
-const KEY_NAME =
-    "jarvisName";
-
-const KEY_ACCESS =
-    "jarvisAccessId";
-
-const KEY_PASSWORD =
-    "jarvisPassword";
-
-const KEY_AUTHORIZED =
-    "jarvisCoreAuthorized";
-
-const KEY_ENTERED =
-    "jarvisCoreEntered";
-
-const KEY_DASHBOARD =
-    "jarvisDashboardAuthorized";
+const KEY_NAME="jarvisName";
+const KEY_ACCESS="jarvisAccessId";
+const KEY_PASSWORD="jarvisPassword";
+const KEY_AUTHORIZED="jarvisCoreAuthorized";
+const KEY_ENTERED="jarvisCoreEntered";
+const KEY_DASHBOARD="jarvisDashboardAuthorized";
 
 
 /* =========================================================
-   STAGE SWITCHER
+   STAGE SWITCH
 ========================================================= */
 
 function showStage(id){
 
-    document
-        .querySelectorAll(".stage")
-        .forEach(
-            stage => {
-                stage.classList.remove("active");
-            }
-        );
+document
+.querySelectorAll(".stage")
+.forEach(stage=>{
+stage.classList.remove("active");
+});
 
+const target=
+document.getElementById(id);
 
-    const target =
-        document.getElementById(id);
+if(target){
+target.classList.add("active");
+}
 
+window.scrollTo(0,0);
 
-    if(target){
-
-        target.classList.add("active");
-
-    }
-
-
-    window.scrollTo(
-        0,
-        0
-    );
 }
 
 
 /* =========================================================
-   BACKGROUND STAR FIELD
+   SPACE
 ========================================================= */
 
-const spaceCanvas =
-    document.getElementById(
-        "spaceCanvas"
-    );
+const spaceCanvas=
+document.getElementById("spaceCanvas");
 
-const spaceCtx =
-    spaceCanvas.getContext("2d");
+const spaceCtx=
+spaceCanvas.getContext("2d");
 
-let spaceW = 0;
-let spaceH = 0;
-let spaceStars = [];
+let spaceW=0;
+let spaceH=0;
+let spaceStars=[];
 
 
 function resizeSpace(){
 
-    const dpr =
-        window.devicePixelRatio || 1;
+const dpr=
+window.devicePixelRatio||1;
+
+spaceW=
+spaceCanvas.width=
+window.innerWidth*dpr;
+
+spaceH=
+spaceCanvas.height=
+window.innerHeight*dpr;
+
+spaceCanvas.style.width=
+window.innerWidth+"px";
+
+spaceCanvas.style.height=
+window.innerHeight+"px";
 
 
-    spaceW =
-        spaceCanvas.width =
-        window.innerWidth * dpr;
+spaceStars=
+Array.from(
+{length:180},
+()=>({
 
+x:Math.random()*spaceW,
 
-    spaceH =
-        spaceCanvas.height =
-        window.innerHeight * dpr;
+y:Math.random()*spaceH,
 
+r:
+Math.random()*1.5*dpr+.25,
 
-    spaceCanvas.style.width =
-        window.innerWidth + "px";
+a:Math.random(),
 
+s:
+Math.random()*.35+.08
 
-    spaceCanvas.style.height =
-        window.innerHeight + "px";
+})
+);
 
-
-    spaceStars =
-        Array.from(
-            {
-                length:180
-            },
-            () => ({
-
-                x:
-                    Math.random() *
-                    spaceW,
-
-                y:
-                    Math.random() *
-                    spaceH,
-
-                r:
-                    Math.random() *
-                    1.5 *
-                    dpr +
-                    .25,
-
-                a:
-                    Math.random(),
-
-                s:
-                    Math.random() *
-                    .35 +
-                    .08
-
-            })
-        );
 }
 
 
 function drawSpaceStars(){
 
-    spaceCtx.clearRect(
-        0,
-        0,
-        spaceW,
-        spaceH
-    );
+spaceCtx.clearRect(
+0,
+0,
+spaceW,
+spaceH
+);
+
+const dpr=
+window.devicePixelRatio||1;
 
 
-    const dpr =
-        window.devicePixelRatio || 1;
+for(const s of spaceStars){
+
+s.y+=s.s*dpr;
+
+if(s.y>spaceH){
+s.y=0;
+}
+
+s.a+=.008;
+
+const alpha=
+.25+
+.45*
+(
+(Math.sin(s.a)+1)/2
+);
 
 
-    for(
-        const s of spaceStars
-    ){
+spaceCtx.beginPath();
 
-        s.y +=
-            s.s * dpr;
+spaceCtx.arc(
+s.x,
+s.y,
+s.r,
+0,
+Math.PI*2
+);
 
+spaceCtx.fillStyle=
+`rgba(210,190,255,${alpha})`;
 
-        if(s.y > spaceH){
+spaceCtx.fill();
 
-            s.y = 0;
+}
 
-        }
+requestAnimationFrame(
+drawSpaceStars
+);
 
-
-        s.a += .008;
-
-
-        const alpha =
-            .25 +
-            .45 *
-            (
-                Math.sin(s.a) +
-                1
-            ) / 2;
-
-
-        spaceCtx.beginPath();
-
-
-        spaceCtx.arc(
-            s.x,
-            s.y,
-            s.r,
-            0,
-            Math.PI * 2
-        );
-
-
-        spaceCtx.fillStyle =
-            `rgba(210,190,255,${alpha})`;
-
-
-        spaceCtx.fill();
-
-    }
-
-
-    requestAnimationFrame(
-        drawSpaceStars
-    );
 }
 
 
 window.addEventListener(
-    "resize",
-    resizeSpace
+"resize",
+resizeSpace
 );
 
-
 resizeSpace();
+
 drawSpaceStars();
 
 
 /* =========================================================
-   STAGE 1 SAVE
+   SAVE SETUP
 ========================================================= */
 
 document
-    .getElementById("saveSetup")
-    .addEventListener(
-        "click",
-        function(){
+.getElementById("saveSetup")
+.addEventListener(
+"click",
+function(){
 
-            const name =
-                document
-                    .getElementById(
-                        "setupName"
-                    )
-                    .value
-                    .trim();
+const name=
+document
+.getElementById("setupName")
+.value
+.trim();
 
+const access=
+document
+.getElementById("setupAccess")
+.value
+.trim();
 
-            const access =
-                document
-                    .getElementById(
-                        "setupAccess"
-                    )
-                    .value
-                    .trim();
-
-
-            const pass =
-                document
-                    .getElementById(
-                        "setupPass"
-                    )
-                    .value;
+const pass=
+document
+.getElementById("setupPass")
+.value;
 
 
-            if(
-                !name ||
-                !access ||
-                !pass
-            ){
+if(!name||!access||!pass){
 
-                alert(
-                    "Please complete all three fields."
-                );
+alert(
+"Please complete all three fields."
+);
 
-                return;
-            }
+return;
+
+}
 
 
-            /*
-               SAVE USER INFORMATION
-            */
+localStorage.setItem(
+KEY_NAME,
+name
+);
 
-            localStorage.setItem(
-                KEY_NAME,
-                name
-            );
+localStorage.setItem(
+KEY_ACCESS,
+access
+);
 
+localStorage.setItem(
+KEY_PASSWORD,
+pass
+);
 
-            localStorage.setItem(
-                KEY_ACCESS,
-                access
-            );
+localStorage.setItem(
+KEY_AUTHORIZED,
+"true"
+);
 
-
-            localStorage.setItem(
-                KEY_PASSWORD,
-                pass
-            );
-
-
-            /*
-               AUTHORIZE THE CORE
-            */
-
-            localStorage.setItem(
-                KEY_AUTHORIZED,
-                "true"
-            );
+localStorage.removeItem(
+KEY_DASHBOARD
+);
 
 
-            /*
-               IMPORTANT:
-               Creating a NEW ID starts the flow
-               again, so dashboard authorization
-               is reset.
-            */
-
-            localStorage.removeItem(
-                KEY_DASHBOARD
-            );
+document
+.getElementById(
+"authorizationOverlay"
+)
+.classList.add("show");
 
 
-            /*
-               GREEN BALL
-            */
+setTimeout(
+function(){
 
-            document
-                .getElementById(
-                    "authorizationOverlay"
-                )
-                .classList
-                .add("show");
+document
+.getElementById(
+"authorizationOverlay"
+)
+.classList.remove("show");
 
+showStage(
+"infoStage"
+);
 
-            /*
-               GO TO INFORMATION PAGE
-            */
+document
+.getElementById(
+"welcomeName"
+)
+.textContent=
+"WELCOME, "+
+name.toUpperCase();
 
-            setTimeout(
-                function(){
+},
+1900
+);
 
-                    document
-                        .getElementById(
-                            "authorizationOverlay"
-                        )
-                        .classList
-                        .remove("show");
-
-
-                    showStage(
-                        "infoStage"
-                    );
+}
+);
 
 
-                    document
-                        .getElementById(
-                            "welcomeName"
-                        )
-                        .textContent =
-                        "WELCOME, " +
-                        name.toUpperCase();
+/* =========================================================
+   SETUP LOGIN
+========================================================= */
 
-                },
-                1900
-            );
+function setupLogin(){
 
-        }
-    );
+const savedName=
+localStorage.getItem(
+KEY_NAME
+);
+
+const savedAccess=
+localStorage.getItem(
+KEY_ACCESS
+);
+
+const savedPassword=
+localStorage.getItem(
+KEY_PASSWORD
+);
+
+const authorized=
+localStorage.getItem(
+KEY_AUTHORIZED
+)==="true";
+
+
+if(
+!authorized||
+!savedName||
+!savedAccess||
+!savedPassword
+){
+
+alert(
+"CREATE AN ID FIRST"
+);
+
+return;
+
+}
+
+
+document
+.getElementById(
+"welcomeName"
+)
+.textContent=
+"WELCOME, "+
+savedName.toUpperCase();
+
+showStage(
+"infoStage"
+);
+
+}
 
 
 /* =========================================================
    ENTER CORE
-   INFO PAGE → YOUR ORIGINAL LOGIN PAGE
 ========================================================= */
 
 document
-    .getElementById("enterCore")
-    .addEventListener(
-        "click",
-        function(){
+.getElementById(
+"enterCore"
+)
+.addEventListener(
+"click",
+function(){
 
-            if(
-                localStorage.getItem(
-                    KEY_AUTHORIZED
-                ) !== "true"
-            ){
-
-                return;
-            }
-
-
-            localStorage.setItem(
-                KEY_ENTERED,
-                "true"
-            );
+if(
+localStorage.getItem(
+KEY_AUTHORIZED
+)!=="true"
+){
+return;
+}
 
 
-            document
-                .getElementById(
-                    "ready"
-                )
-                .textContent =
-                "CORE READY // OPENING J.A.R.V.I.S. INTERFACE";
+localStorage.setItem(
+KEY_ENTERED,
+"true"
+);
 
 
-            setTimeout(
-                function(){
+document
+.getElementById(
+"ready"
+)
+.textContent=
+"CORE READY // OPENING J.A.R.V.I.S. INTERFACE";
 
-                    showStage(
-                        "loginStage"
-                    );
 
+setTimeout(
+function(){
 
-                    loadSavedCredentials();
+showStage(
+"loginStage"
+);
 
-                },
-                700
-            );
+loadSavedCredentials();
 
-        }
-    );
+},
+700
+);
+
+}
+);
 
 
 /* =========================================================
-   LOAD SAVED CREDENTIALS
+   LOAD CREDENTIALS
 ========================================================= */
 
 function loadSavedCredentials(){
 
-    const savedName =
-        localStorage.getItem(
-            KEY_NAME
-        );
+const savedName=
+localStorage.getItem(
+KEY_NAME
+);
+
+const savedAccess=
+localStorage.getItem(
+KEY_ACCESS
+);
 
 
-    const savedAccess =
-        localStorage.getItem(
-            KEY_ACCESS
-        );
+if(savedName){
+
+document
+.getElementById(
+"loginName"
+)
+.value=
+savedName;
+
+}
 
 
-    if(savedName){
+if(savedAccess){
 
-        document
-            .getElementById(
-                "loginName"
-            )
-            .value =
-            savedName;
+document
+.getElementById(
+"loginAccess"
+)
+.value=
+savedAccess;
 
-    }
-
-
-    if(savedAccess){
-
-        document
-            .getElementById(
-                "loginAccess"
-            )
-            .value =
-            savedAccess;
-
-    }
+}
 
 }
 
 
 /* =========================================================
-   CREATE NEW ID
-   YOUR PAGE → MY FIRST PAGE
+   NEW ID
 ========================================================= */
 
 function createNewId(){
 
-    /*
-       Stop old dashboard authorization.
-    */
+localStorage.removeItem(
+KEY_DASHBOARD
+);
 
-    localStorage.removeItem(
-        KEY_DASHBOARD
-    );
+localStorage.removeItem(
+KEY_ENTERED
+);
 
+localStorage.removeItem(
+KEY_NAME
+);
 
-    localStorage.removeItem(
-        KEY_ENTERED
-    );
+localStorage.removeItem(
+KEY_ACCESS
+);
 
+localStorage.removeItem(
+KEY_PASSWORD
+);
 
-    /*
-       Remove the saved identity.
-    */
-
-    localStorage.removeItem(
-        KEY_NAME
-    );
-
-
-    localStorage.removeItem(
-        KEY_ACCESS
-    );
+localStorage.removeItem(
+KEY_AUTHORIZED
+);
 
 
-    localStorage.removeItem(
-        KEY_PASSWORD
-    );
+document.getElementById(
+"loginName"
+).value="";
+
+document.getElementById(
+"loginAccess"
+).value="";
+
+document.getElementById(
+"loginPassword"
+).value="";
 
 
-    localStorage.removeItem(
-        KEY_AUTHORIZED
-    );
+document.getElementById(
+"setupName"
+).value="";
+
+document.getElementById(
+"setupAccess"
+).value="";
+
+document.getElementById(
+"setupPass"
+).value="";
 
 
-    /*
-       Clear login fields.
-    */
-
-    document
-        .getElementById(
-            "loginName"
-        )
-        .value = "";
+document.getElementById(
+"error"
+).style.display="none";
 
 
-    document
-        .getElementById(
-            "loginAccess"
-        )
-        .value = "";
-
-
-    document
-        .getElementById(
-            "loginPassword"
-        )
-        .value = "";
-
-
-    /*
-       Return to the actual first page.
-    */
-
-    showStage(
-        "setupStage"
-    );
+showStage(
+"setupStage"
+);
 
 }
 
 
 /* =========================================================
-   YOUR ORIGINAL LOGIN
+   LOGIN
 ========================================================= */
 
 function initializeJarvis(){
 
-    /*
-       YOUR LOGIN CANNOT BE USED DIRECTLY
-       WITHOUT THE FIRST PAGE AUTHORIZATION.
-    */
+if(
+localStorage.getItem(
+KEY_AUTHORIZED
+)!=="true"
+){
 
-    if(
-        localStorage.getItem(
-            KEY_AUTHORIZED
-        ) !== "true"
-    ){
+showStage(
+"setupStage"
+);
 
-        showStage(
-            "setupStage"
-        );
+return;
 
-        return;
-    }
+}
 
 
-    const enteredName =
-        document
-            .getElementById(
-                "loginName"
-            )
-            .value
-            .trim();
+const enteredName=
+document
+.getElementById(
+"loginName"
+)
+.value
+.trim();
+
+const enteredAccess=
+document
+.getElementById(
+"loginAccess"
+)
+.value
+.trim();
+
+const enteredPassword=
+document
+.getElementById(
+"loginPassword"
+)
+.value;
 
 
-    const enteredAccess =
-        document
-            .getElementById(
-                "loginAccess"
-            )
-            .value
-            .trim();
+const savedName=
+localStorage.getItem(
+KEY_NAME
+);
+
+const savedAccess=
+localStorage.getItem(
+KEY_ACCESS
+);
+
+const savedPassword=
+localStorage.getItem(
+KEY_PASSWORD
+);
 
 
-    const enteredPassword =
-        document
-            .getElementById(
-                "loginPassword"
-            )
-            .value;
+if(
+enteredName!==savedName||
+enteredAccess!==savedAccess||
+enteredPassword!==savedPassword
+){
+
+document
+.getElementById(
+"error"
+)
+.style.display="block";
+
+return;
+
+}
 
 
-    const savedName =
-        localStorage.getItem(
-            KEY_NAME
-        );
+document
+.getElementById(
+"error"
+)
+.style.display="none";
 
 
-    const savedAccess =
-        localStorage.getItem(
-            KEY_ACCESS
-        );
+localStorage.setItem(
+KEY_DASHBOARD,
+"true"
+);
 
 
-    const savedPassword =
-        localStorage.getItem(
-            KEY_PASSWORD
-        );
+showDashboard();
+
+}
 
 
-    /*
-       CHECK ALL THREE VALUES
-    */
+/* =========================================================
+   DASHBOARD GREETINGS
+========================================================= */
 
-    if(
-        enteredName !== savedName ||
-        enteredAccess !== savedAccess ||
-        enteredPassword !== savedPassword
-    ){
-
-        document
-            .getElementById(
-                "error"
-            )
-            .style.display =
-            "block";
-
-        return;
-    }
+const dashboardGreetings=[
+"Hi, how can I help you?",
+"What's on your mind?",
+"What should we do today?",
+"What's the vibe?"
+];
 
 
-    document
-        .getElementById(
-            "error"
-        )
-        .style.display =
-        "none";
+function setRandomGreeting(){
+
+const greeting=
+document.querySelector(
+".jarvis-title"
+);
+
+if(!greeting){
+return;
+}
 
 
-    /*
-       DASHBOARD AUTHORIZED
-    */
-
-    localStorage.setItem(
-        KEY_DASHBOARD,
-        "true"
-    );
+const randomIndex=
+Math.floor(
+Math.random()*
+dashboardGreetings.length
+);
 
 
-    /*
-       START YOUR ORIGINAL DASHBOARD
-    */
-
-    showDashboard();
+greeting.textContent=
+dashboardGreetings[
+randomIndex
+];
 
 }
 
@@ -4752,27 +4137,28 @@ function initializeJarvis(){
 
 function showDashboard(){
 
-    showStage(
-        "dashboardStage"
-    );
+showStage(
+"dashboardStage"
+);
 
 
-    createDashboardStars();
+/* RANDOM GREETING EVERY TIME DASHBOARD OPENS */
+
+setRandomGreeting();
 
 
-    shootLines();
+createDashboardStars();
 
+shootLines();
 
-    startMicrophone();
+startMicrophone();
 
+startPythonBridge();
 
-    startPythonBridge();
-
-
-    setTimeout(
-        startWakeRecognition,
-        1000
-    );
+setTimeout(
+startWakeRecognition,
+1000
+);
 
 }
 
@@ -4783,148 +4169,128 @@ function showDashboard(){
 
 function createDashboardStars(){
 
-    const container =
-        document.getElementById(
-            "dashboardStars"
-        );
+const container=
+document.getElementById(
+"dashboardStars"
+);
+
+container.innerHTML="";
 
 
-    container.innerHTML = "";
+for(
+let i=0;
+i<180;
+i++
+){
+
+const star=
+document.createElement(
+"div"
+);
+
+star.className="star";
 
 
-    for(
-        let i = 0;
-        i < 180;
-        i++
-    ){
+star.style.left=
+Math.random()*100+
+"%";
 
-        const star =
-            document.createElement(
-                "div"
-            );
+star.style.top=
+Math.random()*100+
+"%";
 
-
-        star.className =
-            "star";
+star.style.opacity=
+.15+
+Math.random()*.7;
 
 
-        star.style.left =
-            Math.random() *
-            100 +
-            "%";
+const size=
+.5+
+Math.random()*2;
 
 
-        star.style.top =
-            Math.random() *
-            100 +
-            "%";
+star.style.width=
+size+
+"px";
+
+star.style.height=
+size+
+"px";
 
 
-        star.style.opacity =
-            .15 +
-            Math.random() *
-            .7;
+container.appendChild(
+star
+);
 
-
-        const size =
-            .5 +
-            Math.random() *
-            2;
-
-
-        star.style.width =
-            size +
-            "px";
-
-
-        star.style.height =
-            size +
-            "px";
-
-
-        container.appendChild(
-            star
-        );
-
-    }
+}
 
 }
 
 
 /* =========================================================
-   INITIALIZATION WIRES
+   SHOOT WIRES
 ========================================================= */
 
 function shootLines(){
 
-    const container =
-        document.getElementById(
-            "initLines"
-        );
+const container=
+document.getElementById(
+"initLines"
+);
+
+container.innerHTML="";
 
 
-    container.innerHTML = "";
+const angles=[
+-75,
+-60,
+-45,
+-30,
+-15,
+15,
+30,
+45,
+60,
+75
+];
 
 
-    const angles = [
-        -75,
-        -60,
-        -45,
-        -30,
-        -15,
-        15,
-        30,
-        45,
-        60,
-        75
-    ];
+angles.forEach(
+(angle,i)=>{
+
+const wire=
+document.createElement(
+"div"
+);
+
+wire.className="wire";
+
+wire.style.left="50%";
+
+wire.style.top="50%";
+
+wire.style.transform=
+`rotate(${angle}deg)`;
+
+wire.style.animation=
+`wireShoot 1.1s ease-out ${i*.04}s forwards`;
+
+container.appendChild(
+wire
+);
+
+}
+);
 
 
-    angles.forEach(
-        (angle,i)=>{
+setTimeout(
+function(){
 
-            const wire =
-                document.createElement(
-                    "div"
-                );
+container.innerHTML="";
 
-
-            wire.className =
-                "wire";
-
-
-            wire.style.left =
-                "50%";
-
-
-            wire.style.top =
-                "50%";
-
-
-            wire.style.transform =
-                `rotate(${angle}deg)`;
-
-
-            wire.style.animation =
-                `wireShoot 1.1s ease-out ${i*.04}s forwards`;
-
-
-            container.appendChild(
-                wire
-            );
-
-        }
-    );
-
-
-    setTimeout(
-        function(){
-
-            container.innerHTML = "";
-
-        },
-        1600
-    );
+},
+1600
+);
 
 }
 
@@ -4933,69 +4299,66 @@ function shootLines(){
    MICROPHONE
 ========================================================= */
 
-let analyser = null;
+let analyser=null;
 
-let audioData = null;
+let audioData=null;
 
 
 async function startMicrophone(){
 
-    try{
+try{
 
-        const stream =
-            await navigator
-                .mediaDevices
-                .getUserMedia({
-                    audio:true
-                });
-
-
-        const audioContext =
-            new(
-                window.AudioContext ||
-                window.webkitAudioContext
-            )();
+const stream=
+await navigator
+.mediaDevices
+.getUserMedia({
+audio:true
+});
 
 
-        const source =
-            audioContext
-                .createMediaStreamSource(
-                    stream
-                );
+const audioContext=
+new(
+window.AudioContext||
+window.webkitAudioContext
+)();
 
 
-        analyser =
-            audioContext
-                .createAnalyser();
+const source=
+audioContext
+.createMediaStreamSource(
+stream
+);
 
 
-        analyser.fftSize =
-            512;
+analyser=
+audioContext
+.createAnalyser();
 
 
-        analyser.smoothingTimeConstant =
-            .72;
+analyser.fftSize=512;
+
+analyser.smoothingTimeConstant=.72;
 
 
-        source.connect(
-            analyser
-        );
+source.connect(
+analyser
+);
 
 
-        audioData =
-            new Uint8Array(
-                analyser.frequencyBinCount
-            );
+audioData=
+new Uint8Array(
+analyser.frequencyBinCount
+);
 
-    }
-    catch(error){
 
-        console.log(
-            "Microphone unavailable:",
-            error
-        );
+}catch(error){
 
-    }
+console.log(
+"Microphone unavailable:",
+error
+);
+
+}
 
 }
 
@@ -5006,859 +4369,779 @@ async function startMicrophone(){
 
 function setStatus(text){
 
-    document
-        .getElementById(
-            "status"
-        )
-        .textContent =
-        text;
+document
+.getElementById(
+"status"
+)
+.textContent=
+text;
 
 }
 
 
 /* =========================================================
-   CORE BORDER STATES
+   LISTENING
 ========================================================= */
 
 function setListening(){
 
-    const core =
-        document.querySelector(
-            ".core-video-wrap"
-        );
+const core=
+document.querySelector(
+".core-video-wrap"
+);
 
-
-    if(!core)
-        return;
-
-
-    core.classList.remove(
-        "responding"
-    );
-
-
-    core.classList.add(
-        "listening"
-    );
-
+if(!core){
+return;
 }
 
 
-function setResponding(){
+core.classList.remove(
+"responding"
+);
 
-    const core =
-        document.querySelector(
-            ".core-video-wrap"
-        );
-
-
-    if(!core)
-        return;
-
-
-    core.classList.remove(
-        "listening"
-    );
-
-
-    core.classList.add(
-        "responding"
-    );
-
-}
-
-
-function setReady(){
-
-    const core =
-        document.querySelector(
-            ".core-video-wrap"
-        );
-
-
-    if(!core)
-        return;
-
-
-    core.classList.remove(
-        "listening",
-        "responding"
-    );
+core.classList.add(
+"listening"
+);
 
 }
 
 
 /* =========================================================
-   PYTHON JARVIS BRIDGE
+   RESPONDING
 ========================================================= */
 
-let lastPythonState = "";
+function setResponding(){
 
-let lastPythonMessage = "";
+const core=
+document.querySelector(
+".core-video-wrap"
+);
+
+if(!core){
+return;
+}
+
+
+core.classList.remove(
+"listening"
+);
+
+core.classList.add(
+"responding"
+);
+
+}
+
+
+/* =========================================================
+   READY
+========================================================= */
+
+function setReady(){
+
+const core=
+document.querySelector(
+".core-video-wrap"
+);
+
+if(!core){
+return;
+}
+
+
+core.classList.remove(
+"listening",
+"responding"
+);
+
+}
+
+
+/* =========================================================
+   PYTHON BRIDGE
+========================================================= */
+
+let lastPythonState="";
+
+let lastPythonMessage="";
 
 
 async function updatePythonState(){
 
-    /*
-       Only communicate with the LOCAL
-       EDITH/JARVIS bridge.
-    */
+try{
 
-    try{
-
-        const response =
-            await fetch(
-                "http://127.0.0.1:8765/state?t=" +
-                Date.now(),
-                {
-                    cache:"no-store"
-                }
-            );
+const response=
+await fetch(
+"http://127.0.0.1:8765/state?t="+
+Date.now(),
+{
+cache:"no-store"
+}
+);
 
 
-        if(!response.ok){
+if(!response.ok){
 
-            throw new Error(
-                "Bridge unavailable"
-            );
-
-        }
-
-
-        const data =
-            await response.json();
-
-
-        if(
-            data.state === lastPythonState &&
-            data.message === lastPythonMessage
-        ){
-
-            return;
-
-        }
-
-
-        lastPythonState =
-            data.state;
-
-
-        lastPythonMessage =
-            data.message;
-
-
-        console.log(
-            "PYTHON STATE:",
-            data.state,
-            data.message
-        );
-
-
-        const state =
-            String(
-                data.state || ""
-            )
-            .toLowerCase();
-
-
-        if(
-            state.includes("respond") ||
-            state.includes("speak") ||
-            state.includes("tts") ||
-            state.includes("talk")
-        ){
-
-            setResponding();
-
-        }
-
-        else if(
-            state.includes("listen") ||
-            state.includes("input")
-        ){
-
-            setListening();
-
-        }
-
-        else if(
-            state.includes("idle") ||
-            state.includes("ready") ||
-            state.includes("standby") ||
-            state.includes("waiting")
-        ){
-
-            setReady();
-
-        }
-
-    }
-    catch(error){
-
-        console.log(
-            "PYTHON BRIDGE ERROR:",
-            error.message
-        );
-
-    }
+throw new Error(
+"Bridge unavailable"
+);
 
 }
 
 
-let pythonBridgeTimer = null;
+const data=
+await response.json();
+
+
+if(
+data.state===lastPythonState&&
+data.message===lastPythonMessage
+){
+
+return;
+
+}
+
+
+lastPythonState=
+data.state;
+
+lastPythonMessage=
+data.message;
+
+
+console.log(
+"PYTHON STATE:",
+data.state,
+data.message
+);
+
+
+const state=
+String(
+data.state||""
+)
+.toLowerCase();
+
+
+if(
+state.includes("respond")||
+state.includes("speak")||
+state.includes("tts")||
+state.includes("talk")
+){
+
+setResponding();
+
+}
+
+
+else if(
+state.includes("listen")||
+state.includes("input")
+){
+
+setListening();
+
+}
+
+
+else if(
+state.includes("idle")||
+state.includes("ready")||
+state.includes("standby")||
+state.includes("waiting")
+){
+
+setReady();
+
+}
+
+
+}catch(error){
+
+console.log(
+"PYTHON BRIDGE ERROR:",
+error.message
+);
+
+}
+
+}
+
+
+let pythonBridgeTimer=null;
 
 
 function startPythonBridge(){
 
-    console.log(
-        "PYTHON JARVIS BRIDGE STARTING..."
-    );
+console.log(
+"PYTHON JARVIS BRIDGE STARTING..."
+);
 
 
-    if(!pythonBridgeTimer){
+if(!pythonBridgeTimer){
 
-        updatePythonState();
+updatePythonState();
 
 
-        pythonBridgeTimer =
-            setInterval(
-                updatePythonState,
-                500
-            );
+pythonBridgeTimer=
+setInterval(
+updatePythonState,
+500
+);
 
-    }
+}
 
 }
 
 
 /* =========================================================
-   JARVIS VISUAL STATES
+   JARVIS ACTIVE
 ========================================================= */
 
 function activateJarvis(){
 
-    console.log(
-        "JARVIS WAKE DETECTED"
-    );
+console.log(
+"JARVIS WAKE DETECTED"
+);
 
+setListening();
 
-    setListening();
-
-
-    updatePythonState();
+updatePythonState();
 
 }
 
 
 /* =========================================================
-   WAKE WORD RECOGNITION
+   SPEECH
 ========================================================= */
 
-let recognition = null;
+let recognition=null;
 
-let recognitionStarted = false;
+let recognitionStarted=false;
 
-let recognitionRestartTimer = null;
+let recognitionRestartTimer=null;
 
-let lastWakeTime = 0;
+let lastWakeTime=0;
 
 
 function cleanTranscript(text){
 
-    return text
-        .toLowerCase()
-        .replace(
-            /[.,!?;:]/g,
-            " "
-        )
-        .replace(
-            /\s+/g,
-            " "
-        )
-        .trim();
+return text
+.toLowerCase()
+.replace(
+/[.,!?;:]/g,
+" "
+)
+.replace(
+/\s+/g,
+" "
+)
+.trim();
 
 }
 
 
 function containsWakeWord(text){
 
-    const cleaned =
-        cleanTranscript(
-            text
-        );
+const cleaned=
+cleanTranscript(
+text
+);
 
 
-    return (
-
-        cleaned.includes(
-            "hey jarvis"
-        )
-
-        ||
-
-        cleaned.includes(
-            "hey jervis"
-        )
-
-        ||
-
-        cleaned.includes(
-            "a jarvis"
-        )
-
-        ||
-
-        cleaned.includes(
-            "ay jarvis"
-        )
-
-    );
+return(
+cleaned.includes(
+"hey jarvis"
+)||
+cleaned.includes(
+"hey jervis"
+)||
+cleaned.includes(
+"a jarvis"
+)||
+cleaned.includes(
+"ay jarvis"
+)
+);
 
 }
 
 
 function handleTranscript(text){
 
-    console.log(
-        "Heard:",
-        text
-    );
+console.log(
+"Heard:",
+text
+);
 
 
-    setListening();
+setListening();
 
 
-    if(
-        !containsWakeWord(text)
-    ){
-
-        return;
-
-    }
-
-
-    const now =
-        Date.now();
+if(
+!containsWakeWord(
+text
+)
+){
+return;
+}
 
 
-    if(
-        now -
-        lastWakeTime <
-        6000
-    ){
-
-        return;
-
-    }
+const now=
+Date.now();
 
 
-    lastWakeTime =
-        now;
+if(
+now-lastWakeTime<
+6000
+){
+return;
+}
 
 
-    console.log(
-        "JARVIS WAKE WORD DETECTED"
-    );
+lastWakeTime=
+now;
 
 
-    activateJarvis();
+console.log(
+"JARVIS WAKE WORD DETECTED"
+);
+
+
+activateJarvis();
 
 }
 
 
 /* =========================================================
-   CREATE RECOGNITION
+   RECOGNITION
 ========================================================= */
 
 function createRecognition(){
 
-    const SpeechRecognition =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
+const SpeechRecognition=
+window.SpeechRecognition||
+window.webkitSpeechRecognition;
 
 
-    if(!SpeechRecognition){
+if(!SpeechRecognition){
 
-        console.log(
-            "Speech Recognition not supported."
-        );
+console.log(
+"Speech Recognition not supported."
+);
 
+setStatus(
+"USE CHROME"
+);
 
-        setStatus(
-            "USE CHROME"
-        );
+return null;
 
+}
 
-        return null;
 
-    }
+const r=
+new SpeechRecognition();
 
 
-    const r =
-        new SpeechRecognition();
+r.continuous=true;
 
+r.interimResults=true;
 
-    r.continuous =
-        true;
+r.lang="en-US";
 
+r.maxAlternatives=3;
 
-    r.interimResults =
-        true;
 
+r.onstart=
+function(){
 
-    r.lang =
-        "en-US";
+recognitionStarted=true;
 
 
-    r.maxAlternatives =
-        3;
+console.log(
+"JARVIS voice recognition ACTIVE"
+);
 
+};
 
-    r.onstart =
-        function(){
 
-            recognitionStarted =
-                true;
+r.onresult=
+function(event){
 
+for(
+let i=
+event.resultIndex;
+i<
+event.results.length;
+i++
+){
 
-            console.log(
-                "JARVIS voice recognition ACTIVE"
-            );
+const result=
+event.results[i];
 
-        };
 
+let text="";
 
-    r.onresult =
-        function(event){
 
-            for(
-                let i =
-                    event.resultIndex;
+for(
+let j=0;
+j<result.length;
+j++
+){
 
-                i <
-                    event.results.length;
+text+=
+" "+
+result[j].transcript;
 
-                i++
-            ){
+}
 
-                const result =
-                    event.results[i];
 
+text=
+text.trim();
 
-                let text = "";
 
+if(text){
 
-                for(
-                    let j=0;
+handleTranscript(
+text
+);
 
-                    j <
-                        result.length;
+}
 
-                    j++
-                ){
+}
 
-                    text +=
-                        " " +
-                        result[j].transcript;
+};
 
-                }
 
+r.onerror=
+function(event){
 
-                text =
-                    text.trim();
+console.log(
+"Speech recognition error:",
+event.error
+);
 
 
-                if(text){
+recognitionStarted=false;
 
-                    handleTranscript(
-                        text
-                    );
 
-                }
+if(
+event.error==="not-allowed"||
+event.error==="service-not-allowed"
+){
 
-            }
+setStatus(
+"MIC PERMISSION"
+);
 
-        };
+return;
 
+}
 
-    r.onerror =
-        function(event){
 
-            console.log(
-                "Speech recognition error:",
-                event.error
-            );
+scheduleRecognitionRestart();
 
+};
 
-            recognitionStarted =
-                false;
 
+r.onend=
+function(){
 
-            if(
-                event.error ===
-                    "not-allowed"
+console.log(
+"Recognition stopped."
+);
 
-                ||
 
-                event.error ===
-                    "service-not-allowed"
-            ){
+recognitionStarted=false;
 
-                setStatus(
-                    "MIC PERMISSION"
-                );
 
+scheduleRecognitionRestart();
 
-                return;
+};
 
-            }
 
-
-            scheduleRecognitionRestart();
-
-        };
-
-
-    r.onend =
-        function(){
-
-            console.log(
-                "Recognition stopped."
-            );
-
-
-            recognitionStarted =
-                false;
-
-
-            scheduleRecognitionRestart();
-
-        };
-
-
-    return r;
+return r;
 
 }
 
 
 /* =========================================================
-   RESTART RECOGNITION
+   RESTART
 ========================================================= */
 
 function scheduleRecognitionRestart(){
 
-    if(
-        recognitionRestartTimer
-    ){
-
-        return;
-
-    }
+if(
+recognitionRestartTimer
+){
+return;
+}
 
 
-    recognitionRestartTimer =
-        setTimeout(
-            function(){
+recognitionRestartTimer=
+setTimeout(
+function(){
 
-                recognitionRestartTimer =
-                    null;
+recognitionRestartTimer=null;
 
+startWakeRecognition();
 
-                startWakeRecognition();
-
-            },
-            700
-        );
+},
+700
+);
 
 }
 
 
 /* =========================================================
-   START WAKE RECOGNITION
+   START RECOGNITION
 ========================================================= */
 
 function startWakeRecognition(){
 
-    /*
-       Only start recognition while dashboard
-       is actually active.
-    */
+if(
+!document
+.getElementById(
+"dashboardStage"
+)
+.classList
+.contains(
+"active"
+)
+){
 
-    if(
-        !document
-            .getElementById(
-                "dashboardStage"
-            )
-            .classList
-            .contains("active")
-    ){
+return;
 
-        return;
-
-    }
+}
 
 
-    if(!recognition){
+if(!recognition){
 
-        recognition =
-            createRecognition();
+recognition=
+createRecognition();
 
-    }
-
-
-    if(!recognition)
-        return;
+}
 
 
-    if(recognitionStarted)
-        return;
+if(!recognition){
+return;
+}
 
 
-    try{
-
-        recognition.start();
-
-
-        console.log(
-            "Starting JARVIS recognition..."
-        );
-
-    }
-    catch(error){
-
-        console.log(
-            "Recognition start:",
-            error
-        );
+if(recognitionStarted){
+return;
+}
 
 
-        scheduleRecognitionRestart();
+try{
 
-    }
+recognition.start();
+
+
+console.log(
+"Starting JARVIS recognition..."
+);
+
+}catch(error){
+
+console.log(
+"Recognition start:",
+error
+);
+
+scheduleRecognitionRestart();
+
+}
 
 }
 
 
 /* =========================================================
-   KEEP RECOGNITION ALIVE
+   KEEP ALIVE
 ========================================================= */
 
 setInterval(
-    function(){
+function(){
 
-        if(
-            document
-                .getElementById(
-                    "dashboardStage"
-                )
-                .classList
-                .contains("active")
-        ){
+if(
+document
+.getElementById(
+"dashboardStage"
+)
+.classList
+.contains(
+"active"
+)
+){
 
-            if(
-                !recognitionStarted
-            ){
+if(!recognitionStarted){
 
-                startWakeRecognition();
+startWakeRecognition();
 
-            }
+}
 
-        }
+}
 
-    },
-    3000
+},
+3000
 );
 
 
 /* =========================================================
-   KEYBOARD TEST
+   KEYBOARD J
 ========================================================= */
 
 document.addEventListener(
-    "keydown",
-    function(event){
+"keydown",
+function(event){
 
-        if(
-            event.key.toLowerCase() ===
-            "j"
-        ){
+if(
+event.key.toLowerCase()==="j"
+){
 
-            /*
-               J test only when dashboard
-               is active.
-            */
+if(
+document
+.getElementById(
+"dashboardStage"
+)
+.classList
+.contains(
+"active"
+)
+){
 
-            if(
-                document
-                    .getElementById(
-                        "dashboardStage"
-                    )
-                    .classList
-                    .contains("active")
-            ){
+activateJarvis();
 
-                activateJarvis();
+}
 
-            }
+}
 
-        }
-
-    }
+}
 );
 
 
 /* =========================================================
-   PAGE ROUTER
+   ROUTER
 ========================================================= */
 
 function routeOnLoad(){
 
-    const authorized =
-        localStorage.getItem(
-            KEY_AUTHORIZED
-        ) === "true";
+const authorized=
+localStorage.getItem(
+KEY_AUTHORIZED
+)==="true";
 
 
-    const entered =
-        localStorage.getItem(
-            KEY_ENTERED
-        ) === "true";
+const entered=
+localStorage.getItem(
+KEY_ENTERED
+)==="true";
 
 
-    const dashboardAuthorized =
-        localStorage.getItem(
-            KEY_DASHBOARD
-        ) === "true";
+const dashboardAuthorized=
+localStorage.getItem(
+KEY_DASHBOARD
+)==="true";
 
 
-    /*
-       NOTHING SAVED
-       → FIRST PAGE
-    */
+if(!authorized){
 
-    if(!authorized){
+showStage(
+"setupStage"
+);
 
-        showStage(
-            "setupStage"
-        );
+return;
 
-        return;
-
-    }
+}
 
 
-    /*
-       AUTHORIZED + DASHBOARD ALREADY OPENED
-       → DASHBOARD DIRECTLY
-    */
+if(
+authorized&&
+entered&&
+dashboardAuthorized
+){
 
-    if(
-        authorized &&
-        entered &&
-        dashboardAuthorized
-    ){
+showDashboard();
 
-        /*
-           Do not automatically start the dashboard
-           microphone until dashboard is visible.
-        */
+return;
 
-        showDashboard();
-
-        return;
-
-    }
+}
 
 
-    /*
-       AUTHORIZED BUT NOT YET THROUGH INFO PAGE
-       → INFO PAGE
-    */
+if(
+authorized&&
+!entered
+){
 
-    if(
-        authorized &&
-        !entered
-    ){
-
-        const name =
-            localStorage.getItem(
-                KEY_NAME
-            );
+const name=
+localStorage.getItem(
+KEY_NAME
+);
 
 
-        if(name){
+if(name){
 
-            document
-                .getElementById(
-                    "welcomeName"
-                )
-                .textContent =
-                "WELCOME, " +
-                name.toUpperCase();
+document
+.getElementById(
+"welcomeName"
+)
+.textContent=
+"WELCOME, "+
+name.toUpperCase();
 
-        }
-
-
-        showStage(
-            "infoStage"
-        );
-
-        return;
-
-    }
+}
 
 
-    /*
-       AUTHORIZED + ENTERED
-       BUT NOT DASHBOARD
-       → YOUR ORIGINAL LOGIN PAGE
-    */
+showStage(
+"infoStage"
+);
 
-    if(
-        authorized &&
-        entered &&
-        !dashboardAuthorized
-    ){
+return;
 
-        loadSavedCredentials();
+}
 
 
-        showStage(
-            "loginStage"
-        );
+if(
+authorized&&
+entered&&
+!dashboardAuthorized
+){
 
-        return;
+loadSavedCredentials();
 
-    }
+showStage(
+"loginStage"
+);
+
+return;
+
+}
 
 
-    /*
-       SAFETY FALLBACK
-    */
-
-    showStage(
-        "setupStage"
-    );
+showStage(
+"setupStage"
+);
 
 }
 
 
 /* =========================================================
-   PAGE LOAD
+   LOAD
 ========================================================= */
 
 window.addEventListener(
-    "load",
-    function(){
+"load",
+function(){
 
-        console.log(
-            "J.A.R.V.I.S. // EDITH CORE LOADED"
-        );
+console.log(
+"J.A.R.V.I.S. // CORE LOADED"
+);
 
+routeOnLoad();
 
-        routeOnLoad();
-
-    }
+}
 );
 
 </script>
