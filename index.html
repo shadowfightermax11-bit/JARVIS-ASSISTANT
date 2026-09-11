@@ -1,36 +1,1519 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>J.A.R.V.I.S.</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>J.A.R.V.I.S. // EDITH CORE</title>
 
 <style>
 
+/* =========================================================
+   GLOBAL
+========================================================= */
+
 *{
+    box-sizing:border-box;
     margin:0;
     padding:0;
-    box-sizing:border-box;
+}
+
+:root{
+    --purple:#a855f7;
+    --violet:#c084fc;
+    --cyan:#22d3ee;
+    --blue:#3b82f6;
+    --pink:#f472b6;
+    --red:#fb456b;
+    --green:#39ff88;
+    --white:#f7f3ff;
+}
+
+html{
+    scroll-behavior:smooth;
 }
 
 body{
-    background:#020207;
-    color:white;
-    font-family:Arial,Helvetica,sans-serif;
-    overflow:hidden;
+    min-height:100vh;
+    background:#020107;
+    color:var(--white);
+    font-family:'Rajdhani',Arial,sans-serif;
+    overflow-x:hidden;
+}
+
+button,
+input{
+    font-family:inherit;
 }
 
 
 /* =========================================================
-   LOGIN PAGE
+   SHARED SPACE BACKGROUND
 ========================================================= */
 
-#loginPage{
-    width:100vw;
-    height:100vh;
+#spaceCanvas{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    z-index:-10;
+    background:#020107;
+}
+
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:-9;
+    pointer-events:none;
+
+    background:
+        radial-gradient(
+            circle at 18% 20%,
+            rgba(139,92,246,.15),
+            transparent 28%
+        ),
+        radial-gradient(
+            circle at 82% 30%,
+            rgba(6,182,212,.11),
+            transparent 25%
+        ),
+        radial-gradient(
+            circle at 52% 90%,
+            rgba(236,72,153,.10),
+            transparent 30%
+        );
+}
+
+body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:-8;
+    pointer-events:none;
+    opacity:.12;
+
+    background-image:
+        linear-gradient(
+            rgba(168,85,247,.18) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(34,211,238,.13) 1px,
+            transparent 1px
+        );
+
+    background-size:70px 70px;
+
+    mask-image:
+        linear-gradient(
+            transparent,
+            black 20%,
+            black 80%,
+            transparent
+        );
+}
+
+.aurora{
+    position:fixed;
+    border-radius:50%;
+    filter:blur(100px);
+    pointer-events:none;
+    z-index:-7;
+    opacity:.20;
+}
+
+.a1{
+    width:430px;
+    height:430px;
+    background:#9333ea;
+    left:-180px;
+    top:-160px;
+}
+
+.a2{
+    width:380px;
+    height:380px;
+    background:#06b6d4;
+    right:-170px;
+    top:35%;
+}
+
+.a3{
+    width:420px;
+    height:420px;
+    background:#db2777;
+    left:35%;
+    bottom:-260px;
+}
+
+
+/* =========================================================
+   TOP BAR
+========================================================= */
+
+.core-top{
+    height:70px;
+
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+
+    z-index:500;
+
     display:flex;
+    justify-content:space-between;
     align-items:center;
-    justify-content:center;
+
+    padding:0 35px;
+
+    background:rgba(3,2,8,.78);
+    backdrop-filter:blur(16px);
+
+    border-bottom:
+        1px solid rgba(192,132,252,.15);
+}
+
+.core-logo{
+    font-family:'Orbitron',sans-serif;
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:4px;
+}
+
+.core-logo span{
+    color:var(--cyan);
+
+    text-shadow:
+        0 0 8px var(--cyan),
+        0 0 22px rgba(34,211,238,.4);
+}
+
+.core-system{
+    font-family:'Orbitron',sans-serif;
+    font-size:10px;
+    letter-spacing:2px;
+    color:#aaa5b8;
+}
+
+.core-dot{
+    display:inline-block;
+
+    width:7px;
+    height:7px;
+
+    margin-right:8px;
+
+    background:var(--green);
+    border-radius:50%;
+
+    box-shadow:
+        0 0 7px var(--green),
+        0 0 18px rgba(57,255,136,.7);
+
+    animation:dotPulse 1.8s infinite;
+}
+
+@keyframes dotPulse{
+
+    0%,100%{
+        opacity:.5;
+        transform:scale(.8);
+    }
+
+    50%{
+        opacity:1;
+        transform:scale(1.2);
+    }
+}
+
+
+/* =========================================================
+   STAGE CONTROL
+========================================================= */
+
+.stage{
+    display:none;
+    min-height:100vh;
+}
+
+.stage.active{
+    display:block;
+}
+
+
+/* =========================================================
+   STAGE 1 + STAGE 2
+   YOUR ORIGINAL FIRST HTML
+========================================================= */
+
+#setupStage,
+#infoStage{
+    padding-top:70px;
+}
+
+.access{
+    min-height:calc(100vh - 70px);
+
+    display:grid;
+    place-items:center;
+
+    position:relative;
+
+    padding:40px 18px;
+}
+
+.hud{
+    position:absolute;
+
+    font-family:'Orbitron',sans-serif;
+    font-size:8px;
+    letter-spacing:3px;
+
+    color:rgba(192,132,252,.45);
+
+    pointer-events:none;
+}
+
+.h1{
+    top:15%;
+    left:6%;
+}
+
+.h2{
+    top:30%;
+    right:5%;
+    color:rgba(34,211,238,.42);
+}
+
+.h3{
+    bottom:15%;
+    left:8%;
+    color:rgba(244,114,182,.4);
+}
+
+.h4{
+    bottom:20%;
+    right:7%;
+    color:rgba(57,255,136,.35);
+}
+
+
+/* =========================================================
+   CHAMBER
+========================================================= */
+
+.chamber{
+
+    width:min(940px,94vw);
+
+    min-height:590px;
+
+    position:relative;
+
+    padding:1px;
+
+    background:
+        linear-gradient(
+            115deg,
+            #a855f7,
+            #22d3ee,
+            #f472b6,
+            #3b82f6,
+            #a855f7
+        );
+
+    background-size:300% 300%;
+
+    animation:borderFlow 9s linear infinite;
+
+    clip-path:
+        polygon(
+            0 0,
+            97% 0,
+            100% 8%,
+            100% 92%,
+            97% 100%,
+            3% 100%,
+            0 92%,
+            0 8%
+        );
+
+    filter:
+        drop-shadow(
+            0 0 35px rgba(124,58,237,.18)
+        );
+}
+
+@keyframes borderFlow{
+
+    0%{
+        background-position:0% 50%;
+    }
+
+    50%{
+        background-position:100% 50%;
+    }
+
+    100%{
+        background-position:0% 50%;
+    }
+}
+
+.inner{
+
+    min-height:588px;
+
+    position:relative;
+
+    overflow:hidden;
+
+    padding:55px 58px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(8,5,16,.97),
+            rgba(12,7,23,.94),
+            rgba(5,7,19,.97)
+        );
+
+    clip-path:inherit;
+}
+
+.inner::before{
+
+    content:"";
+
+    position:absolute;
+    inset:0;
+
+    pointer-events:none;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent 49.8%,
+            rgba(34,211,238,.035) 50%,
+            transparent 50.2%
+        ),
+        linear-gradient(
+            rgba(192,132,252,.025) 1px,
+            transparent 1px
+        );
+
+    background-size:
+        100% 100%,
+        100% 45px;
+}
+
+
+/* =========================================================
+   SCANNER
+========================================================= */
+
+.scan{
+
+    position:absolute;
+
+    left:0;
+    right:0;
+
+    height:2px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            var(--cyan),
+            transparent
+        );
+
+    box-shadow:
+        0 0 18px var(--cyan);
+
+    opacity:.25;
+
+    animation:scan 5s linear infinite;
+}
+
+@keyframes scan{
+
+    from{
+        top:-5%;
+    }
+
+    to{
+        top:105%;
+    }
+}
+
+
+/* =========================================================
+   CORNERS
+========================================================= */
+
+.corner{
+
+    position:absolute;
+
+    width:28px;
+    height:28px;
+
+    border-color:
+        rgba(34,211,238,.55);
+
+    border-style:solid;
+}
+
+.c1{
+    top:24px;
+    left:24px;
+    border-width:1px 0 0 1px;
+}
+
+.c2{
+    top:24px;
+    right:24px;
+    border-width:1px 1px 0 0;
+}
+
+.c3{
+    bottom:24px;
+    left:24px;
+    border-width:0 0 1px 1px;
+}
+
+.c4{
+    bottom:24px;
+    right:24px;
+    border-width:0 1px 1px 0;
+}
+
+
+/* =========================================================
+   TEXT
+========================================================= */
+
+.chip{
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:9px;
+
+    letter-spacing:3px;
+
+    color:#8e8aa2;
+
+    margin-bottom:14px;
+}
+
+.title{
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:clamp(30px,5vw,55px);
+
+    font-weight:700;
+
+    letter-spacing:2px;
+
+    line-height:1.05;
+}
+
+.title b{
+
+    color:var(--violet);
+
+    text-shadow:
+        0 0 12px rgba(192,132,252,.5),
+        0 0 35px rgba(168,85,247,.25);
+}
+
+.title i{
+
+    font-style:normal;
+
+    color:var(--cyan);
+
+    text-shadow:
+        0 0 15px rgba(34,211,238,.5);
+}
+
+.subtitle{
+
+    max-width:620px;
+
+    color:#aaa5b8;
+
+    font-size:15px;
+
+    line-height:1.6;
+
+    margin:
+        18px 0 30px;
+}
+
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.layout{
+
+    display:grid;
+
+    grid-template-columns:
+        1fr 260px;
+
+    gap:42px;
+
+    align-items:center;
+}
+
+.fields{
+
+    display:grid;
+
+    gap:14px;
+}
+
+.setup-label{
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:9px;
+
+    letter-spacing:2px;
+
+    color:#8e8aa2;
+}
+
+.setup-field{
+    position:relative;
+}
+
+.setup-input{
+
+    width:100%;
+
+    margin-top:7px;
+
+    padding:15px 16px;
+
+    background:
+        rgba(8,6,17,.8);
+
+    border:
+        1px solid rgba(139,92,246,.22);
+
+    color:#fff;
+
+    font-family:'Rajdhani',sans-serif;
+
+    font-size:15px;
+
+    outline:none;
+
+    transition:.25s;
+
+    box-shadow:
+        inset 0 0 25px rgba(0,0,0,.8);
+}
+
+.setup-input::placeholder{
+    color:#5e596e;
+}
+
+.setup-input:focus{
+
+    border-color:
+        rgba(34,211,238,.75);
+
+    box-shadow:
+        0 0 20px rgba(34,211,238,.1),
+        inset 0 0 25px rgba(0,0,0,.8);
+}
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+.init{
+
+    margin-top:8px;
+
+    padding:17px 24px;
+
+    background:
+        linear-gradient(
+            100deg,
+            #7c3aed,
+            #c026d3,
+            #0891b2
+        );
+
+    background-size:200%;
+
+    color:#fff;
+
+    border:none;
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:11px;
+
+    font-weight:700;
+
+    letter-spacing:2px;
+
+    cursor:pointer;
+
+    box-shadow:
+        0 0 24px rgba(168,85,247,.2);
+
+    transition:.3s;
+}
+
+.init:hover{
+
+    background-position:100%;
+
+    transform:translateY(-2px);
+
+    box-shadow:
+        0 0 35px rgba(34,211,238,.35);
+}
+
+.init:active{
+    transform:scale(.98);
+}
+
+
+/* =========================================================
+   JARVIS LOGO
+========================================================= */
+
+.coreBox{
+
+    height:270px;
+
+    display:grid;
+
+    place-items:center;
+
+    position:relative;
+}
+
+.jarvisLogo{
+
+    width:205px;
+    height:205px;
+
+    position:relative;
+
+    display:grid;
+    place-items:center;
+}
+
+.jarvisLogo::before{
+
+    content:"";
+
+    position:absolute;
+
+    inset:3px;
+
+    border-radius:50%;
+
+    border:
+        1px solid rgba(34,211,238,.65);
+
+    box-shadow:
+        0 0 15px rgba(34,211,238,.25),
+        inset 0 0 20px rgba(34,211,238,.08);
+
+    animation:
+        logoSpin 12s linear infinite;
+}
+
+.jarvisLogo::after{
+
+    content:"";
+
+    position:absolute;
+
+    inset:19px;
+
+    border-radius:50%;
+
+    border:
+        1px dashed rgba(192,132,252,.55);
+
+    animation:
+        logoSpinReverse 9s linear infinite;
+}
+
+@keyframes logoSpin{
+
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+@keyframes logoSpinReverse{
+
+    to{
+        transform:rotate(-360deg);
+    }
+}
+
+.logoMarks{
+
+    position:absolute;
+
+    inset:-4px;
+
+    border-radius:50%;
+
+    background:
+        conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            transparent 25deg,
+            var(--cyan) 27deg,
+            transparent 31deg,
+            transparent 85deg,
+            var(--pink) 87deg,
+            transparent 91deg,
+            transparent 175deg,
+            var(--violet) 178deg,
+            transparent 182deg,
+            transparent 265deg,
+            var(--blue) 268deg,
+            transparent 272deg,
+            transparent 330deg,
+            var(--cyan) 333deg,
+            transparent 337deg
+        );
+
+    -webkit-mask:
+        radial-gradient(
+            transparent 66%,
+            #000 67%,
+            #000 69%,
+            transparent 70%
+        );
+
+    mask:
+        radial-gradient(
+            transparent 66%,
+            #000 67%,
+            #000 69%,
+            transparent 70%
+        );
+
+    animation:
+        logoSpin 16s linear infinite;
+}
+
+.emblem{
+
+    width:115px;
+    height:115px;
+
+    position:relative;
+
+    display:grid;
+    place-items:center;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(34,211,238,.08),
+            rgba(168,85,247,.05) 55%,
+            transparent 70%
+        );
+
+    clip-path:
+        polygon(
+            50% 0%,
+            90% 23%,
+            90% 77%,
+            50% 100%,
+            10% 77%,
+            10% 23%
+        );
+
+    border:
+        1px solid rgba(255,255,255,.2);
+
+    box-shadow:
+        0 0 25px rgba(168,85,247,.25),
+        inset 0 0 30px rgba(34,211,238,.08);
+
+    animation:
+        emblemPulse 3s ease-in-out infinite;
+}
+
+@keyframes emblemPulse{
+
+    0%,100%{
+        filter:
+            drop-shadow(
+                0 0 8px rgba(34,211,238,.35)
+            );
+    }
+
+    50%{
+        filter:
+            drop-shadow(
+                0 0 25px rgba(192,132,252,.6)
+            );
+    }
+}
+
+.emblemJ{
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:64px;
+
+    font-weight:800;
+
+    line-height:1;
+
+    color:transparent;
+
+    background:
+        linear-gradient(
+            145deg,
+            #fff,
+            #22d3ee 35%,
+            #c084fc 70%,
+            #f472b6
+        );
+
+    -webkit-background-clip:text;
+    background-clip:text;
+
+    text-shadow:
+        0 0 25px rgba(34,211,238,.35);
+
+    transform:
+        translateY(-2px);
+}
+
+.techLine{
+
+    position:absolute;
+
+    height:1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            var(--cyan),
+            transparent
+        );
+
+    box-shadow:
+        0 0 8px var(--cyan);
+
+    opacity:.65;
+}
+
+.line1{
+    width:45px;
+    left:-20px;
+    top:50%;
+}
+
+.line2{
+    width:45px;
+    right:-20px;
+    top:50%;
+}
+
+.line3{
+    width:32px;
+    left:50%;
+    top:-12px;
+    transform:rotate(90deg);
+}
+
+.line4{
+    width:32px;
+    left:50%;
+    bottom:-12px;
+    transform:rotate(90deg);
+}
+
+.logoLabel{
+
+    position:absolute;
+
+    bottom:-35px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    white-space:nowrap;
+
+    text-align:center;
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:9px;
+
+    letter-spacing:4px;
+
+    color:#aaa;
+
+    text-shadow:
+        0 0 10px rgba(192,132,252,.3);
+}
+
+.logoLabel strong{
+
+    display:block;
+
+    margin-top:7px;
+
+    color:var(--cyan);
+
+    font-size:8px;
+
+    letter-spacing:3px;
+}
+
+
+/* =========================================================
+   SMALL STATUS
+========================================================= */
+
+.small{
+
+    display:flex;
+
+    gap:18px;
+
+    margin-top:24px;
+
+    color:#666277;
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:8px;
+
+    letter-spacing:2px;
+}
+
+.small span:nth-child(1){
+    color:var(--violet);
+}
+
+.small span:nth-child(2){
+    color:var(--cyan);
+}
+
+.small span:nth-child(3){
+    color:var(--pink);
+}
+
+
+/* =========================================================
+   GREEN AUTHORIZATION
+========================================================= */
+
+.overlay{
+
+    position:fixed;
+
+    inset:0;
+
+    z-index:1000;
+
+    display:none;
+
+    place-items:center;
+
+    background:
+        rgba(2,1,7,.96);
+
+    backdrop-filter:blur(12px);
+}
+
+.overlay.show{
+    display:grid;
+}
+
+.auth{
+    text-align:center;
+}
+
+.authCore{
+
+    width:120px;
+    height:120px;
+
+    border-radius:50%;
+
+    margin:auto;
+
+    background:
+        radial-gradient(
+            circle,
+            #fff 0%,
+            var(--green) 8%,
+            #0b3924 30%,
+            #020c08 65%
+        );
+
+    box-shadow:
+        0 0 35px var(--green),
+        0 0 100px rgba(57,255,136,.27);
+
+    animation:
+        authPulse 1.4s infinite;
+}
+
+.auth h2{
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:22px;
+
+    letter-spacing:4px;
+
+    color:var(--green);
+
+    margin-top:28px;
+
+    text-shadow:
+        0 0 20px var(--green);
+}
+
+.auth p{
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:10px;
+
+    letter-spacing:3px;
+
+    color:#777;
+
+    margin-top:12px;
+}
+
+@keyframes authPulse{
+
+    50%{
+        transform:scale(1.12);
+    }
+}
+
+
+/* =========================================================
+   INFO PAGE
+========================================================= */
+
+#infoStage{
+    padding-bottom:100px;
+}
+
+.hero2{
+
+    min-height:65vh;
+
+    display:grid;
+
+    place-items:center;
+
+    text-align:center;
+
+    padding:
+        90px 20px
+        55px;
+}
+
+.eyebrow{
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:9px;
+
+    letter-spacing:5px;
+
+    color:var(--cyan);
+
+    margin-bottom:20px;
+}
+
+.hero2 h1{
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:clamp(40px,8vw,90px);
+
+    font-weight:700;
+
+    background:
+        linear-gradient(
+            90deg,
+            #c084fc,
+            #22d3ee,
+            #f472b6,
+            #c084fc
+        );
+
+    background-size:250%;
+
+    -webkit-background-clip:text;
+
+    background-clip:text;
+
+    color:transparent;
+
+    animation:
+        gradient 7s linear infinite;
+}
+
+.hero2 p{
+
+    max-width:760px;
+
+    color:#aaa5b8;
+
+    font-size:17px;
+
+    line-height:1.7;
+
+    margin:24px auto;
+}
+
+@keyframes gradient{
+
+    to{
+        background-position:250%;
+    }
+}
+
+.content{
+
+    width:min(1100px,92vw);
+
+    margin:auto;
+}
+
+.section{
+
+    margin:35px 0;
+
+    padding:35px;
+
+    border:
+        1px solid rgba(192,132,252,.13);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(10,6,20,.8),
+            rgba(5,8,16,.8)
+        );
+
+    position:relative;
+
+    overflow:hidden;
+}
+
+.section::before{
+
+    content:"";
+
+    position:absolute;
+
+    left:0;
+    top:0;
+    bottom:0;
+
+    width:3px;
+
+    background:
+        linear-gradient(
+            var(--violet),
+            var(--cyan),
+            var(--pink)
+        );
+}
+
+.section h2{
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:20px;
+
+    font-weight:600;
+
+    letter-spacing:2px;
+
+    margin-bottom:16px;
+}
+
+.section>p{
+
+    color:#aaa5b8;
+
+    line-height:1.8;
+
+    font-size:15px;
+}
+
+
+/* =========================================================
+   CARDS
+========================================================= */
+
+.cards{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(3,1fr);
+
+    gap:15px;
+}
+
+.card{
+
+    padding:24px;
+
+    border:
+        1px solid rgba(255,255,255,.06);
+
+    background:
+        rgba(255,255,255,.02);
+
+    transition:.3s;
+}
+
+.card:hover{
+
+    transform:translateY(-5px);
+
+    border-color:
+        rgba(34,211,238,.4);
+
+    box-shadow:
+        0 15px 40px
+        rgba(34,211,238,.06);
+}
+
+.card b{
+
+    display:block;
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:12px;
+
+    color:var(--violet);
+
+    margin-bottom:12px;
+}
+
+.card p{
+
+    font-size:13px;
+
+    line-height:1.6;
+
+    color:#9993a9;
+}
+
+
+/* =========================================================
+   FLOW
+========================================================= */
+
+.flow{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(4,1fr);
+
+    gap:12px;
+}
+
+.step{
+
+    text-align:center;
+
+    padding:22px 12px;
+
+    border:
+        1px solid rgba(255,255,255,.06);
+
+    background:
+        rgba(255,255,255,.02);
+}
+
+.num{
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:24px;
+
+    color:var(--cyan);
+
+    text-shadow:
+        0 0 12px rgba(34,211,238,.5);
+}
+
+.step h3{
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:12px;
+
+    margin:10px 0;
+}
+
+.step p{
+
+    font-size:12px;
+
+    color:#888394;
+}
+
+
+/* =========================================================
+   TERMS
+========================================================= */
+
+.terms{
+
+    display:grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap:12px;
+}
+
+.term{
+
+    padding:18px;
+
+    border-left:
+        2px solid var(--purple);
+
+    background:
+        rgba(255,255,255,.02);
+}
+
+.term strong{
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:11px;
+
+    color:var(--pink);
+}
+
+.term p{
+
+    font-size:12px;
+
+    margin-top:7px;
+
+    color:#888394;
+}
+
+
+/* =========================================================
+   ENTER CORE
+========================================================= */
+
+.enter{
+
+    text-align:center;
+
+    margin-top:45px;
+}
+
+.enter button{
+
+    padding:18px 35px;
+
+    border:none;
+
+    color:#fff;
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:11px;
+
+    letter-spacing:2px;
+
+    cursor:pointer;
+
+    background:
+        linear-gradient(
+            90deg,
+            #7c3aed,
+            #0891b2
+        );
+
+    box-shadow:
+        0 0 30px rgba(124,58,237,.2);
+
+    transition:.3s;
+}
+
+.enter button:hover{
+
+    transform:
+        translateY(-3px)
+        scale(1.02);
+
+    box-shadow:
+        0 0 45px rgba(34,211,238,.35);
+}
+
+.ready{
+
+    min-height:15px;
+
+    margin-top:18px;
+
+    font-family:'Orbitron',sans-serif;
+
+    font-size:10px;
+
+    letter-spacing:3px;
+
+    color:var(--green);
+
+    text-shadow:
+        0 0 15px var(--green);
+}
+
+
+/* =========================================================
+   YOUR ORIGINAL LOGIN PAGE
+========================================================= */
+
+#loginStage{
+    min-height:100vh;
 
     background:
         radial-gradient(
@@ -39,6 +1522,17 @@ body{
             transparent 40%
         ),
         #020207;
+}
+
+#loginPage{
+    width:100vw;
+    min-height:100vh;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:80px 20px 30px;
 }
 
 .login-box{
@@ -68,7 +1562,7 @@ body{
         0 0 20px #5c00ff;
 }
 
-.subtitle{
+.login-subtitle{
     text-align:center;
 
     margin-top:8px;
@@ -80,7 +1574,7 @@ body{
     color:#9d7cff;
 }
 
-label{
+.login-label{
     display:block;
 
     font-size:10px;
@@ -91,7 +1585,7 @@ label{
     margin-bottom:7px;
 }
 
-input{
+.login-input{
     width:100%;
 
     padding:13px;
@@ -108,14 +1602,14 @@ input{
     font-size:14px;
 }
 
-input:focus{
+.login-input:focus{
     border-color:#9d00ff;
 
     box-shadow:
         0 0 10px rgba(157,0,255,.25);
 }
 
-button{
+.login-button{
     width:100%;
 
     padding:13px;
@@ -141,7 +1635,7 @@ button{
         0 0 18px rgba(157,0,255,.4);
 }
 
-button:hover{
+.login-button:hover{
     box-shadow:
         0 0 28px rgba(157,0,255,.7);
 }
@@ -160,11 +1654,75 @@ button:hover{
 
 
 /* =========================================================
-   DASHBOARD
+   CREATE NEW ID BUTTON
+   ONLY ADDED TO YOUR ORIGINAL FIRST PAGE
 ========================================================= */
 
+#createNewIdBtn{
+
+    position:fixed;
+
+    top:16px;
+    left:18px;
+
+    width:auto;
+
+    padding:9px 14px;
+
+    border:
+        1px solid rgba(157,0,255,.55);
+
+    border-radius:5px;
+
+    background:
+        rgba(5,3,18,.82);
+
+    color:#c084fc;
+
+    font-family:Arial,Helvetica,sans-serif;
+
+    font-size:9px;
+
+    letter-spacing:2px;
+
+    cursor:pointer;
+
+    z-index:99999;
+
+    box-shadow:
+        0 0 12px rgba(157,0,255,.2);
+
+    transition:.25s;
+}
+
+#createNewIdBtn:hover{
+
+    color:white;
+
+    border-color:#9d00ff;
+
+    box-shadow:
+        0 0 22px rgba(157,0,255,.65);
+
+    transform:translateY(-1px);
+}
+
+
+/* =========================================================
+   YOUR ORIGINAL DASHBOARD
+========================================================= */
+
+#dashboardStage{
+    width:100vw;
+    height:100vh;
+
+    overflow:hidden;
+
+    background:#020207;
+}
+
 #dashboard{
-    display:none;
+    display:block;
 
     width:100vw;
     height:100vh;
@@ -226,8 +1784,18 @@ button:hover{
 
 
 /* =========================================================
-   STARS
+   DASHBOARD STARS
 ========================================================= */
+
+#dashboardStars{
+    position:absolute;
+
+    inset:0;
+
+    pointer-events:none;
+
+    z-index:0;
+}
 
 .star{
     position:absolute;
@@ -247,7 +1815,7 @@ button:hover{
 
 
 /* =========================================================
-   TOP BAR
+   DASHBOARD TOP BAR
 ========================================================= */
 
 .topbar{
@@ -280,7 +1848,7 @@ button:hover{
     z-index:10;
 }
 
-.logo{
+.dashboard-logo{
     font-size:17px;
 
     font-weight:bold;
@@ -541,11 +2109,6 @@ button:hover{
     z-index:5;
 }
 
-
-/* =========================================================
-   CORE GLOW
-========================================================= */
-
 .core-video-wrap::before{
     content:"";
 
@@ -648,7 +2211,7 @@ button:hover{
 
 
 /* =========================================================
-   LISTENING RED CORE BORDER
+   LISTENING
 ========================================================= */
 
 .core-video-wrap.listening::after{
@@ -694,7 +2257,7 @@ button:hover{
 
 
 /* =========================================================
-   RESPONDING GREEN CORE BORDER
+   RESPONDING
 ========================================================= */
 
 .core-video-wrap.responding::after{
@@ -767,7 +2330,7 @@ button:hover{
 
 
 /* =========================================================
-   STRAIGHT NEON CONNECTION WIRES
+   CONNECTION WIRES
 ========================================================= */
 
 .core-connections{
@@ -1090,7 +2653,7 @@ button:hover{
 
 
 /* =========================================================
-   SIDE PANELS
+   PANELS
 ========================================================= */
 
 .panel{
@@ -1256,14 +2819,14 @@ button:hover{
         0 0 15px rgba(0,180,255,.4);
 
     animation:
-        scan 7s linear infinite;
+        scanDashboard 7s linear infinite;
 
     pointer-events:none;
 
     z-index:20;
 }
 
-@keyframes scan{
+@keyframes scanDashboard{
 
     0%{
         top:-5%;
@@ -1335,13 +2898,66 @@ button:hover{
    MOBILE
 ========================================================= */
 
+@media(max-width:760px){
+
+    .core-top{
+        padding:0 17px;
+    }
+
+    .core-logo{
+        font-size:11px;
+        letter-spacing:2px;
+    }
+
+    .core-system{
+        font-size:8px;
+    }
+
+    .layout{
+        grid-template-columns:1fr;
+    }
+
+    .coreBox{
+        display:none;
+    }
+
+    .inner{
+        min-height:650px;
+        padding:42px 28px;
+    }
+
+    .chamber{
+        min-height:auto;
+    }
+
+    .cards{
+        grid-template-columns:1fr;
+    }
+
+    .flow{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .terms{
+        grid-template-columns:1fr;
+    }
+
+    .hero2 h1{
+        font-size:38px;
+    }
+
+    .hud{
+        display:none;
+    }
+}
+
 @media(max-width:700px){
 
     .topbar{
         padding:0 18px;
     }
 
-    .logo{
+    .dashboard-logo{
         font-size:12px;
         letter-spacing:4px;
     }
@@ -1437,12 +3053,33 @@ button:hover{
         font-size:8px;
         letter-spacing:3px;
     }
+
+    #createNewIdBtn{
+        top:10px;
+        left:10px;
+        font-size:8px;
+        padding:8px 10px;
+    }
 }
 
+@media(max-width:450px){
 
-/* =========================================================
-   SMALL HEIGHT SCREENS
-========================================================= */
+    .flow{
+        grid-template-columns:1fr;
+    }
+
+    .inner{
+        padding:38px 22px;
+    }
+
+    .title{
+        font-size:30px;
+    }
+
+    .small{
+        flex-wrap:wrap;
+    }
+}
 
 @media(
     max-height:700px
@@ -1476,58 +3113,254 @@ button:hover{
 
 
 <!-- =========================================================
-     LOGIN
+     SHARED BACKGROUND
 ========================================================= -->
 
-<div id="loginPage">
+<canvas id="spaceCanvas"></canvas>
 
-    <div class="login-box">
+<div class="aurora a1"></div>
+<div class="aurora a2"></div>
+<div class="aurora a3"></div>
 
-        <h1>
-            J.A.R.V.I.S.
-        </h1>
 
-        <div class="subtitle">
-            JARVIS CORE ACCESS
+<!-- =========================================================
+     TOP BAR
+========================================================= -->
+
+<header class="core-top">
+
+    <div class="core-logo">
+        J.A.R.V.I.S.
+        <span>// EDITH CORE</span>
+    </div>
+
+    <div class="core-system">
+        <span class="core-dot"></span>
+        SYSTEM ONLINE
+    </div>
+
+</header>
+
+
+<!-- =========================================================
+     STAGE 1
+     YOUR FIRST PAGE
+========================================================= -->
+
+<section
+    id="setupStage"
+    class="stage active"
+>
+
+    <main class="access">
+
+        <div class="hud h1">
+            NEURAL INTERFACE // 01
         </div>
 
-        <label>
-            IDENTIFICATION
-        </label>
-
-        <input
-            id="name"
-            type="text"
-            placeholder="Enter identification"
-        >
-
-        <label>
-            ACCESS ID
-        </label>
-
-        <input
-            id="phone"
-            type="text"
-            placeholder="Enter access ID"
-        >
-
-        <label>
-            PASSWORD
-        </label>
-
-        <input
-            id="password"
-            type="password"
-            placeholder="Enter password"
-        >
-
-        <button onclick="initialize()">
-            INITIALIZE
-        </button>
-
-        <div id="error">
-            ACCESS DENIED
+        <div class="hud h2">
+            QUANTUM LINK // STABLE
         </div>
+
+        <div class="hud h3">
+            AUTH CHANNEL // ENCRYPTED
+        </div>
+
+        <div class="hud h4">
+            CORE STATUS // WAITING
+        </div>
+
+
+        <div class="chamber">
+
+            <div class="inner">
+
+                <div class="scan"></div>
+
+                <div class="corner c1"></div>
+                <div class="corner c2"></div>
+                <div class="corner c3"></div>
+                <div class="corner c4"></div>
+
+
+                <div class="chip">
+                    J.A.R.V.I.S. // SECURE INITIALIZATION PROTOCOL
+                </div>
+
+
+                <h1 class="title">
+
+                    Welcome to
+                    <b>J.A.R.V.I.S.</b>
+
+                    <br>
+
+                    <i>Core Access</i>
+
+                </h1>
+
+
+                <p class="subtitle">
+
+                    A private interface for your intelligent
+                    digital system. Create your identity below
+                    and initialize the core environment.
+
+                </p>
+
+
+                <div class="layout">
+
+
+                    <div>
+
+                        <div class="fields">
+
+                            <div class="setup-field">
+
+                                <label class="setup-label">
+                                    NAME
+                                </label>
+
+                                <input
+                                    id="setupName"
+                                    class="setup-input"
+                                    type="text"
+                                    placeholder="Enter your name"
+                                    autocomplete="off"
+                                >
+
+                            </div>
+
+
+                            <div class="setup-field">
+
+                                <label class="setup-label">
+                                    CREATE ACCESS ID
+                                </label>
+
+                                <input
+                                    id="setupAccess"
+                                    class="setup-input"
+                                    type="text"
+                                    placeholder="Choose an access ID"
+                                    autocomplete="off"
+                                >
+
+                            </div>
+
+
+                            <div class="setup-field">
+
+                                <label class="setup-label">
+                                    CREATE PASSWORD
+                                </label>
+
+                                <input
+                                    id="setupPass"
+                                    class="setup-input"
+                                    type="password"
+                                    placeholder="Create a secure password"
+                                >
+
+                            </div>
+
+
+                            <button
+                                class="init"
+                                id="saveSetup"
+                            >
+                                INITIALIZE J.A.R.V.I.S. →
+                            </button>
+
+                        </div>
+
+
+                        <div class="small">
+
+                            <span>
+                                LOCAL CORE
+                            </span>
+
+                            <span>
+                                AI READY
+                            </span>
+
+                            <span>
+                                AUTH SECURE
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="coreBox">
+
+                        <div class="jarvisLogo">
+
+                            <div class="logoMarks"></div>
+
+                            <div class="emblem">
+
+                                <div class="emblemJ">
+                                    J
+                                </div>
+
+                            </div>
+
+
+                            <div class="techLine line1"></div>
+                            <div class="techLine line2"></div>
+                            <div class="techLine line3"></div>
+                            <div class="techLine line4"></div>
+
+
+                            <div class="logoLabel">
+
+                                J.A.R.V.I.S.
+
+                                <strong>
+                                    INTELLIGENCE CORE
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</section>
+
+
+<!-- =========================================================
+     GREEN AUTHORIZATION
+========================================================= -->
+
+<div
+    class="overlay"
+    id="authorizationOverlay"
+>
+
+    <div class="auth">
+
+        <div class="authCore"></div>
+
+        <h2>
+            ACCESS VERIFIED
+        </h2>
+
+        <p>
+            J.A.R.V.I.S. CORE INITIALIZING
+        </p>
 
     </div>
 
@@ -1535,238 +3368,741 @@ button:hover{
 
 
 <!-- =========================================================
-     DASHBOARD
+     STAGE 2
+     YOUR TERMS / INFORMATION PAGE
 ========================================================= -->
 
-<div id="dashboard">
+<section
+    id="infoStage"
+    class="stage"
+>
 
-    <div id="stars"></div>
+    <section class="hero2">
 
-    <div class="grid"></div>
+        <div>
 
-    <div class="scanline"></div>
+            <div class="eyebrow">
+                J.A.R.V.I.S. // CORE SYSTEM ONLINE
+            </div>
 
+            <h1 id="welcomeName">
+                WELCOME
+            </h1>
 
-    <!-- TOP BAR -->
+            <p>
 
-    <div class="topbar">
+                Your personal intelligent interface —
+                designed to listen, understand, respond
+                and evolve with the systems you authorize.
 
-        <div class="logo">
-            J.A.R.V.I.S.
+            </p>
+
         </div>
 
-        <div class="system">
+    </section>
 
-            <span class="system-dot"></span>
 
-            SYSTEM ONLINE
+    <div class="content">
+
+
+        <section class="section">
+
+            <h2>
+                01 // WHAT IS J.A.R.V.I.S.?
+            </h2>
+
+            <p>
+
+                J.A.R.V.I.S. is a modular personal AI interface
+                designed to connect voice interaction,
+                artificial intelligence, computer control and
+                visual system feedback into one unified
+                environment.
+
+                The interface can act as the command center
+                for your own projects while keeping the system
+                architecture expandable.
+
+            </p>
+
+        </section>
+
+
+        <section class="section">
+
+            <h2>
+                02 // CAPABILITY MATRIX
+            </h2>
+
+
+            <div class="cards">
+
+                <div class="card">
+
+                    <b>
+                        VOICE INTERACTION
+                    </b>
+
+                    <p>
+                        Listen for authorized voice commands,
+                        understand speech and respond through
+                        a conversational AI layer.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>
+                        AI INTELLIGENCE
+                    </b>
+
+                    <p>
+                        Connect an AI model to interpret questions,
+                        reason about tasks and generate useful
+                        responses.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>
+                        COMPUTER CONTROL
+                    </b>
+
+                    <p>
+                        Perform predefined local actions such as
+                        opening approved applications, websites
+                        and system utilities.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>
+                        WEB INTERFACE
+                    </b>
+
+                    <p>
+                        A cinematic visual layer can display
+                        system state, animations, notifications
+                        and interaction feedback.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>
+                        AUTOMATION
+                    </b>
+
+                    <p>
+                        Build repeatable workflows around tasks
+                        you personally authorize the system
+                        to perform.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>
+                        MODULAR EXPANSION
+                    </b>
+
+                    <p>
+                        New capabilities can be added later
+                        without redesigning the entire core
+                        architecture.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="section">
+
+            <h2>
+                03 // HOW THE CORE THINKS
+            </h2>
+
+
+            <div class="flow">
+
+                <div class="step">
+
+                    <div class="num">
+                        01
+                    </div>
+
+                    <h3>
+                        LISTEN
+                    </h3>
+
+                    <p>
+                        Receive the authorized input.
+                    </p>
+
+                </div>
+
+
+                <div class="step">
+
+                    <div class="num">
+                        02
+                    </div>
+
+                    <h3>
+                        UNDERSTAND
+                    </h3>
+
+                    <p>
+                        Interpret the request.
+                    </p>
+
+                </div>
+
+
+                <div class="step">
+
+                    <div class="num">
+                        03
+                    </div>
+
+                    <h3>
+                        DECIDE
+                    </h3>
+
+                    <p>
+                        Select an appropriate action.
+                    </p>
+
+                </div>
+
+
+                <div class="step">
+
+                    <div class="num">
+                        04
+                    </div>
+
+                    <h3>
+                        RESPOND
+                    </h3>
+
+                    <p>
+                        Return the result.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="section">
+
+            <h2>
+                04 // SECURITY & PRIVACY
+            </h2>
+
+
+            <div class="cards">
+
+                <div class="card">
+
+                    <b>
+                        LOCAL CONTROL
+                    </b>
+
+                    <p>
+                        Computer actions should remain on
+                        systems you own or are explicitly
+                        authorized to control.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>
+                        CREDENTIAL STORAGE
+                    </b>
+
+                    <p>
+                        This demo stores access values locally
+                        in your browser using localStorage.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>
+                        PERMISSIONS
+                    </b>
+
+                    <p>
+                        Future integrations should request
+                        clear permission before accessing
+                        devices or services.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="section">
+
+            <h2>
+                05 // TERMS & CONDITIONS
+            </h2>
+
+
+            <div class="terms">
+
+                <div class="term">
+
+                    <strong>
+                        PERSONAL USE
+                    </strong>
+
+                    <p>
+                        Use this interface for your own
+                        projects and systems.
+                    </p>
+
+                </div>
+
+
+                <div class="term">
+
+                    <strong>
+                        AUTHORIZATION
+                    </strong>
+
+                    <p>
+                        Only connect J.A.R.V.I.S. to devices,
+                        accounts or services you are authorized
+                        to control.
+                    </p>
+
+                </div>
+
+
+                <div class="term">
+
+                    <strong>
+                        COMPUTER ACTIONS
+                    </strong>
+
+                    <p>
+                        Automated actions should be limited
+                        to safe, intentional and authorized
+                        operations.
+                    </p>
+
+                </div>
+
+
+                <div class="term">
+
+                    <strong>
+                        THIRD-PARTY SERVICES
+                    </strong>
+
+                    <p>
+                        External APIs and services may have
+                        their own rules, limits and privacy
+                        policies.
+                    </p>
+
+                </div>
+
+
+                <div class="term">
+
+                    <strong>
+                        AI ACCURACY
+                    </strong>
+
+                    <p>
+                        AI-generated information can be
+                        incorrect. Important decisions should
+                        be independently verified.
+                    </p>
+
+                </div>
+
+
+                <div class="term">
+
+                    <strong>
+                        DEVELOPMENT STATUS
+                    </strong>
+
+                    <p>
+                        This interface is a personal development
+                        project and features may change over
+                        time.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <div class="enter">
+
+            <button id="enterCore">
+                ENTER J.A.R.V.I.S. CORE →
+            </button>
+
+            <div
+                class="ready"
+                id="ready"
+            ></div>
 
         </div>
+
 
     </div>
 
-
-    <!-- FLOATING TITLE -->
-
-    <div class="jarvis-title">
-        A.I ASSISTANT
-    </div>
-
-    <div class="title-line"></div>
+</section>
 
 
-    <!-- LEFT PANEL -->
+<!-- =========================================================
+     STAGE 3
+     YOUR ORIGINAL FIRST PAGE / LOGIN
+========================================================= -->
 
-    <div class="panel panel-left">
+<section
+    id="loginStage"
+    class="stage"
+>
 
-        <div class="panel-title">
-            JARVIS CORE
-        </div>
-
-        <div class="panel-row">
-            <span>AI</span>
-            <span class="panel-value">
-                ONLINE
-            </span>
-        </div>
-
-        <div class="panel-row">
-            <span>GEMINI</span>
-            <span class="blue">
-                READY
-            </span>
-        </div>
-
-        <div class="panel-row">
-            <span>VOICE</span>
-            <span class="purple">
-                ACTIVE
-            </span>
-        </div>
-
-        <div class="panel-row">
-            <span>MIC</span>
-            <span class="panel-value">
-                READY
-            </span>
-        </div>
-
-    </div>
+    <button
+        id="createNewIdBtn"
+        onclick="createNewId()"
+    >
+        CREATE NEW ID
+    </button>
 
 
-    <!-- RIGHT PANEL -->
+    <div id="loginPage">
 
-    <div class="panel panel-right">
+        <div class="login-box">
 
-        <div class="panel-title">
-            SYSTEM STATUS
-        </div>
+            <h1>
+                J.A.R.V.I.S.
+            </h1>
 
-        <div class="panel-row">
-            <span>CORE</span>
-            <span class="blue">
-                100%
-            </span>
-        </div>
-
-        <div class="panel-row">
-            <span>NETWORK</span>
-            <span class="panel-value">
-                STABLE
-            </span>
-        </div>
-
-        <div class="panel-row">
-            <span>WAKE</span>
-            <span class="purple">
-                ACTIVE
-            </span>
-        </div>
-
-        <div class="panel-row">
-            <span>PC LINK</span>
-            <span class="panel-value">
-                READY
-            </span>
-        </div>
-
-    </div>
+            <div class="login-subtitle">
+                JARVIS CORE ACCESS
+            </div>
 
 
-    <!-- =====================================================
-         CENTRAL CORE
-    ====================================================== -->
+            <label class="login-label">
+                IDENTIFICATION
+            </label>
 
-    <div class="core-area">
-
-        <div class="hud-ring ring4"></div>
-
-        <div class="hud-ring ring3"></div>
-
-        <div class="hud-ring ring2"></div>
-
-        <div class="hud-ring ring1"></div>
-
-
-        <div class="marker">
-
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-
-        </div>
-
-
-        <!-- STRAIGHT NEON CONNECTIONS -->
-
-        <div class="core-connections">
-
-            <div class="connection connection-left"></div>
-
-            <div class="connection connection-right"></div>
-
-            <div class="connection-top"></div>
-
-            <div class="connection-bottom"></div>
-
-        </div>
-
-
-        <!-- BALL -->
-
-        <div class="core-video-wrap">
-
-            <video
-                id="ballVideo"
-                autoplay
-                loop
-                muted
-                playsinline
-                preload="auto"
+            <input
+                id="loginName"
+                class="login-input"
+                type="text"
+                placeholder="Enter identification"
+                autocomplete="off"
             >
 
-                <source
-                    src="ball.mp4"
-                    type="video/mp4"
+
+            <label class="login-label">
+                ACCESS ID
+            </label>
+
+            <input
+                id="loginAccess"
+                class="login-input"
+                type="text"
+                placeholder="Enter access ID"
+                autocomplete="off"
+            >
+
+
+            <label class="login-label">
+                PASSWORD
+            </label>
+
+            <input
+                id="loginPassword"
+                class="login-input"
+                type="password"
+                placeholder="Enter password"
+            >
+
+
+            <button
+                class="login-button"
+                onclick="initializeJarvis()"
+            >
+                INITIALIZE
+            </button>
+
+
+            <div id="error">
+                ACCESS DENIED
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     STAGE 4
+     YOUR ORIGINAL DASHBOARD
+========================================================= -->
+
+<section
+    id="dashboardStage"
+    class="stage"
+>
+
+    <div id="dashboard">
+
+        <div id="dashboardStars"></div>
+
+        <div class="grid"></div>
+
+        <div class="scanline"></div>
+
+
+        <div class="topbar">
+
+            <div class="dashboard-logo">
+                J.A.R.V.I.S.
+            </div>
+
+            <div class="system">
+
+                <span class="system-dot"></span>
+
+                SYSTEM ONLINE
+
+            </div>
+
+        </div>
+
+
+        <div class="jarvis-title">
+            A.I ASSISTANT
+        </div>
+
+        <div class="title-line"></div>
+
+
+        <div class="panel panel-left">
+
+            <div class="panel-title">
+                JARVIS CORE
+            </div>
+
+            <div class="panel-row">
+                <span>AI</span>
+
+                <span class="panel-value">
+                    ONLINE
+                </span>
+            </div>
+
+            <div class="panel-row">
+                <span>GEMINI</span>
+
+                <span class="blue">
+                    READY
+                </span>
+            </div>
+
+            <div class="panel-row">
+                <span>VOICE</span>
+
+                <span class="purple">
+                    ACTIVE
+                </span>
+            </div>
+
+            <div class="panel-row">
+                <span>MIC</span>
+
+                <span class="panel-value">
+                    READY
+                </span>
+            </div>
+
+        </div>
+
+
+        <div class="panel panel-right">
+
+            <div class="panel-title">
+                SYSTEM STATUS
+            </div>
+
+            <div class="panel-row">
+                <span>CORE</span>
+
+                <span class="blue">
+                    100%
+                </span>
+            </div>
+
+            <div class="panel-row">
+                <span>NETWORK</span>
+
+                <span class="panel-value">
+                    STABLE
+                </span>
+            </div>
+
+            <div class="panel-row">
+                <span>WAKE</span>
+
+                <span class="purple">
+                    ACTIVE
+                </span>
+            </div>
+
+            <div class="panel-row">
+                <span>PC LINK</span>
+
+                <span class="panel-value">
+                    READY
+                </span>
+            </div>
+
+        </div>
+
+
+        <div class="core-area">
+
+            <div class="hud-ring ring4"></div>
+
+            <div class="hud-ring ring3"></div>
+
+            <div class="hud-ring ring2"></div>
+
+            <div class="hud-ring ring1"></div>
+
+
+            <div class="marker">
+
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+
+            </div>
+
+
+            <div class="core-connections">
+
+                <div class="connection connection-left"></div>
+
+                <div class="connection connection-right"></div>
+
+                <div class="connection-top"></div>
+
+                <div class="connection-bottom"></div>
+
+            </div>
+
+
+            <div class="core-video-wrap">
+
+                <video
+                    id="ballVideo"
+                    autoplay
+                    loop
+                    muted
+                    playsinline
+                    preload="auto"
                 >
 
-            </video>
+                    <source
+                        src="ball.mp4"
+                        type="video/mp4"
+                    >
+
+                </video>
+
+            </div>
 
         </div>
 
-    </div>
 
+        <div class="core-label">
 
-    <!-- =====================================================
-         JARVIS CORE TEXT
-    ====================================================== -->
+            <div
+                id="coreMain"
+                class="core-main"
+            >
+                JARVIS CORE // ONLINE
+            </div>
 
-    <div class="core-label">
+            <div class="core-sub">
+                ARTIFICIAL INTELLIGENCE SYSTEM
+            </div>
+
+        </div>
+
 
         <div
-            id="coreMain"
-            class="core-main"
+            id="status"
+            class="status"
         >
-            JARVIS CORE // ONLINE
+            READY // SAY "HEY JARVIS"
         </div>
 
-        <div class="core-sub">
-            ARTIFICIAL INTELLIGENCE SYSTEM
+
+        <div class="bottom">
+
+            <span>
+                JARVIS CORE // CONNECTED
+            </span>
+
+            <span class="bottom-center">
+                SECURE NEURAL LINK
+            </span>
+
+            <span>
+                AI // READY
+            </span>
+
         </div>
 
     </div>
 
-
-    <!-- STATUS -->
-
-    <div
-        id="status"
-        class="status"
-    >
-        READY // SAY "HEY JARVIS"
-    </div>
-
-
-    <!-- BOTTOM -->
-
-    <div class="bottom">
-
-        <span>
-            JARVIS CORE // CONNECTED
-        </span>
-
-        <span class="bottom-center">
-            SECURE NEURAL LINK
-        </span>
-
-        <span>
-            AI // READY
-        </span>
-
-    </div>
-
-</div>
+</section>
 
 
 <div id="initLines"></div>
@@ -1774,49 +4110,664 @@ button:hover{
 
 <script>
 
-
 /* =========================================================
-   LOGIN
+   GLOBAL STORAGE KEYS
 ========================================================= */
 
-const PASSWORD =
-    "jarvisxedith@07";
+const KEY_NAME =
+    "jarvisName";
+
+const KEY_ACCESS =
+    "jarvisAccessId";
+
+const KEY_PASSWORD =
+    "jarvisPassword";
+
+const KEY_AUTHORIZED =
+    "jarvisCoreAuthorized";
+
+const KEY_ENTERED =
+    "jarvisCoreEntered";
+
+const KEY_DASHBOARD =
+    "jarvisDashboardAuthorized";
 
 
-function initialize(){
+/* =========================================================
+   STAGE SWITCHER
+========================================================= */
 
-    const password =
-        document.getElementById(
-            "password"
-        ).value;
+function showStage(id){
+
+    document
+        .querySelectorAll(".stage")
+        .forEach(
+            stage => {
+                stage.classList.remove("active");
+            }
+        );
 
 
-    if(password !== PASSWORD){
+    const target =
+        document.getElementById(id);
 
-        document.getElementById(
-            "error"
-        ).style.display = "block";
+
+    if(target){
+
+        target.classList.add("active");
+
+    }
+
+
+    window.scrollTo(
+        0,
+        0
+    );
+}
+
+
+/* =========================================================
+   BACKGROUND STAR FIELD
+========================================================= */
+
+const spaceCanvas =
+    document.getElementById(
+        "spaceCanvas"
+    );
+
+const spaceCtx =
+    spaceCanvas.getContext("2d");
+
+let spaceW = 0;
+let spaceH = 0;
+let spaceStars = [];
+
+
+function resizeSpace(){
+
+    const dpr =
+        window.devicePixelRatio || 1;
+
+
+    spaceW =
+        spaceCanvas.width =
+        window.innerWidth * dpr;
+
+
+    spaceH =
+        spaceCanvas.height =
+        window.innerHeight * dpr;
+
+
+    spaceCanvas.style.width =
+        window.innerWidth + "px";
+
+
+    spaceCanvas.style.height =
+        window.innerHeight + "px";
+
+
+    spaceStars =
+        Array.from(
+            {
+                length:180
+            },
+            () => ({
+
+                x:
+                    Math.random() *
+                    spaceW,
+
+                y:
+                    Math.random() *
+                    spaceH,
+
+                r:
+                    Math.random() *
+                    1.5 *
+                    dpr +
+                    .25,
+
+                a:
+                    Math.random(),
+
+                s:
+                    Math.random() *
+                    .35 +
+                    .08
+
+            })
+        );
+}
+
+
+function drawSpaceStars(){
+
+    spaceCtx.clearRect(
+        0,
+        0,
+        spaceW,
+        spaceH
+    );
+
+
+    const dpr =
+        window.devicePixelRatio || 1;
+
+
+    for(
+        const s of spaceStars
+    ){
+
+        s.y +=
+            s.s * dpr;
+
+
+        if(s.y > spaceH){
+
+            s.y = 0;
+
+        }
+
+
+        s.a += .008;
+
+
+        const alpha =
+            .25 +
+            .45 *
+            (
+                Math.sin(s.a) +
+                1
+            ) / 2;
+
+
+        spaceCtx.beginPath();
+
+
+        spaceCtx.arc(
+            s.x,
+            s.y,
+            s.r,
+            0,
+            Math.PI * 2
+        );
+
+
+        spaceCtx.fillStyle =
+            `rgba(210,190,255,${alpha})`;
+
+
+        spaceCtx.fill();
+
+    }
+
+
+    requestAnimationFrame(
+        drawSpaceStars
+    );
+}
+
+
+window.addEventListener(
+    "resize",
+    resizeSpace
+);
+
+
+resizeSpace();
+drawSpaceStars();
+
+
+/* =========================================================
+   STAGE 1 SAVE
+========================================================= */
+
+document
+    .getElementById("saveSetup")
+    .addEventListener(
+        "click",
+        function(){
+
+            const name =
+                document
+                    .getElementById(
+                        "setupName"
+                    )
+                    .value
+                    .trim();
+
+
+            const access =
+                document
+                    .getElementById(
+                        "setupAccess"
+                    )
+                    .value
+                    .trim();
+
+
+            const pass =
+                document
+                    .getElementById(
+                        "setupPass"
+                    )
+                    .value;
+
+
+            if(
+                !name ||
+                !access ||
+                !pass
+            ){
+
+                alert(
+                    "Please complete all three fields."
+                );
+
+                return;
+            }
+
+
+            /*
+               SAVE USER INFORMATION
+            */
+
+            localStorage.setItem(
+                KEY_NAME,
+                name
+            );
+
+
+            localStorage.setItem(
+                KEY_ACCESS,
+                access
+            );
+
+
+            localStorage.setItem(
+                KEY_PASSWORD,
+                pass
+            );
+
+
+            /*
+               AUTHORIZE THE CORE
+            */
+
+            localStorage.setItem(
+                KEY_AUTHORIZED,
+                "true"
+            );
+
+
+            /*
+               IMPORTANT:
+               Creating a NEW ID starts the flow
+               again, so dashboard authorization
+               is reset.
+            */
+
+            localStorage.removeItem(
+                KEY_DASHBOARD
+            );
+
+
+            /*
+               GREEN BALL
+            */
+
+            document
+                .getElementById(
+                    "authorizationOverlay"
+                )
+                .classList
+                .add("show");
+
+
+            /*
+               GO TO INFORMATION PAGE
+            */
+
+            setTimeout(
+                function(){
+
+                    document
+                        .getElementById(
+                            "authorizationOverlay"
+                        )
+                        .classList
+                        .remove("show");
+
+
+                    showStage(
+                        "infoStage"
+                    );
+
+
+                    document
+                        .getElementById(
+                            "welcomeName"
+                        )
+                        .textContent =
+                        "WELCOME, " +
+                        name.toUpperCase();
+
+                },
+                1900
+            );
+
+        }
+    );
+
+
+/* =========================================================
+   ENTER CORE
+   INFO PAGE → YOUR ORIGINAL LOGIN PAGE
+========================================================= */
+
+document
+    .getElementById("enterCore")
+    .addEventListener(
+        "click",
+        function(){
+
+            if(
+                localStorage.getItem(
+                    KEY_AUTHORIZED
+                ) !== "true"
+            ){
+
+                return;
+            }
+
+
+            localStorage.setItem(
+                KEY_ENTERED,
+                "true"
+            );
+
+
+            document
+                .getElementById(
+                    "ready"
+                )
+                .textContent =
+                "CORE READY // OPENING J.A.R.V.I.S. INTERFACE";
+
+
+            setTimeout(
+                function(){
+
+                    showStage(
+                        "loginStage"
+                    );
+
+
+                    loadSavedCredentials();
+
+                },
+                700
+            );
+
+        }
+    );
+
+
+/* =========================================================
+   LOAD SAVED CREDENTIALS
+========================================================= */
+
+function loadSavedCredentials(){
+
+    const savedName =
+        localStorage.getItem(
+            KEY_NAME
+        );
+
+
+    const savedAccess =
+        localStorage.getItem(
+            KEY_ACCESS
+        );
+
+
+    if(savedName){
+
+        document
+            .getElementById(
+                "loginName"
+            )
+            .value =
+            savedName;
+
+    }
+
+
+    if(savedAccess){
+
+        document
+            .getElementById(
+                "loginAccess"
+            )
+            .value =
+            savedAccess;
+
+    }
+
+}
+
+
+/* =========================================================
+   CREATE NEW ID
+   YOUR PAGE → MY FIRST PAGE
+========================================================= */
+
+function createNewId(){
+
+    /*
+       Stop old dashboard authorization.
+    */
+
+    localStorage.removeItem(
+        KEY_DASHBOARD
+    );
+
+
+    localStorage.removeItem(
+        KEY_ENTERED
+    );
+
+
+    /*
+       Remove the saved identity.
+    */
+
+    localStorage.removeItem(
+        KEY_NAME
+    );
+
+
+    localStorage.removeItem(
+        KEY_ACCESS
+    );
+
+
+    localStorage.removeItem(
+        KEY_PASSWORD
+    );
+
+
+    localStorage.removeItem(
+        KEY_AUTHORIZED
+    );
+
+
+    /*
+       Clear login fields.
+    */
+
+    document
+        .getElementById(
+            "loginName"
+        )
+        .value = "";
+
+
+    document
+        .getElementById(
+            "loginAccess"
+        )
+        .value = "";
+
+
+    document
+        .getElementById(
+            "loginPassword"
+        )
+        .value = "";
+
+
+    /*
+       Return to the actual first page.
+    */
+
+    showStage(
+        "setupStage"
+    );
+
+}
+
+
+/* =========================================================
+   YOUR ORIGINAL LOGIN
+========================================================= */
+
+function initializeJarvis(){
+
+    /*
+       YOUR LOGIN CANNOT BE USED DIRECTLY
+       WITHOUT THE FIRST PAGE AUTHORIZATION.
+    */
+
+    if(
+        localStorage.getItem(
+            KEY_AUTHORIZED
+        ) !== "true"
+    ){
+
+        showStage(
+            "setupStage"
+        );
 
         return;
     }
 
 
-    document.getElementById(
-        "error"
-    ).style.display = "none";
+    const enteredName =
+        document
+            .getElementById(
+                "loginName"
+            )
+            .value
+            .trim();
 
 
-    createStars();
+    const enteredAccess =
+        document
+            .getElementById(
+                "loginAccess"
+            )
+            .value
+            .trim();
 
 
-    document.getElementById(
-        "loginPage"
-    ).style.display = "none";
+    const enteredPassword =
+        document
+            .getElementById(
+                "loginPassword"
+            )
+            .value;
 
 
-    document.getElementById(
-        "dashboard"
-    ).style.display = "block";
+    const savedName =
+        localStorage.getItem(
+            KEY_NAME
+        );
+
+
+    const savedAccess =
+        localStorage.getItem(
+            KEY_ACCESS
+        );
+
+
+    const savedPassword =
+        localStorage.getItem(
+            KEY_PASSWORD
+        );
+
+
+    /*
+       CHECK ALL THREE VALUES
+    */
+
+    if(
+        enteredName !== savedName ||
+        enteredAccess !== savedAccess ||
+        enteredPassword !== savedPassword
+    ){
+
+        document
+            .getElementById(
+                "error"
+            )
+            .style.display =
+            "block";
+
+        return;
+    }
+
+
+    document
+        .getElementById(
+            "error"
+        )
+        .style.display =
+        "none";
+
+
+    /*
+       DASHBOARD AUTHORIZED
+    */
+
+    localStorage.setItem(
+        KEY_DASHBOARD,
+        "true"
+    );
+
+
+    /*
+       START YOUR ORIGINAL DASHBOARD
+    */
+
+    showDashboard();
+
+}
+
+
+/* =========================================================
+   SHOW DASHBOARD
+========================================================= */
+
+function showDashboard(){
+
+    showStage(
+        "dashboardStage"
+    );
+
+
+    createDashboardStars();
 
 
     shootLines();
@@ -1825,10 +4776,6 @@ function initialize(){
     startMicrophone();
 
 
-    /* =====================================================
-       PYTHON JARVIS BRIDGE
-    ===================================================== */
-
     startPythonBridge();
 
 
@@ -1836,64 +4783,81 @@ function initialize(){
         startWakeRecognition,
         1000
     );
+
 }
 
 
 /* =========================================================
-   STARS
+   DASHBOARD STARS
 ========================================================= */
 
-function createStars(){
+function createDashboardStars(){
 
     const container =
         document.getElementById(
-            "stars"
+            "dashboardStars"
         );
+
 
     container.innerHTML = "";
 
 
-    for(let i=0;i<180;i++){
+    for(
+        let i = 0;
+        i < 180;
+        i++
+    ){
 
         const star =
             document.createElement(
                 "div"
             );
 
+
         star.className =
             "star";
 
 
         star.style.left =
-            Math.random()*100 + "%";
+            Math.random() *
+            100 +
+            "%";
 
 
         star.style.top =
-            Math.random()*100 + "%";
+            Math.random() *
+            100 +
+            "%";
 
 
         star.style.opacity =
-            0.15 +
-            Math.random()*0.7;
+            .15 +
+            Math.random() *
+            .7;
 
 
         const size =
-            0.5 +
-            Math.random()*2;
+            .5 +
+            Math.random() *
+            2;
 
 
         star.style.width =
-            size + "px";
+            size +
+            "px";
 
 
         star.style.height =
-            size + "px";
+            size +
+            "px";
 
 
         container.appendChild(
             star
         );
+
     }
+
 }
 
 
@@ -1908,12 +4872,21 @@ function shootLines(){
             "initLines"
         );
 
+
     container.innerHTML = "";
 
 
     const angles = [
-        -75,-60,-45,-30,-15,
-        15,30,45,60,75
+        -75,
+        -60,
+        -45,
+        -30,
+        -15,
+        15,
+        30,
+        45,
+        60,
+        75
     ];
 
 
@@ -1925,12 +4898,14 @@ function shootLines(){
                     "div"
                 );
 
+
             wire.className =
                 "wire";
 
 
             wire.style.left =
                 "50%";
+
 
             wire.style.top =
                 "50%";
@@ -1952,11 +4927,15 @@ function shootLines(){
     );
 
 
-    setTimeout(()=>{
+    setTimeout(
+        function(){
 
-        container.innerHTML = "";
+            container.innerHTML = "";
 
-    },1600);
+        },
+        1600
+    );
+
 }
 
 
@@ -1974,14 +4953,15 @@ async function startMicrophone(){
     try{
 
         const stream =
-            await navigator.mediaDevices
+            await navigator
+                .mediaDevices
                 .getUserMedia({
                     audio:true
                 });
 
 
         const audioContext =
-            new (
+            new(
                 window.AudioContext ||
                 window.webkitAudioContext
             )();
@@ -2024,7 +5004,9 @@ async function startMicrophone(){
             "Microphone unavailable:",
             error
         );
+
     }
+
 }
 
 
@@ -2034,14 +5016,18 @@ async function startMicrophone(){
 
 function setStatus(text){
 
-    document.getElementById(
-        "status"
-    ).textContent = text;
+    document
+        .getElementById(
+            "status"
+        )
+        .textContent =
+        text;
+
 }
 
 
 /* =========================================================
-   JARVIS CORE BORDER STATES
+   CORE BORDER STATES
 ========================================================= */
 
 function setListening(){
@@ -2051,6 +5037,7 @@ function setListening(){
             ".core-video-wrap"
         );
 
+
     if(!core)
         return;
 
@@ -2059,9 +5046,11 @@ function setListening(){
         "responding"
     );
 
+
     core.classList.add(
         "listening"
     );
+
 }
 
 
@@ -2072,6 +5061,7 @@ function setResponding(){
             ".core-video-wrap"
         );
 
+
     if(!core)
         return;
 
@@ -2080,9 +5070,11 @@ function setResponding(){
         "listening"
     );
 
+
     core.classList.add(
         "responding"
     );
+
 }
 
 
@@ -2093,6 +5085,7 @@ function setReady(){
             ".core-video-wrap"
         );
 
+
     if(!core)
         return;
 
@@ -2101,6 +5094,7 @@ function setReady(){
         "listening",
         "responding"
     );
+
 }
 
 
@@ -2114,6 +5108,11 @@ let lastPythonMessage = "";
 
 
 async function updatePythonState(){
+
+    /*
+       Only communicate with the LOCAL
+       EDITH/JARVIS bridge.
+    */
 
     try{
 
@@ -2132,6 +5131,7 @@ async function updatePythonState(){
             throw new Error(
                 "Bridge unavailable"
             );
+
         }
 
 
@@ -2145,6 +5145,7 @@ async function updatePythonState(){
         ){
 
             return;
+
         }
 
 
@@ -2163,14 +5164,11 @@ async function updatePythonState(){
         );
 
 
-        /* =====================================================
-           ONLY CORE BORDER STATE
-        ===================================================== */
-
         const state =
             String(
                 data.state || ""
-            ).toLowerCase();
+            )
+            .toLowerCase();
 
 
         if(
@@ -2183,6 +5181,7 @@ async function updatePythonState(){
             setResponding();
 
         }
+
         else if(
             state.includes("listen") ||
             state.includes("input")
@@ -2191,6 +5190,7 @@ async function updatePythonState(){
             setListening();
 
         }
+
         else if(
             state.includes("idle") ||
             state.includes("ready") ||
@@ -2209,8 +5209,13 @@ async function updatePythonState(){
             "PYTHON BRIDGE ERROR:",
             error.message
         );
+
     }
+
 }
+
+
+let pythonBridgeTimer = null;
 
 
 function startPythonBridge(){
@@ -2220,13 +5225,18 @@ function startPythonBridge(){
     );
 
 
-    updatePythonState();
+    if(!pythonBridgeTimer){
+
+        updatePythonState();
 
 
-    setInterval(
-        updatePythonState,
-        500
-    );
+        pythonBridgeTimer =
+            setInterval(
+                updatePythonState,
+                500
+            );
+
+    }
 
 }
 
@@ -2234,9 +5244,6 @@ function startPythonBridge(){
 /* =========================================================
    JARVIS VISUAL STATES
 ========================================================= */
-
-let sequenceRunning = false;
-
 
 function activateJarvis(){
 
@@ -2249,6 +5256,7 @@ function activateJarvis(){
 
 
     updatePythonState();
+
 }
 
 
@@ -2278,6 +5286,7 @@ function cleanTranscript(text){
             " "
         )
         .trim();
+
 }
 
 
@@ -2290,22 +5299,31 @@ function containsWakeWord(text){
 
 
     return (
+
         cleaned.includes(
             "hey jarvis"
-        ) ||
+        )
+
+        ||
 
         cleaned.includes(
             "hey jervis"
-        ) ||
+        )
+
+        ||
 
         cleaned.includes(
             "a jarvis"
-        ) ||
+        )
+
+        ||
 
         cleaned.includes(
             "ay jarvis"
         )
+
     );
+
 }
 
 
@@ -2320,8 +5338,13 @@ function handleTranscript(text){
     setListening();
 
 
-    if(!containsWakeWord(text))
+    if(
+        !containsWakeWord(text)
+    ){
+
         return;
+
+    }
 
 
     const now =
@@ -2329,9 +5352,14 @@ function handleTranscript(text){
 
 
     if(
-        now-lastWakeTime < 6000
-    )
+        now -
+        lastWakeTime <
+        6000
+    ){
+
         return;
+
+    }
 
 
     lastWakeTime =
@@ -2344,6 +5372,7 @@ function handleTranscript(text){
 
 
     activateJarvis();
+
 }
 
 
@@ -2371,6 +5400,7 @@ function createRecognition(){
 
 
         return null;
+
     }
 
 
@@ -2404,6 +5434,7 @@ function createRecognition(){
             console.log(
                 "JARVIS voice recognition ACTIVE"
             );
+
         };
 
 
@@ -2411,8 +5442,12 @@ function createRecognition(){
         function(event){
 
             for(
-                let i=event.resultIndex;
-                i<event.results.length;
+                let i =
+                    event.resultIndex;
+
+                i <
+                    event.results.length;
+
                 i++
             ){
 
@@ -2425,13 +5460,17 @@ function createRecognition(){
 
                 for(
                     let j=0;
-                    j<result.length;
+
+                    j <
+                        result.length;
+
                     j++
                 ){
 
                     text +=
                         " " +
                         result[j].transcript;
+
                 }
 
 
@@ -2444,8 +5483,11 @@ function createRecognition(){
                     handleTranscript(
                         text
                     );
+
                 }
+
             }
+
         };
 
 
@@ -2464,7 +5506,9 @@ function createRecognition(){
 
             if(
                 event.error ===
-                    "not-allowed" ||
+                    "not-allowed"
+
+                ||
 
                 event.error ===
                     "service-not-allowed"
@@ -2476,10 +5520,12 @@ function createRecognition(){
 
 
                 return;
+
             }
 
 
             scheduleRecognitionRestart();
+
         };
 
 
@@ -2496,10 +5542,12 @@ function createRecognition(){
 
 
             scheduleRecognitionRestart();
+
         };
 
 
     return r;
+
 }
 
 
@@ -2509,20 +5557,29 @@ function createRecognition(){
 
 function scheduleRecognitionRestart(){
 
-    if(recognitionRestartTimer)
+    if(
+        recognitionRestartTimer
+    ){
+
         return;
+
+    }
 
 
     recognitionRestartTimer =
-        setTimeout(()=>{
+        setTimeout(
+            function(){
 
-            recognitionRestartTimer =
-                null;
+                recognitionRestartTimer =
+                    null;
 
 
-            startWakeRecognition();
+                startWakeRecognition();
 
-        },700);
+            },
+            700
+        );
+
 }
 
 
@@ -2532,10 +5589,30 @@ function scheduleRecognitionRestart(){
 
 function startWakeRecognition(){
 
+    /*
+       Only start recognition while dashboard
+       is actually active.
+    */
+
+    if(
+        !document
+            .getElementById(
+                "dashboardStage"
+            )
+            .classList
+            .contains("active")
+    ){
+
+        return;
+
+    }
+
+
     if(!recognition){
 
         recognition =
             createRecognition();
+
     }
 
 
@@ -2566,7 +5643,9 @@ function startWakeRecognition(){
 
 
         scheduleRecognitionRestart();
+
     }
+
 }
 
 
@@ -2574,21 +5653,31 @@ function startWakeRecognition(){
    KEEP RECOGNITION ALIVE
 ========================================================= */
 
-setInterval(()=>{
+setInterval(
+    function(){
 
-    if(
-        document.getElementById(
-            "dashboard"
-        ).style.display === "block"
-    ){
+        if(
+            document
+                .getElementById(
+                    "dashboardStage"
+                )
+                .classList
+                .contains("active")
+        ){
 
-        if(!recognitionStarted){
+            if(
+                !recognitionStarted
+            ){
 
-            startWakeRecognition();
+                startWakeRecognition();
+
+            }
+
         }
-    }
 
-},3000);
+    },
+    3000
+);
 
 
 /* =========================================================
@@ -2600,13 +5689,168 @@ document.addEventListener(
     function(event){
 
         if(
-            event.key.toLowerCase() === "j"
+            event.key.toLowerCase() ===
+            "j"
         ){
 
-            activateJarvis();
+            /*
+               J test only when dashboard
+               is active.
+            */
+
+            if(
+                document
+                    .getElementById(
+                        "dashboardStage"
+                    )
+                    .classList
+                    .contains("active")
+            ){
+
+                activateJarvis();
+
+            }
+
         }
+
     }
 );
+
+
+/* =========================================================
+   PAGE ROUTER
+========================================================= */
+
+function routeOnLoad(){
+
+    const authorized =
+        localStorage.getItem(
+            KEY_AUTHORIZED
+        ) === "true";
+
+
+    const entered =
+        localStorage.getItem(
+            KEY_ENTERED
+        ) === "true";
+
+
+    const dashboardAuthorized =
+        localStorage.getItem(
+            KEY_DASHBOARD
+        ) === "true";
+
+
+    /*
+       NOTHING SAVED
+       → FIRST PAGE
+    */
+
+    if(!authorized){
+
+        showStage(
+            "setupStage"
+        );
+
+        return;
+
+    }
+
+
+    /*
+       AUTHORIZED + DASHBOARD ALREADY OPENED
+       → DASHBOARD DIRECTLY
+    */
+
+    if(
+        authorized &&
+        entered &&
+        dashboardAuthorized
+    ){
+
+        /*
+           Do not automatically start the dashboard
+           microphone until dashboard is visible.
+        */
+
+        showDashboard();
+
+        return;
+
+    }
+
+
+    /*
+       AUTHORIZED BUT NOT YET THROUGH INFO PAGE
+       → INFO PAGE
+    */
+
+    if(
+        authorized &&
+        !entered
+    ){
+
+        const name =
+            localStorage.getItem(
+                KEY_NAME
+            );
+
+
+        if(name){
+
+            document
+                .getElementById(
+                    "welcomeName"
+                )
+                .textContent =
+                "WELCOME, " +
+                name.toUpperCase();
+
+        }
+
+
+        showStage(
+            "infoStage"
+        );
+
+        return;
+
+    }
+
+
+    /*
+       AUTHORIZED + ENTERED
+       BUT NOT DASHBOARD
+       → YOUR ORIGINAL LOGIN PAGE
+    */
+
+    if(
+        authorized &&
+        entered &&
+        !dashboardAuthorized
+    ){
+
+        loadSavedCredentials();
+
+
+        showStage(
+            "loginStage"
+        );
+
+        return;
+
+    }
+
+
+    /*
+       SAFETY FALLBACK
+    */
+
+    showStage(
+        "setupStage"
+    );
+
+}
 
 
 /* =========================================================
@@ -2618,8 +5862,11 @@ window.addEventListener(
     function(){
 
         console.log(
-            "J.A.R.V.I.S. interface loaded."
+            "J.A.R.V.I.S. // EDITH CORE LOADED"
         );
+
+
+        routeOnLoad();
 
     }
 );
