@@ -1329,42 +1329,12 @@ text-align:center;
 
 pointer-events:none;
 
-/* RGB COLOUR INSIDE THE LETTERS */
+/* CLEAN WHITE GREETING */
 
-background:
-linear-gradient(
-90deg,
-#ff1744,
-#ff00ff,
-#7a00ff,
-#008cff,
-#00ffff,
-#00ff88,
-#d8ff00,
-#ff1744
-);
-
-background-size:100% 100%;
-
--webkit-background-clip:text;
-background-clip:text;
-
--webkit-text-fill-color:transparent;
-
-color:transparent;
-
-/* FIXED GLOW */
-
-filter:
-drop-shadow(0 0 4px rgba(255,23,68,.85))
-drop-shadow(0 0 10px rgba(157,0,255,.75))
-drop-shadow(0 0 18px rgba(0,210,255,.55));
-
-/* IMPORTANT:
-   NO FLOATING
-   NO MOVING
-   NO POSITION ANIMATION
-*/
+color:#ffffff;
+-webkit-text-fill-color:#ffffff;
+background:none;
+text-shadow:0 0 8px rgba(255,255,255,.25);
 
 animation:none;
 }
@@ -5033,81 +5003,9 @@ localStorage.getItem(
 KEY_AUTHORIZED
 )==="true";
 
-
-const entered=
-localStorage.getItem(
-KEY_ENTERED
-)==="true";
-
-
-const dashboardAuthorized=
-localStorage.getItem(
-KEY_DASHBOARD
-)==="true";
-
-
-if(!authorized){
-
-showStage(
-"setupStage"
-);
-
-return;
-
-}
-
-
-if(
-authorized&&
-entered&&
-dashboardAuthorized
-){
-
-showDashboard();
-
-return;
-
-}
-
-
-if(
-authorized&&
-!entered
-){
-
-const name=
-localStorage.getItem(
-KEY_NAME
-);
-
-
-if(name){
-
-document
-.getElementById(
-"welcomeName"
-)
-.textContent=
-"WELCOME, "+
-name.toUpperCase();
-
-}
-
-
-showStage(
-"infoStage"
-);
-
-return;
-
-}
-
-
-if(
-authorized&&
-entered&&
-!dashboardAuthorized
-){
+/* ALWAYS START AT LOGIN WHEN THE LINK IS OPENED OR REFRESHED.
+   The previous dashboard is never restored automatically. */
+if(authorized){
 
 loadSavedCredentials();
 
@@ -5116,9 +5014,7 @@ showStage(
 );
 
 return;
-
 }
-
 
 showStage(
 "setupStage"
