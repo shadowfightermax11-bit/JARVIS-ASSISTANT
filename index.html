@@ -1336,6 +1336,19 @@ color:#ffffff;
 background:none;
 text-shadow:0 0 8px rgba(255,255,255,.25);
 
+/* FIXED GLOW */
+
+filter:
+drop-shadow(0 0 4px rgba(255,23,68,.85))
+drop-shadow(0 0 10px rgba(157,0,255,.75))
+drop-shadow(0 0 18px rgba(0,210,255,.55));
+
+/* IMPORTANT:
+   NO FLOATING
+   NO MOVING
+   NO POSITION ANIMATION
+*/
+
 animation:none;
 }
 
@@ -5003,11 +5016,14 @@ localStorage.getItem(
 KEY_AUTHORIZED
 )==="true";
 
-/* ALWAYS START AT LOGIN WHEN THE LINK IS OPENED OR REFRESHED.
-   The previous dashboard is never restored automatically. */
+/* IMPORTANT: NEVER RESTORE THE LAST PAGE.
+   Every refresh/open starts at LOGIN when an account exists. */
 if(authorized){
 
 loadSavedCredentials();
+
+localStorage.removeItem(KEY_DASHBOARD);
+localStorage.removeItem(KEY_ENTERED);
 
 showStage(
 "loginStage"
