@@ -908,7 +908,6 @@ box-shadow:0 0 5px white
 
 /* =========================================================
    DASHBOARD TOP BAR
-   VERY TRANSPARENT
 ========================================================= */
 
 .topbar{
@@ -921,13 +920,9 @@ display:flex;
 align-items:center;
 justify-content:space-between;
 padding:0 35px;
-
 background:rgba(5,5,15,.10);
-
 border-bottom:1px solid rgba(157,0,255,.10);
-
 backdrop-filter:blur(5px);
-
 z-index:10
 }
 
@@ -1048,6 +1043,12 @@ box-shadow:0 0 7px #00cfff,0 0 15px #00cfff
 .marker span:nth-child(3){left:0;top:50%}
 .marker span:nth-child(4){right:0;top:50%}
 
+
+/* =========================================================
+   CORE VIDEO
+   SMALL BALL INSIDE BLACK CORE
+========================================================= */
+
 .core-video-wrap{
 position:absolute;
 left:50%;
@@ -1058,8 +1059,28 @@ height:210px;
 display:flex;
 align-items:center;
 justify-content:center;
-z-index:5
+z-index:5;
+
+/* THE BLACK CIRCLE */
+border-radius:50%;
+background:
+radial-gradient(
+circle at 50% 48%,
+#08080c 0%,
+#030307 58%,
+#000 100%
+);
+
+box-shadow:
+inset 0 0 35px rgba(0,0,0,.95),
+inset 0 0 70px rgba(0,0,0,.8),
+0 0 20px rgba(0,0,0,.9);
+
+overflow:hidden
 }
+
+
+/* SOFT OUTER CORE GLOW */
 
 .core-video-wrap::before{
 content:"";
@@ -1067,15 +1088,32 @@ position:absolute;
 width:230px;
 height:230px;
 border-radius:50%;
-background:radial-gradient(circle,rgba(255,220,0,.20),rgba(80,0,255,.14),transparent 70%);
+background:
+radial-gradient(
+circle,
+rgba(255,220,0,.16),
+rgba(80,0,255,.12),
+transparent 70%
+);
 filter:blur(15px);
-animation:coreGlow 2.2s ease-in-out infinite
+animation:coreGlow 2.2s ease-in-out infinite;
+z-index:0;
+pointer-events:none
 }
 
 @keyframes coreGlow{
-0%,100%{transform:scale(.92);opacity:.7}
-50%{transform:scale(1.08);opacity:1}
+0%,100%{
+transform:scale(.92);
+opacity:.65
 }
+50%{
+transform:scale(1.08);
+opacity:1
+}
+}
+
+
+/* OUTER MULTICOLOR CORE BORDER */
 
 .core-video-wrap::after{
 content:"";
@@ -1086,11 +1124,22 @@ border-radius:50%;
 border:2px solid transparent;
 background:
 linear-gradient(#020207,#020207) padding-box,
-linear-gradient(90deg,#ff1744,#ff7300,#d8ff00,#00ff66,#00d9ff,#7a00ff,#ff1744) border-box;
+linear-gradient(
+90deg,
+#ff1744,
+#ff7300,
+#d8ff00,
+#00ff66,
+#00d9ff,
+#7a00ff,
+#ff1744
+) border-box;
 background-size:100% 100%,300% 100%;
 animation:coreBorderFlow 4s linear infinite;
 opacity:.8;
-box-shadow:0 0 8px rgba(0,217,255,.4),0 0 18px rgba(157,0,255,.3);
+box-shadow:
+0 0 8px rgba(0,217,255,.4),
+0 0 18px rgba(157,0,255,.3);
 z-index:2;
 pointer-events:none
 }
@@ -1100,13 +1149,76 @@ pointer-events:none
 100%{background-position:0 0,300% 50%}
 }
 
+
+/* =========================================================
+   SMALL INNER BALL
+========================================================= */
+
+#ballVideo{
+position:relative;
+
+/* SMALLER BALL */
+width:82px;
+height:82px;
+
+object-fit:contain;
+border-radius:50%;
+
+z-index:3;
+
+filter:
+drop-shadow(0 0 7px #00cfff)
+drop-shadow(0 0 16px rgba(120,0,255,.8))
+drop-shadow(0 0 28px rgba(255,30,180,.28));
+
+mix-blend-mode:screen;
+
+/* SUBTLE PULSE */
+animation:
+innerBallPulse 2.4s ease-in-out infinite;
+
+transform-origin:center center
+}
+
+@keyframes innerBallPulse{
+
+0%,100%{
+transform:scale(.90);
+filter:
+drop-shadow(0 0 6px #00cfff)
+drop-shadow(0 0 14px rgba(120,0,255,.72))
+drop-shadow(0 0 24px rgba(255,30,180,.22));
+opacity:.88
+}
+
+50%{
+transform:scale(1.06);
+filter:
+drop-shadow(0 0 9px #00cfff)
+drop-shadow(0 0 22px rgba(120,0,255,.95))
+drop-shadow(0 0 38px rgba(255,30,180,.42));
+opacity:1
+}
+
+}
+
+
+/* =========================================================
+   LISTENING STATE
+========================================================= */
+
 .core-video-wrap.listening::after{
 width:224px;
 height:224px;
 border:2px solid #ff1744;
 background:transparent;
 opacity:1;
-box-shadow:0 0 5px #ff1744,0 0 12px #ff1744,0 0 25px #ff1744,0 0 45px rgba(255,23,68,.9),0 0 75px rgba(255,23,68,.45);
+box-shadow:
+0 0 5px #ff1744,
+0 0 12px #ff1744,
+0 0 25px #ff1744,
+0 0 45px rgba(255,23,68,.9),
+0 0 75px rgba(255,23,68,.45);
 animation:listeningPulse 1s ease-in-out infinite
 }
 
@@ -1115,13 +1227,23 @@ animation:listeningPulse 1s ease-in-out infinite
 50%{transform:scale(1.05);opacity:1}
 }
 
+
+/* =========================================================
+   RESPONDING STATE
+========================================================= */
+
 .core-video-wrap.responding::after{
 width:224px;
 height:224px;
 border:2px solid #00ff66;
 background:transparent;
 opacity:1;
-box-shadow:0 0 5px #00ff66,0 0 12px #00ff66,0 0 25px #00ff66,0 0 45px rgba(0,255,102,.9),0 0 75px rgba(0,255,102,.45);
+box-shadow:
+0 0 5px #00ff66,
+0 0 12px #00ff66,
+0 0 25px #00ff66,
+0 0 45px rgba(0,255,102,.9),
+0 0 75px rgba(0,255,102,.45);
 animation:respondingPulse 1s ease-in-out infinite
 }
 
@@ -1130,16 +1252,10 @@ animation:respondingPulse 1s ease-in-out infinite
 50%{transform:scale(1.05);opacity:1}
 }
 
-#ballVideo{
-position:relative;
-width:190px;
-height:190px;
-object-fit:contain;
-border-radius:50%;
-z-index:3;
-filter:drop-shadow(0 0 8px #00cfff) drop-shadow(0 0 22px rgba(120,0,255,.8));
-mix-blend-mode:screen
-}
+
+/* =========================================================
+   CONNECTIONS
+========================================================= */
 
 .core-connections{
 position:absolute;
@@ -1156,7 +1272,14 @@ z-index:4
 position:absolute;
 height:1px;
 transform-origin:left center;
-background:linear-gradient(90deg,transparent,#00d9ff,#9d00ff,#d8ff00,transparent);
+background:linear-gradient(
+90deg,
+transparent,
+#00d9ff,
+#9d00ff,
+#d8ff00,
+transparent
+);
 box-shadow:0 0 5px #00d9ff,0 0 12px #9d00ff;
 opacity:.35
 }
@@ -1180,7 +1303,13 @@ width:1px;
 height:calc(50vh - 120px);
 left:50%;
 bottom:105px;
-background:linear-gradient(to top,transparent,#00d9ff,#9d00ff,transparent);
+background:linear-gradient(
+to top,
+transparent,
+#00d9ff,
+#9d00ff,
+transparent
+);
 box-shadow:0 0 6px #00d9ff,0 0 12px #9d00ff;
 opacity:.3
 }
@@ -1191,7 +1320,13 @@ width:1px;
 height:calc(50vh - 130px);
 left:50%;
 top:105px;
-background:linear-gradient(to bottom,transparent,#d8ff00,#ff1744,transparent);
+background:linear-gradient(
+to bottom,
+transparent,
+#d8ff00,
+#ff1744,
+transparent
+);
 box-shadow:0 0 6px #d8ff00,0 0 12px #ff1744;
 opacity:.3
 }
@@ -1242,7 +1377,14 @@ top:13%;
 transform:translateX(-50%);
 width:180px;
 height:1px;
-background:linear-gradient(90deg,transparent,#d8ff00,#00cfff,#9d00ff,transparent);
+background:linear-gradient(
+90deg,
+transparent,
+#d8ff00,
+#00cfff,
+#9d00ff,
+transparent
+);
 box-shadow:0 0 10px #d8ff00,0 0 20px #9d00ff
 }
 
@@ -1261,13 +1403,24 @@ pointer-events:none
 font-size:12px;
 letter-spacing:5px;
 font-weight:bold;
-background:linear-gradient(90deg,#ff1744,#ff7300,#d8ff00,#00ff66,#00d9ff,#7a00ff,#ff1744);
+background:linear-gradient(
+90deg,
+#ff1744,
+#ff7300,
+#d8ff00,
+#00ff66,
+#00d9ff,
+#7a00ff,
+#ff1744
+);
 background-size:300% 100%;
 -webkit-background-clip:text;
 background-clip:text;
 -webkit-text-fill-color:transparent;
 animation:neonTextFlow 3s linear infinite;
-filter:drop-shadow(0 0 5px rgba(255,23,68,.7)) drop-shadow(0 0 10px rgba(0,217,255,.5))
+filter:
+drop-shadow(0 0 5px rgba(255,23,68,.7))
+drop-shadow(0 0 10px rgba(0,217,255,.5))
 }
 
 @keyframes neonTextFlow{
@@ -1301,14 +1454,29 @@ position:absolute;
 width:185px;
 padding:17px;
 border:1px solid rgba(100,80,255,.3);
-background:linear-gradient(135deg,rgba(15,5,35,.65),rgba(3,8,20,.45));
+background:linear-gradient(
+135deg,
+rgba(15,5,35,.65),
+rgba(3,8,20,.45)
+);
 backdrop-filter:blur(8px);
-box-shadow:0 0 20px rgba(80,0,255,.08),inset 0 0 20px rgba(80,0,255,.04);
+box-shadow:
+0 0 20px rgba(80,0,255,.08),
+inset 0 0 20px rgba(80,0,255,.04);
 z-index:7
 }
 
-.panel-left{left:28px;top:50%;transform:translateY(-50%)}
-.panel-right{right:28px;top:50%;transform:translateY(-50%)}
+.panel-left{
+left:28px;
+top:50%;
+transform:translateY(-50%)
+}
+
+.panel-right{
+right:28px;
+top:50%;
+transform:translateY(-50%)
+}
 
 .panel-title{
 font-size:8px;
@@ -1372,7 +1540,13 @@ left:0;
 top:-10%;
 width:100%;
 height:2px;
-background:linear-gradient(90deg,transparent,rgba(0,220,255,.2),rgba(157,0,255,.3),transparent);
+background:linear-gradient(
+90deg,
+transparent,
+rgba(0,220,255,.2),
+rgba(157,0,255,.3),
+transparent
+);
 box-shadow:0 0 15px rgba(0,180,255,.4);
 animation:scanDashboard 7s linear infinite;
 pointer-events:none;
@@ -1395,7 +1569,13 @@ z-index:50
 position:absolute;
 width:1px;
 height:0;
-background:linear-gradient(to bottom,#fff,#00aaff,#9d00ff,transparent);
+background:linear-gradient(
+to bottom,
+#fff,
+#00aaff,
+#9d00ff,
+transparent
+);
 box-shadow:0 0 5px #00aaff,0 0 12px #9d00ff;
 transform-origin:top center;
 opacity:0
@@ -1406,6 +1586,11 @@ opacity:0
 15%{opacity:1}
 100%{height:100vh;opacity:0}
 }
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
 
 @media(max-width:760px){
 
@@ -1431,16 +1616,41 @@ padding:0 18px;
 background:rgba(5,5,15,.10)
 }
 
-.dashboard-logo{font-size:12px;letter-spacing:4px}
+.dashboard-logo{
+font-size:12px;
+letter-spacing:4px
+}
+
 .system{font-size:7px}
 .panel{display:none}
 
-.ring1{width:280px;height:280px}
-.ring2{width:320px;height:320px}
-.ring3{width:360px;height:360px}
-.ring4{width:400px;height:400px}
+.ring1{
+width:280px;
+height:280px
+}
 
-.marker{width:380px;height:380px}
+.ring2{
+width:320px;
+height:320px
+}
+
+.ring3{
+width:360px;
+height:360px
+}
+
+.ring4{
+width:400px;
+height:400px
+}
+
+.marker{
+width:380px;
+height:380px
+}
+
+
+/* MOBILE CORE */
 
 .core-video-wrap{
 width:180px;
@@ -1448,8 +1658,13 @@ height:180px
 }
 
 #ballVideo{
-width:160px;
-height:160px
+width:68px;
+height:68px
+}
+
+.core-video-wrap::before{
+width:195px;
+height:195px
 }
 
 .core-video-wrap::after{
@@ -1529,6 +1744,34 @@ max-width:90vw;
 text-align:center
 }
 
+/* EVEN SMALLER PHONE BALL */
+
+.core-video-wrap{
+width:160px;
+height:160px
+}
+
+#ballVideo{
+width:58px;
+height:58px
+}
+
+.core-video-wrap::before{
+width:175px;
+height:175px
+}
+
+.core-video-wrap::after{
+width:150px;
+height:150px
+}
+
+.core-video-wrap.listening::after,
+.core-video-wrap.responding::after{
+width:156px;
+height:156px
+}
+
 }
 
 @media(max-height:700px) and (min-width:701px){
@@ -1555,10 +1798,6 @@ height:470px
 <div class="aurora a3"></div>
 
 
-<!-- =========================================================
-     TOP BAR
-========================================================= -->
-
 <header class="core-top">
 
 <div class="core-logo">
@@ -1574,13 +1813,9 @@ SYSTEM ONLINE
 </header>
 
 
-<!-- =========================================================
-     STAGE 1
-========================================================= -->
-
 <section id="setupStage" class="stage active">
 
-<button id="setupLoginBtn" onclick="setupLogin()">
+<button id="setupLoginBtn" onclick="setupLogin">
 LOGIN
 </button>
 
@@ -1734,10 +1969,6 @@ J.A.R.V.I.S.
 </section>
 
 
-<!-- =========================================================
-     AUTHORIZATION
-========================================================= -->
-
 <div class="overlay" id="authorizationOverlay">
 
 <div class="auth">
@@ -1754,10 +1985,6 @@ J.A.R.V.I.S. CORE INITIALIZING
 
 </div>
 
-
-<!-- =========================================================
-     STAGE 2
-========================================================= -->
 
 <section id="infoStage" class="stage">
 
@@ -2098,10 +2325,6 @@ ENTER J.A.R.V.I.S. CORE →
 </section>
 
 
-<!-- =========================================================
-     STAGE 3 LOGIN
-========================================================= -->
-
 <section id="loginStage" class="stage">
 
 <button id="createNewIdBtn" onclick="createNewId()">
@@ -2172,10 +2395,6 @@ ACCESS DENIED
 
 </section>
 
-
-<!-- =========================================================
-     STAGE 4 DASHBOARD
-========================================================= -->
 
 <section id="dashboardStage" class="stage">
 
@@ -2297,6 +2516,13 @@ SYSTEM STATUS
 
 </div>
 
+
+<!--
+=========================================================
+THE BALL REMAINS THE SAME ball.mp4
+ONLY ITS SIZE / CORE CONTAINER WAS CHANGED
+=========================================================
+-->
 
 <div class="core-video-wrap">
 
@@ -2546,7 +2772,6 @@ localStorage.getItem(KEY_PASSWORD);
 const authorized=
 localStorage.getItem(KEY_AUTHORIZED)==="true";
 
-
 if(
 !authorized||
 !savedName||
@@ -2559,13 +2784,6 @@ alert("CREATE AN ID FIRST");
 return;
 
 }
-
-
-/*
-   ID ALREADY EXISTS
-   DIRECTLY OPEN THE EXISTING
-   INFORMATION + TERMS PAGE
-*/
 
 document
 .getElementById("welcomeName")
