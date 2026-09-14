@@ -6,12 +6,7 @@
 <title>J.A.R.V.I.S. // CORE</title>
 
 <style>
-
-*{
-box-sizing:border-box;
-margin:0;
-padding:0
-}
+*{box-sizing:border-box;margin:0;padding:0}
 
 :root{
 --purple:#a855f7;
@@ -24,9 +19,7 @@ padding:0
 --white:#f7f3ff;
 }
 
-html{
-scroll-behavior:smooth
-}
+html{scroll-behavior:smooth}
 
 body{
 min-height:100vh;
@@ -36,9 +29,7 @@ font-family:'Rajdhani',Arial,sans-serif;
 overflow-x:hidden
 }
 
-button,input{
-font-family:inherit
-}
+button,input{font-family:inherit}
 
 #spaceCanvas{
 position:fixed;
@@ -84,29 +75,9 @@ z-index:-7;
 opacity:.20
 }
 
-.a1{
-width:430px;
-height:430px;
-background:#9333ea;
-left:-180px;
-top:-160px
-}
-
-.a2{
-width:380px;
-height:380px;
-background:#06b6d4;
-right:-170px;
-top:35%
-}
-
-.a3{
-width:420px;
-height:420px;
-background:#db2777;
-left:35%;
-bottom:-260px
-}
+.a1{width:430px;height:430px;background:#9333ea;left:-180px;top:-160px}
+.a2{width:380px;height:380px;background:#06b6d4;right:-170px;top:35%}
+.a3{width:420px;height:420px;background:#db2777;left:35%;bottom:-260px}
 
 .core-top{
 height:70px;
@@ -133,9 +104,7 @@ letter-spacing:4px
 
 .core-logo span{
 color:var(--cyan);
-text-shadow:
-0 0 8px var(--cyan),
-0 0 22px rgba(34,211,238,.4)
+text-shadow:0 0 8px var(--cyan),0 0 22px rgba(34,211,238,.4)
 }
 
 .core-system{
@@ -152,36 +121,19 @@ height:7px;
 margin-right:8px;
 background:var(--green);
 border-radius:50%;
-box-shadow:
-0 0 7px var(--green),
-0 0 18px rgba(57,255,136,.7);
+box-shadow:0 0 7px var(--green),0 0 18px rgba(57,255,136,.7);
 animation:dotPulse 1.8s infinite
 }
 
 @keyframes dotPulse{
-0%,100%{
-opacity:.5;
-transform:scale(.8)
-}
-50%{
-opacity:1;
-transform:scale(1.2)
-}
+0%,100%{opacity:.5;transform:scale(.8)}
+50%{opacity:1;transform:scale(1.2)}
 }
 
-.stage{
-display:none;
-min-height:100vh
-}
+.stage{display:none;min-height:100vh}
+.stage.active{display:block}
 
-.stage.active{
-display:block
-}
-
-#setupStage,
-#infoStage{
-padding-top:70px
-}
+#setupStage,#infoStage{padding-top:70px}
 
 .access{
 min-height:calc(100vh - 70px);
@@ -200,71 +152,27 @@ color:rgba(192,132,252,.45);
 pointer-events:none
 }
 
-.h1{
-top:15%;
-left:6%
-}
-
-.h2{
-top:30%;
-right:5%;
-color:rgba(34,211,238,.42)
-}
-
-.h3{
-bottom:15%;
-left:8%;
-color:rgba(244,114,182,.4)
-}
-
-.h4{
-bottom:20%;
-right:7%;
-color:rgba(57,255,136,.35)
-}
+.h1{top:15%;left:6%}
+.h2{top:30%;right:5%;color:rgba(34,211,238,.42)}
+.h3{bottom:15%;left:8%;color:rgba(244,114,182,.4)}
+.h4{bottom:20%;right:7%;color:rgba(57,255,136,.35)}
 
 .chamber{
 width:min(940px,94vw);
 min-height:590px;
 position:relative;
 padding:1px;
-background:
-linear-gradient(
-115deg,
-#a855f7,
-#22d3ee,
-#f472b6,
-#3b82f6,
-#a855f7
-);
+background:linear-gradient(115deg,#a855f7,#22d3ee,#f472b6,#3b82f6,#a855f7);
 background-size:300% 300%;
 animation:borderFlow 9s linear infinite;
-clip-path:
-polygon(
-0 0,
-97% 0,
-100% 8%,
-100% 92%,
-97% 100%,
-3% 100%,
-0 92%,
-0 8%
-);
-filter:drop-shadow(
-0 0 35px rgba(124,58,237,.18)
-)
+clip-path:polygon(0 0,97% 0,100% 8%,100% 92%,97% 100%,3% 100%,0 92%,0 8%);
+filter:drop-shadow(0 0 35px rgba(124,58,237,.18))
 }
 
 @keyframes borderFlow{
-0%{
-background-position:0% 50%
-}
-50%{
-background-position:100% 50%
-}
-100%{
-background-position:0% 50%
-}
+0%{background-position:0% 50%}
+50%{background-position:100% 50%}
+100%{background-position:0% 50%}
 }
 
 .inner{
@@ -272,13 +180,7 @@ min-height:588px;
 position:relative;
 overflow:hidden;
 padding:55px 58px;
-background:
-linear-gradient(
-135deg,
-rgba(8,5,16,.97),
-rgba(12,7,23,.94),
-rgba(5,7,19,.97)
-);
+background:linear-gradient(135deg,rgba(8,5,16,.97),rgba(12,7,23,.94),rgba(5,7,19,.97));
 clip-path:inherit
 }
 
@@ -288,19 +190,9 @@ position:absolute;
 inset:0;
 pointer-events:none;
 background:
-linear-gradient(
-90deg,
-transparent 49.8%,
-rgba(34,211,238,.035) 50%,
-transparent 50.2%
-),
-linear-gradient(
-rgba(192,132,252,.025) 1px,
-transparent 1px
-);
-background-size:
-100% 100%,
-100% 45px
+linear-gradient(90deg,transparent 49.8%,rgba(34,211,238,.035) 50%,transparent 50.2%),
+linear-gradient(rgba(192,132,252,.025) 1px,transparent 1px);
+background-size:100% 100%,100% 45px
 }
 
 .scan{
@@ -308,25 +200,15 @@ position:absolute;
 left:0;
 right:0;
 height:2px;
-background:
-linear-gradient(
-90deg,
-transparent,
-var(--cyan),
-transparent
-);
+background:linear-gradient(90deg,transparent,var(--cyan),transparent);
 box-shadow:0 0 18px var(--cyan);
 opacity:.25;
 animation:scan 5s linear infinite
 }
 
 @keyframes scan{
-from{
-top:-5%
-}
-to{
-top:105%
-}
+from{top:-5%}
+to{top:105%}
 }
 
 .corner{
@@ -337,29 +219,10 @@ border-color:rgba(34,211,238,.55);
 border-style:solid
 }
 
-.c1{
-top:24px;
-left:24px;
-border-width:1px 0 0 1px
-}
-
-.c2{
-top:24px;
-right:24px;
-border-width:1px 1px 0 0
-}
-
-.c3{
-bottom:24px;
-left:24px;
-border-width:0 0 1px 1px
-}
-
-.c4{
-bottom:24px;
-right:24px;
-border-width:0 1px 1px 0
-}
+.c1{top:24px;left:24px;border-width:1px 0 0 1px}
+.c2{top:24px;right:24px;border-width:1px 1px 0 0}
+.c3{bottom:24px;left:24px;border-width:0 0 1px 1px}
+.c4{bottom:24px;right:24px;border-width:0 1px 1px 0}
 
 .chip{
 font-family:'Orbitron',sans-serif;
@@ -379,16 +242,13 @@ line-height:1.05
 
 .title b{
 color:var(--violet);
-text-shadow:
-0 0 12px rgba(192,132,252,.5),
-0 0 35px rgba(168,85,247,.25)
+text-shadow:0 0 12px rgba(192,132,252,.5),0 0 35px rgba(168,85,247,.25)
 }
 
 .title i{
 font-style:normal;
 color:var(--cyan);
-text-shadow:
-0 0 15px rgba(34,211,238,.5)
+text-shadow:0 0 15px rgba(34,211,238,.5)
 }
 
 .subtitle{
@@ -406,10 +266,7 @@ gap:42px;
 align-items:center
 }
 
-.fields{
-display:grid;
-gap:14px
-}
+.fields{display:grid;gap:14px}
 
 .setup-label{
 font-family:'Orbitron',sans-serif;
@@ -418,9 +275,7 @@ letter-spacing:2px;
 color:#8e8aa2
 }
 
-.setup-field{
-position:relative
-}
+.setup-field{position:relative}
 
 .setup-input{
 width:100%;
@@ -436,27 +291,17 @@ transition:.25s;
 box-shadow:inset 0 0 25px rgba(0,0,0,.8)
 }
 
-.setup-input::placeholder{
-color:#5e596e
-}
+.setup-input::placeholder{color:#5e596e}
 
 .setup-input:focus{
 border-color:rgba(34,211,238,.75);
-box-shadow:
-0 0 20px rgba(34,211,238,.1),
-inset 0 0 25px rgba(0,0,0,.8)
+box-shadow:0 0 20px rgba(34,211,238,.1),inset 0 0 25px rgba(0,0,0,.8)
 }
 
 .init{
 margin-top:8px;
 padding:17px 24px;
-background:
-linear-gradient(
-100deg,
-#7c3aed,
-#c026d3,
-#0891b2
-);
+background:linear-gradient(100deg,#7c3aed,#c026d3,#0891b2);
 background-size:200%;
 color:#fff;
 border:none;
@@ -465,21 +310,17 @@ font-size:11px;
 font-weight:700;
 letter-spacing:2px;
 cursor:pointer;
-box-shadow:
-0 0 24px rgba(168,85,247,.2);
+box-shadow:0 0 24px rgba(168,85,247,.2);
 transition:.3s
 }
 
 .init:hover{
 background-position:100%;
 transform:translateY(-2px);
-box-shadow:
-0 0 35px rgba(34,211,238,.35)
+box-shadow:0 0 35px rgba(34,211,238,.35)
 }
 
-.init:active{
-transform:scale(.98)
-}
+.init:active{transform:scale(.98)}
 
 .coreBox{
 height:270px;
@@ -502,9 +343,7 @@ position:absolute;
 inset:3px;
 border-radius:50%;
 border:1px solid rgba(34,211,238,.65);
-box-shadow:
-0 0 15px rgba(34,211,238,.25),
-inset 0 0 20px rgba(34,211,238,.08);
+box-shadow:0 0 15px rgba(34,211,238,.25),inset 0 0 20px rgba(34,211,238,.08);
 animation:logoSpin 12s linear infinite
 }
 
@@ -517,56 +356,16 @@ border:1px dashed rgba(192,132,252,.55);
 animation:logoSpinReverse 9s linear infinite
 }
 
-@keyframes logoSpin{
-to{
-transform:rotate(360deg)
-}
-}
-
-@keyframes logoSpinReverse{
-to{
-transform:rotate(-360deg)
-}
-}
+@keyframes logoSpin{to{transform:rotate(360deg)}}
+@keyframes logoSpinReverse{to{transform:rotate(-360deg)}}
 
 .logoMarks{
 position:absolute;
 inset:-4px;
 border-radius:50%;
-background:
-conic-gradient(
-from 0deg,
-transparent 0deg,
-transparent 25deg,
-var(--cyan) 27deg,
-transparent 31deg,
-transparent 85deg,
-var(--pink) 87deg,
-transparent 91deg,
-transparent 175deg,
-var(--violet) 178deg,
-transparent 182deg,
-transparent 265deg,
-var(--blue) 268deg,
-transparent 272deg,
-transparent 330deg,
-var(--cyan) 333deg,
-transparent 337deg
-);
--webkit-mask:
-radial-gradient(
-transparent 66%,
-#000 67%,
-#000 69%,
-transparent 70%
-);
-mask:
-radial-gradient(
-transparent 66%,
-#000 67%,
-#000 69%,
-transparent 70%
-);
+background:conic-gradient(from 0deg,transparent 0deg,transparent 25deg,var(--cyan) 27deg,transparent 31deg,transparent 85deg,var(--pink) 87deg,transparent 91deg,transparent 175deg,var(--violet) 178deg,transparent 182deg,transparent 265deg,var(--blue) 268deg,transparent 272deg,transparent 330deg,var(--cyan) 333deg,transparent 337deg);
+-webkit-mask:radial-gradient(transparent 66%,#000 67%,#000 69%,transparent 70%);
+mask:radial-gradient(transparent 66%,#000 67%,#000 69%,transparent 70%);
 animation:logoSpin 16s linear infinite
 }
 
@@ -576,40 +375,16 @@ height:115px;
 position:relative;
 display:grid;
 place-items:center;
-background:
-radial-gradient(
-circle,
-rgba(34,211,238,.08),
-rgba(168,85,247,.05) 55%,
-transparent 70%
-);
-clip-path:
-polygon(
-50% 0%,
-90% 23%,
-90% 77%,
-50% 100%,
-10% 77%,
-10% 23%
-);
+background:radial-gradient(circle,rgba(34,211,238,.08),rgba(168,85,247,.05) 55%,transparent 70%);
+clip-path:polygon(50% 0%,90% 23%,90% 77%,50% 100%,10% 77%,10% 23%);
 border:1px solid rgba(255,255,255,.2);
-box-shadow:
-0 0 25px rgba(168,85,247,.25),
-inset 0 0 30px rgba(34,211,238,.08);
+box-shadow:0 0 25px rgba(168,85,247,.25),inset 0 0 30px rgba(34,211,238,.08);
 animation:emblemPulse 3s ease-in-out infinite
 }
 
 @keyframes emblemPulse{
-0%,100%{
-filter:drop-shadow(
-0 0 8px rgba(34,211,238,.35)
-)
-}
-50%{
-filter:drop-shadow(
-0 0 25px rgba(192,132,252,.6)
-)
-}
+0%,100%{filter:drop-shadow(0 0 8px rgba(34,211,238,.35))}
+50%{filter:drop-shadow(0 0 25px rgba(192,132,252,.6))}
 }
 
 .emblemJ{
@@ -618,60 +393,25 @@ font-size:64px;
 font-weight:800;
 line-height:1;
 color:transparent;
-background:
-linear-gradient(
-145deg,
-#fff,
-#22d3ee 35%,
-#c084fc 70%,
-#f472b6
-);
+background:linear-gradient(145deg,#fff,#22d3ee 35%,#c084fc 70%,#f472b6);
 -webkit-background-clip:text;
 background-clip:text;
-text-shadow:
-0 0 25px rgba(34,211,238,.35);
+text-shadow:0 0 25px rgba(34,211,238,.35);
 transform:translateY(-2px)
 }
 
 .techLine{
 position:absolute;
 height:1px;
-background:
-linear-gradient(
-90deg,
-transparent,
-var(--cyan),
-transparent
-);
+background:linear-gradient(90deg,transparent,var(--cyan),transparent);
 box-shadow:0 0 8px var(--cyan);
 opacity:.65
 }
 
-.line1{
-width:45px;
-left:-20px;
-top:50%
-}
-
-.line2{
-width:45px;
-right:-20px;
-top:50%
-}
-
-.line3{
-width:32px;
-left:50%;
-top:-12px;
-transform:rotate(90deg)
-}
-
-.line4{
-width:32px;
-left:50%;
-bottom:-12px;
-transform:rotate(90deg)
-}
+.line1{width:45px;left:-20px;top:50%}
+.line2{width:45px;right:-20px;top:50%}
+.line3{width:32px;left:50%;top:-12px;transform:rotate(90deg)}
+.line4{width:32px;left:50%;bottom:-12px;transform:rotate(90deg)}
 
 .logoLabel{
 position:absolute;
@@ -684,8 +424,7 @@ font-family:'Orbitron',sans-serif;
 font-size:9px;
 letter-spacing:4px;
 color:#aaa;
-text-shadow:
-0 0 10px rgba(192,132,252,.3)
+text-shadow:0 0 10px rgba(192,132,252,.3)
 }
 
 .logoLabel strong{
@@ -706,17 +445,9 @@ font-size:8px;
 letter-spacing:2px
 }
 
-.small span:nth-child(1){
-color:var(--violet)
-}
-
-.small span:nth-child(2){
-color:var(--cyan)
-}
-
-.small span:nth-child(3){
-color:var(--pink)
-}
+.small span:nth-child(1){color:var(--violet)}
+.small span:nth-child(2){color:var(--cyan)}
+.small span:nth-child(3){color:var(--pink)}
 
 .overlay{
 position:fixed;
@@ -728,30 +459,17 @@ background:rgba(2,1,7,.96);
 backdrop-filter:blur(12px)
 }
 
-.overlay.show{
-display:grid
-}
+.overlay.show{display:grid}
 
-.auth{
-text-align:center
-}
+.auth{text-align:center}
 
 .authCore{
 width:120px;
 height:120px;
 border-radius:50%;
 margin:auto;
-background:
-radial-gradient(
-circle,
-#fff 0%,
-var(--green) 8%,
-#0b3924 30%,
-#020c08 65%
-);
-box-shadow:
-0 0 35px var(--green),
-0 0 100px rgba(57,255,136,.27);
+background:radial-gradient(circle,#fff 0%,var(--green) 8%,#0b3924 30%,#020c08 65%);
+box-shadow:0 0 35px var(--green),0 0 100px rgba(57,255,136,.27);
 animation:authPulse 1.4s infinite
 }
 
@@ -772,15 +490,9 @@ color:#777;
 margin-top:12px
 }
 
-@keyframes authPulse{
-50%{
-transform:scale(1.12)
-}
-}
+@keyframes authPulse{50%{transform:scale(1.12)}}
 
-#infoStage{
-padding-bottom:100px
-}
+#infoStage{padding-bottom:100px}
 
 .hero2{
 min-height:65vh;
@@ -802,14 +514,7 @@ margin-bottom:20px
 font-family:'Orbitron',sans-serif;
 font-size:clamp(40px,8vw,90px);
 font-weight:700;
-background:
-linear-gradient(
-90deg,
-#c084fc,
-#22d3ee,
-#f472b6,
-#c084fc
-);
+background:linear-gradient(90deg,#c084fc,#22d3ee,#f472b6,#c084fc);
 background-size:250%;
 -webkit-background-clip:text;
 background-clip:text;
@@ -825,27 +530,15 @@ line-height:1.7;
 margin:24px auto
 }
 
-@keyframes gradient{
-to{
-background-position:250%
-}
-}
+@keyframes gradient{to{background-position:250%}}
 
-.content{
-width:min(1100px,92vw);
-margin:auto
-}
+.content{width:min(1100px,92vw);margin:auto}
 
 .section{
 margin:35px 0;
 padding:35px;
 border:1px solid rgba(192,132,252,.13);
-background:
-linear-gradient(
-135deg,
-rgba(10,6,20,.8),
-rgba(5,8,16,.8)
-);
+background:linear-gradient(135deg,rgba(10,6,20,.8),rgba(5,8,16,.8));
 position:relative;
 overflow:hidden
 }
@@ -857,12 +550,7 @@ left:0;
 top:0;
 bottom:0;
 width:3px;
-background:
-linear-gradient(
-var(--violet),
-var(--cyan),
-var(--pink)
-)
+background:linear-gradient(var(--violet),var(--cyan),var(--pink))
 }
 
 .section h2{
@@ -895,8 +583,7 @@ transition:.3s
 .card:hover{
 transform:translateY(-5px);
 border-color:rgba(34,211,238,.4);
-box-shadow:
-0 15px 40px rgba(34,211,238,.06)
+box-shadow:0 15px 40px rgba(34,211,238,.06)
 }
 
 .card b{
@@ -930,8 +617,7 @@ background:rgba(255,255,255,.02)
 font-family:'Orbitron',sans-serif;
 font-size:24px;
 color:var(--cyan);
-text-shadow:
-0 0 12px rgba(34,211,238,.5)
+text-shadow:0 0 12px rgba(34,211,238,.5)
 }
 
 .step h3{
@@ -940,10 +626,7 @@ font-size:12px;
 margin:10px 0
 }
 
-.step p{
-font-size:12px;
-color:#888394
-}
+.step p{font-size:12px;color:#888394}
 
 .terms{
 display:grid;
@@ -982,21 +665,14 @@ font-family:'Orbitron',sans-serif;
 font-size:11px;
 letter-spacing:2px;
 cursor:pointer;
-background:
-linear-gradient(
-90deg,
-#7c3aed,
-#0891b2
-);
-box-shadow:
-0 0 30px rgba(124,58,237,.2);
+background:linear-gradient(90deg,#7c3aed,#0891b2);
+box-shadow:0 0 30px rgba(124,58,237,.2);
 transition:.3s
 }
 
 .enter button:hover{
 transform:translateY(-3px) scale(1.02);
-box-shadow:
-0 0 45px rgba(34,211,238,.35)
+box-shadow:0 0 45px rgba(34,211,238,.35)
 }
 
 .ready{
@@ -1019,25 +695,32 @@ position:fixed;
 top:82px;
 left:24px;
 z-index:99999;
+
 padding:9px 16px;
+
 border:1px solid rgba(34,211,238,.45);
 border-radius:5px;
+
 background:rgba(5,3,18,.82);
 color:#22d3ee;
+
 font-family:Arial,Helvetica,sans-serif;
 font-size:9px;
 letter-spacing:2px;
+
 cursor:pointer;
-box-shadow:
-0 0 12px rgba(34,211,238,.18);
+
+box-shadow:0 0 12px rgba(34,211,238,.18);
+
 transition:.25s
 }
 
 #setupLoginBtn:hover{
 color:white;
 border-color:#22d3ee;
-box-shadow:
-0 0 22px rgba(34,211,238,.65);
+
+box-shadow:0 0 22px rgba(34,211,238,.65);
+
 transform:translateY(-1px)
 }
 
@@ -1048,13 +731,7 @@ transform:translateY(-1px)
 
 #loginStage{
 min-height:100vh;
-background:
-radial-gradient(
-circle at 50% 50%,
-rgba(80,0,150,.10),
-transparent 40%
-),
-#020207
+background:radial-gradient(circle at 50% 50%,rgba(80,0,150,.10),transparent 40%),#020207
 }
 
 #loginPage{
@@ -1072,9 +749,7 @@ padding:35px;
 border:1px solid #9d00ff;
 border-radius:18px;
 background:rgba(5,5,15,.88);
-box-shadow:
-0 0 25px rgba(157,0,255,.35),
-inset 0 0 25px rgba(157,0,255,.05)
+box-shadow:0 0 25px rgba(157,0,255,.35),inset 0 0 25px rgba(157,0,255,.05)
 }
 
 .login-box h1{
@@ -1082,9 +757,7 @@ text-align:center;
 font-size:34px;
 letter-spacing:6px;
 color:white;
-text-shadow:
-0 0 8px #9d00ff,
-0 0 20px #5c00ff
+text-shadow:0 0 8px #9d00ff,0 0 20px #5c00ff
 }
 
 .login-subtitle{
@@ -1118,8 +791,7 @@ font-size:14px
 
 .login-input:focus{
 border-color:#9d00ff;
-box-shadow:
-0 0 10px rgba(157,0,255,.25)
+box-shadow:0 0 10px rgba(157,0,255,.25)
 }
 
 .login-button{
@@ -1127,23 +799,16 @@ width:100%;
 padding:13px;
 border:none;
 border-radius:7px;
-background:
-linear-gradient(
-90deg,
-#7d00ff,
-#b000ff
-);
+background:linear-gradient(90deg,#7d00ff,#b000ff);
 color:white;
 font-weight:bold;
 letter-spacing:3px;
 cursor:pointer;
-box-shadow:
-0 0 18px rgba(157,0,255,.4)
+box-shadow:0 0 18px rgba(157,0,255,.4)
 }
 
 .login-button:hover{
-box-shadow:
-0 0 28px rgba(157,0,255,.7)
+box-shadow:0 0 28px rgba(157,0,255,.7)
 }
 
 #error{
@@ -1174,22 +839,20 @@ font-size:9px;
 letter-spacing:2px;
 cursor:pointer;
 z-index:99999;
-box-shadow:
-0 0 12px rgba(157,0,255,.2);
+box-shadow:0 0 12px rgba(157,0,255,.2);
 transition:.25s
 }
 
 #createNewIdBtn:hover{
 color:white;
 border-color:#9d00ff;
-box-shadow:
-0 0 22px rgba(157,0,255,.65);
+box-shadow:0 0 22px rgba(157,0,255,.65);
 transform:translateY(-1px)
 }
 
 
 /* =========================================================
-   DASHBOARD
+   ORIGINAL DASHBOARD
 ========================================================= */
 
 #dashboardStage{
@@ -1206,16 +869,8 @@ height:100vh;
 position:relative;
 overflow:hidden;
 background:
-radial-gradient(
-circle at 50% 48%,
-rgba(90,0,255,.12),
-transparent 25%
-),
-radial-gradient(
-circle at 50% 48%,
-rgba(0,180,255,.07),
-transparent 48%
-),
+radial-gradient(circle at 50% 48%,rgba(90,0,255,.12),transparent 25%),
+radial-gradient(circle at 50% 48%,rgba(0,180,255,.07),transparent 48%),
 #020207
 }
 
@@ -1224,20 +879,10 @@ position:absolute;
 inset:0;
 opacity:.16;
 background-image:
-linear-gradient(
-rgba(100,70,255,.15) 1px,
-transparent 1px
-),
-linear-gradient(
-90deg,
-rgba(0,180,255,.12) 1px,
-transparent 1px
-);
+linear-gradient(rgba(100,70,255,.15) 1px,transparent 1px),
+linear-gradient(90deg,rgba(0,180,255,.12) 1px,transparent 1px);
 background-size:55px 55px;
-transform:
-perspective(500px)
-rotateX(60deg)
-scale(1.8);
+transform:perspective(500px) rotateX(60deg) scale(1.8);
 transform-origin:center bottom;
 bottom:-35%;
 pointer-events:none
@@ -1257,13 +902,13 @@ height:2px;
 border-radius:50%;
 background:white;
 opacity:.5;
-box-shadow:
-0 0 5px white
+box-shadow:0 0 5px white
 }
 
 
 /* =========================================================
    DASHBOARD TOP BAR
+   VERY TRANSPARENT
 ========================================================= */
 
 .topbar{
@@ -1276,9 +921,13 @@ display:flex;
 align-items:center;
 justify-content:space-between;
 padding:0 35px;
+
 background:rgba(5,5,15,.10);
+
 border-bottom:1px solid rgba(157,0,255,.10);
+
 backdrop-filter:blur(5px);
+
 z-index:10
 }
 
@@ -1287,10 +936,7 @@ font-size:17px;
 font-weight:bold;
 letter-spacing:6px;
 color:#fff;
-text-shadow:
-0 0 5px #fff,
-0 0 15px #a000ff,
-0 0 30px #6200ff
+text-shadow:0 0 5px #fff,0 0 15px #a000ff,0 0 30px #6200ff
 }
 
 .system{
@@ -1300,8 +946,7 @@ gap:10px;
 font-size:9px;
 letter-spacing:3px;
 color:#d8ff00;
-text-shadow:
-0 0 8px #d8ff00
+text-shadow:0 0 8px #d8ff00
 }
 
 .system-dot{
@@ -1309,25 +954,14 @@ width:7px;
 height:7px;
 border-radius:50%;
 background:#d8ff00;
-box-shadow:
-0 0 7px #d8ff00,
-0 0 18px #d8ff00;
+box-shadow:0 0 7px #d8ff00,0 0 18px #d8ff00;
 animation:blink 1.5s infinite
 }
 
 @keyframes blink{
-0%,100%{
-opacity:1
+0%,100%{opacity:1}
+50%{opacity:.35}
 }
-50%{
-opacity:.35
-}
-}
-
-
-/* =========================================================
-   CORE AREA
-========================================================= */
 
 .core-area{
 position:absolute;
@@ -1339,20 +973,8 @@ height:min(600px,75vh);
 display:flex;
 align-items:center;
 justify-content:center;
-overflow:visible;
-
-/*
-IMPORTANT:
-This puts the complete core above the HUD panels
-but still below the core text.
-*/
-z-index:30;
+overflow:visible
 }
-
-
-/* =========================================================
-   OUTER RINGS
-========================================================= */
 
 .hud-ring{
 position:absolute;
@@ -1367,75 +989,40 @@ pointer-events:none
 width:340px;
 height:340px;
 border:1px solid rgba(0,180,255,.28);
-box-shadow:
-0 0 20px rgba(0,180,255,.12),
-inset 0 0 20px rgba(0,180,255,.05);
-animation:
-rotateClockwise 18s linear infinite;
-
-z-index:2
+box-shadow:0 0 20px rgba(0,180,255,.12),inset 0 0 20px rgba(0,180,255,.05);
+animation:rotateClockwise 18s linear infinite
 }
 
 .ring2{
 width:390px;
 height:390px;
 border:1px dashed rgba(157,0,255,.35);
-animation:
-rotateReverse 25s linear infinite;
-
-z-index:1
+animation:rotateReverse 25s linear infinite
 }
 
 .ring3{
 width:450px;
 height:450px;
 border:1px solid rgba(255,220,0,.12);
-animation:
-rotateClockwise 35s linear infinite;
-
-z-index:1
+animation:rotateClockwise 35s linear infinite
 }
 
 .ring4{
 width:500px;
 height:500px;
 border:1px dashed rgba(255,40,70,.10);
-animation:
-rotateReverse 45s linear infinite;
-
-z-index:1
+animation:rotateReverse 45s linear infinite
 }
 
 @keyframes rotateClockwise{
-from{
-transform:
-translate(-50%,-50%)
-rotate(0deg)
-}
-to{
-transform:
-translate(-50%,-50%)
-rotate(360deg)
-}
+from{transform:translate(-50%,-50%) rotate(0deg)}
+to{transform:translate(-50%,-50%) rotate(360deg)}
 }
 
 @keyframes rotateReverse{
-from{
-transform:
-translate(-50%,-50%)
-rotate(360deg)
+from{transform:translate(-50%,-50%) rotate(360deg)}
+to{transform:translate(-50%,-50%) rotate(0deg)}
 }
-to{
-transform:
-translate(-50%,-50%)
-rotate(0deg)
-}
-}
-
-
-/* =========================================================
-   MARKERS
-========================================================= */
 
 .marker{
 position:absolute;
@@ -1444,8 +1031,7 @@ top:50%;
 width:470px;
 height:470px;
 transform:translate(-50%,-50%);
-pointer-events:none;
-z-index:3
+pointer-events:none
 }
 
 .marker span{
@@ -1454,35 +1040,106 @@ width:7px;
 height:7px;
 border-radius:50%;
 background:#00cfff;
-box-shadow:
-0 0 7px #00cfff,
-0 0 15px #00cfff
+box-shadow:0 0 7px #00cfff,0 0 15px #00cfff
 }
 
-.marker span:nth-child(1){
-top:0;
-left:50%
+.marker span:nth-child(1){top:0;left:50%}
+.marker span:nth-child(2){bottom:0;left:50%}
+.marker span:nth-child(3){left:0;top:50%}
+.marker span:nth-child(4){right:0;top:50%}
+
+.core-video-wrap{
+position:absolute;
+left:50%;
+top:50%;
+transform:translate(-50%,-50%);
+width:210px;
+height:210px;
+display:flex;
+align-items:center;
+justify-content:center;
+z-index:5
 }
 
-.marker span:nth-child(2){
-bottom:0;
-left:50%
+.core-video-wrap::before{
+content:"";
+position:absolute;
+width:230px;
+height:230px;
+border-radius:50%;
+background:radial-gradient(circle,rgba(255,220,0,.20),rgba(80,0,255,.14),transparent 70%);
+filter:blur(15px);
+animation:coreGlow 2.2s ease-in-out infinite
 }
 
-.marker span:nth-child(3){
-left:0;
-top:50%
+@keyframes coreGlow{
+0%,100%{transform:scale(.92);opacity:.7}
+50%{transform:scale(1.08);opacity:1}
 }
 
-.marker span:nth-child(4){
-right:0;
-top:50%
+.core-video-wrap::after{
+content:"";
+position:absolute;
+width:218px;
+height:218px;
+border-radius:50%;
+border:2px solid transparent;
+background:
+linear-gradient(#020207,#020207) padding-box,
+linear-gradient(90deg,#ff1744,#ff7300,#d8ff00,#00ff66,#00d9ff,#7a00ff,#ff1744) border-box;
+background-size:100% 100%,300% 100%;
+animation:coreBorderFlow 4s linear infinite;
+opacity:.8;
+box-shadow:0 0 8px rgba(0,217,255,.4),0 0 18px rgba(157,0,255,.3);
+z-index:2;
+pointer-events:none
 }
 
+@keyframes coreBorderFlow{
+0%{background-position:0 0,0% 50%}
+100%{background-position:0 0,300% 50%}
+}
 
-/* =========================================================
-   CONNECTIONS
-========================================================= */
+.core-video-wrap.listening::after{
+width:224px;
+height:224px;
+border:2px solid #ff1744;
+background:transparent;
+opacity:1;
+box-shadow:0 0 5px #ff1744,0 0 12px #ff1744,0 0 25px #ff1744,0 0 45px rgba(255,23,68,.9),0 0 75px rgba(255,23,68,.45);
+animation:listeningPulse 1s ease-in-out infinite
+}
+
+@keyframes listeningPulse{
+0%,100%{transform:scale(.97);opacity:.75}
+50%{transform:scale(1.05);opacity:1}
+}
+
+.core-video-wrap.responding::after{
+width:224px;
+height:224px;
+border:2px solid #00ff66;
+background:transparent;
+opacity:1;
+box-shadow:0 0 5px #00ff66,0 0 12px #00ff66,0 0 25px #00ff66,0 0 45px rgba(0,255,102,.9),0 0 75px rgba(0,255,102,.45);
+animation:respondingPulse 1s ease-in-out infinite
+}
+
+@keyframes respondingPulse{
+0%,100%{transform:scale(.97);opacity:.75}
+50%{transform:scale(1.05);opacity:1}
+}
+
+#ballVideo{
+position:relative;
+width:190px;
+height:190px;
+object-fit:contain;
+border-radius:50%;
+z-index:3;
+filter:drop-shadow(0 0 8px #00cfff) drop-shadow(0 0 22px rgba(120,0,255,.8));
+mix-blend-mode:screen
+}
 
 .core-connections{
 position:absolute;
@@ -1499,18 +1156,8 @@ z-index:4
 position:absolute;
 height:1px;
 transform-origin:left center;
-background:
-linear-gradient(
-90deg,
-transparent,
-#00d9ff,
-#9d00ff,
-#d8ff00,
-transparent
-);
-box-shadow:
-0 0 5px #00d9ff,
-0 0 12px #9d00ff;
+background:linear-gradient(90deg,transparent,#00d9ff,#9d00ff,#d8ff00,transparent);
+box-shadow:0 0 5px #00d9ff,0 0 12px #9d00ff;
 opacity:.35
 }
 
@@ -1533,17 +1180,8 @@ width:1px;
 height:calc(50vh - 120px);
 left:50%;
 bottom:105px;
-background:
-linear-gradient(
-to top,
-transparent,
-#00d9ff,
-#9d00ff,
-transparent
-);
-box-shadow:
-0 0 6px #00d9ff,
-0 0 12px #9d00ff;
+background:linear-gradient(to top,transparent,#00d9ff,#9d00ff,transparent);
+box-shadow:0 0 6px #00d9ff,0 0 12px #9d00ff;
 opacity:.3
 }
 
@@ -1553,389 +1191,9 @@ width:1px;
 height:calc(50vh - 130px);
 left:50%;
 top:105px;
-background:
-linear-gradient(
-to bottom,
-transparent,
-#d8ff00,
-#ff1744,
-transparent
-);
-box-shadow:
-0 0 6px #d8ff00,
-0 0 12px #ff1744;
+background:linear-gradient(to bottom,transparent,#d8ff00,#ff1744,transparent);
+box-shadow:0 0 6px #d8ff00,0 0 12px #ff1744;
 opacity:.3
-}
-
-
-/* =========================================================
-   CORE VIDEO
-   THE BALL IS ABOVE THE CORE RINGS
-   BUT BELOW THE CORE TEXT
-========================================================= */
-
-.core-video-wrap{
-position:absolute;
-left:50%;
-top:50%;
-transform:translate(-50%,-50%);
-
-width:210px;
-height:210px;
-
-display:flex;
-align-items:center;
-justify-content:center;
-
-border-radius:50%;
-
-/*
-BLACK CORE
-*/
-background:
-radial-gradient(
-circle at 50% 48%,
-#08080c 0%,
-#030307 58%,
-#000 100%
-);
-
-box-shadow:
-inset 0 0 35px rgba(0,0,0,.95),
-inset 0 0 70px rgba(0,0,0,.8),
-0 0 20px rgba(0,0,0,.9);
-
-/*
-VERY IMPORTANT:
-Keep overflow hidden so only the circular
-core area is visible.
-*/
-overflow:hidden;
-
-/*
-THE COMPLETE CORE IS ABOVE THE RINGS.
-*/
-z-index:20;
-
-isolation:isolate;
-}
-
-
-/* =========================================================
-   CORE OUTER GLOW
-========================================================= */
-
-.core-video-wrap::before{
-content:"";
-position:absolute;
-
-width:230px;
-height:230px;
-
-border-radius:50%;
-
-background:
-radial-gradient(
-circle,
-rgba(255,220,0,.16),
-rgba(80,0,255,.12),
-transparent 70%
-);
-
-filter:blur(15px);
-
-animation:
-coreGlow 2.2s ease-in-out infinite;
-
-z-index:1;
-
-pointer-events:none
-}
-
-@keyframes coreGlow{
-
-0%,100%{
-transform:scale(.92);
-opacity:.65
-}
-
-50%{
-transform:scale(1.08);
-opacity:1
-}
-
-}
-
-
-/* =========================================================
-   MULTICOLOR CORE BORDER
-========================================================= */
-
-.core-video-wrap::after{
-content:"";
-
-position:absolute;
-
-width:218px;
-height:218px;
-
-border-radius:50%;
-
-border:2px solid transparent;
-
-background:
-linear-gradient(
-#020207,
-#020207
-) padding-box,
-
-linear-gradient(
-90deg,
-#ff1744,
-#ff7300,
-#d8ff00,
-#00ff66,
-#00d9ff,
-#7a00ff,
-#ff1744
-) border-box;
-
-background-size:
-100% 100%,
-300% 100%;
-
-animation:
-coreBorderFlow 4s linear infinite;
-
-opacity:.8;
-
-box-shadow:
-0 0 8px rgba(0,217,255,.4),
-0 0 18px rgba(157,0,255,.3);
-
-/*
-BORDER IS ABOVE BLACK CORE
-BUT BELOW BALL
-*/
-z-index:5;
-
-pointer-events:none
-}
-
-@keyframes coreBorderFlow{
-
-0%{
-background-position:
-0 0,
-0% 50%
-}
-
-100%{
-background-position:
-0 0,
-300% 50%
-}
-
-}
-
-
-/* =========================================================
-   BALL VIDEO
-   TOP OF CORE
-   BELOW TEXT
-========================================================= */
-
-#ballVideo{
-
-position:absolute;
-
-left:50%;
-top:50%;
-
-transform:
-translate(-50%,-50%)
-scale(.94);
-
-width:82px;
-height:82px;
-
-/*
-THIS IS THE IMPORTANT PART.
-The actual video is a perfect circle.
-*/
-border-radius:50%;
-
-overflow:hidden;
-
-object-fit:cover;
-
-object-position:center center;
-
-display:block;
-
-/*
-BALL ABOVE EVERYTHING INSIDE CORE
-*/
-z-index:40;
-
-pointer-events:none;
-
-background:transparent;
-
-/*
-GLOW
-*/
-filter:
-drop-shadow(
-0 0 5px rgba(0,220,255,.95)
-)
-drop-shadow(
-0 0 12px rgba(120,0,255,.85)
-)
-drop-shadow(
-0 0 20px rgba(255,30,180,.25)
-);
-
-/*
-PULSE
-*/
-animation:
-ballPulse 2.4s ease-in-out infinite;
-
-/*
-DO NOT USE mix-blend-mode:screen
-because it can make the black circular crop
-look transparent depending on the video.
-*/
-mix-blend-mode:normal;
-
-will-change:transform,filter
-}
-
-@keyframes ballPulse{
-
-0%,100%{
-
-transform:
-translate(-50%,-50%)
-scale(.90);
-
-filter:
-drop-shadow(
-0 0 5px rgba(0,220,255,.8)
-)
-drop-shadow(
-0 0 12px rgba(120,0,255,.70)
-)
-drop-shadow(
-0 0 20px rgba(255,30,180,.18)
-)
-}
-
-50%{
-
-transform:
-translate(-50%,-50%)
-scale(1.06);
-
-filter:
-drop-shadow(
-0 0 8px rgba(0,220,255,1)
-)
-drop-shadow(
-0 0 19px rgba(120,0,255,.95)
-)
-drop-shadow(
-0 0 32px rgba(255,30,180,.35)
-)
-}
-
-}
-
-
-/* =========================================================
-   LISTENING STATE
-========================================================= */
-
-.core-video-wrap.listening::after{
-
-width:224px;
-height:224px;
-
-border:2px solid #ff1744;
-
-background:transparent;
-
-opacity:1;
-
-box-shadow:
-0 0 5px #ff1744,
-0 0 12px #ff1744,
-0 0 25px #ff1744,
-0 0 45px rgba(255,23,68,.9),
-0 0 75px rgba(255,23,68,.45);
-
-animation:
-listeningPulse 1s ease-in-out infinite;
-
-z-index:5
-}
-
-@keyframes listeningPulse{
-
-0%,100%{
-transform:scale(.97);
-opacity:.75
-}
-
-50%{
-transform:scale(1.05);
-opacity:1
-}
-
-}
-
-
-/* =========================================================
-   RESPONDING STATE
-========================================================= */
-
-.core-video-wrap.responding::after{
-
-width:224px;
-height:224px;
-
-border:2px solid #00ff66;
-
-background:transparent;
-
-opacity:1;
-
-box-shadow:
-0 0 5px #00ff66,
-0 0 12px #00ff66,
-0 0 25px #00ff66,
-0 0 45px rgba(0,255,102,.9),
-0 0 75px rgba(0,255,102,.45);
-
-animation:
-respondingPulse 1s ease-in-out infinite;
-
-z-index:5
-}
-
-@keyframes respondingPulse{
-
-0%,100%{
-transform:scale(.97);
-opacity:.75
-}
-
-50%{
-transform:scale(1.05);
-opacity:1
-}
-
 }
 
 
@@ -1948,8 +1206,7 @@ position:absolute;
 left:50%;
 top:4.5%;
 transform:translateX(-50%);
-
-z-index:100;
+z-index:8;
 
 font-family:'Rajdhani',Arial,sans-serif;
 font-size:clamp(16px,2.2vw,27px);
@@ -1964,37 +1221,18 @@ text-shadow:
 0 0 14px rgba(176,0,255,.55),
 0 0 28px rgba(101,0,255,.28);
 
-animation:
-titleFloat 4s ease-in-out infinite,
+animation:titleFloat 4s ease-in-out infinite,
 titlePulse 2.5s ease-in-out infinite
 }
 
 @keyframes titleFloat{
-
-0%,100%{
-transform:
-translateX(-50%)
-translateY(0)
-}
-
-50%{
-transform:
-translateX(-50%)
-translateY(-5px)
-}
-
+0%,100%{transform:translateX(-50%) translateY(0)}
+50%{transform:translateX(-50%) translateY(-5px)}
 }
 
 @keyframes titlePulse{
-
-0%,100%{
-opacity:.82
-}
-
-50%{
-opacity:1
-}
-
+0%,100%{opacity:.82}
+50%{opacity:1}
 }
 
 .title-line{
@@ -2002,202 +1240,75 @@ position:absolute;
 left:50%;
 top:13%;
 transform:translateX(-50%);
-
 width:180px;
 height:1px;
-
-background:
-linear-gradient(
-90deg,
-transparent,
-#d8ff00,
-#00cfff,
-#9d00ff,
-transparent
-);
-
-box-shadow:
-0 0 10px #d8ff00,
-0 0 20px #9d00ff;
-
-z-index:90
+background:linear-gradient(90deg,transparent,#d8ff00,#00cfff,#9d00ff,transparent);
+box-shadow:0 0 10px #d8ff00,0 0 20px #9d00ff
 }
 
-
-/* =========================================================
-   CORE LABEL
-   ALWAYS ABOVE BALL
-========================================================= */
-
 .core-label{
-
 position:absolute;
-
 left:50%;
 top:52%;
-
-transform:
-translate(-50%,-50%);
-
-/*
-THIS IS THE MOST IMPORTANT LAYER.
-The ball is z-index 40.
-This text is z-index 200.
-Therefore the text ALWAYS stays above
-the ball.
-*/
-z-index:200;
-
+transform:translate(-50%,-50%);
+z-index:12;
 text-align:center;
-
 white-space:nowrap;
-
-pointer-events:none;
-
-/*
-Prevent accidental clipping.
-*/
-overflow:visible
+pointer-events:none
 }
 
 .core-main{
-
 font-size:12px;
-
 letter-spacing:5px;
-
 font-weight:bold;
-
-background:
-linear-gradient(
-90deg,
-#ff1744,
-#ff7300,
-#d8ff00,
-#00ff66,
-#00d9ff,
-#7a00ff,
-#ff1744
-);
-
+background:linear-gradient(90deg,#ff1744,#ff7300,#d8ff00,#00ff66,#00d9ff,#7a00ff,#ff1744);
 background-size:300% 100%;
-
 -webkit-background-clip:text;
 background-clip:text;
-
 -webkit-text-fill-color:transparent;
-
-animation:
-neonTextFlow 3s linear infinite;
-
-filter:
-drop-shadow(
-0 0 5px rgba(255,23,68,.7)
-)
-drop-shadow(
-0 0 10px rgba(0,217,255,.5)
-)
+animation:neonTextFlow 3s linear infinite;
+filter:drop-shadow(0 0 5px rgba(255,23,68,.7)) drop-shadow(0 0 10px rgba(0,217,255,.5))
 }
 
 @keyframes neonTextFlow{
-
-0%{
-background-position:0% 50%
-}
-
-100%{
-background-position:300% 50%
-}
-
+0%{background-position:0% 50%}
+100%{background-position:300% 50%}
 }
 
 .core-sub{
-
 margin-top:8px;
-
 font-size:8px;
-
 letter-spacing:4px;
-
-color:#766f9c;
-
-text-shadow:
-0 0 8px rgba(118,111,156,.25)
+color:#766f9c
 }
 
-
-/* =========================================================
-   STATUS
-========================================================= */
-
 .status{
-
 position:absolute;
-
 bottom:62px;
 left:50%;
-
 transform:translateX(-50%);
-
-z-index:150;
-
+z-index:15;
 font-size:10px;
-
 letter-spacing:5px;
-
 color:#00d9ff;
-
-text-shadow:
-0 0 8px #00d9ff,
-0 0 18px rgba(0,217,255,.5);
-
+text-shadow:0 0 8px #00d9ff,0 0 18px rgba(0,217,255,.5);
 transition:.3s;
-
 white-space:nowrap
 }
 
-
-/* =========================================================
-   PANELS
-========================================================= */
-
 .panel{
-
 position:absolute;
-
 width:185px;
-
 padding:17px;
-
 border:1px solid rgba(100,80,255,.3);
-
-background:
-linear-gradient(
-135deg,
-rgba(15,5,35,.65),
-rgba(3,8,20,.45)
-);
-
+background:linear-gradient(135deg,rgba(15,5,35,.65),rgba(3,8,20,.45));
 backdrop-filter:blur(8px);
-
-box-shadow:
-0 0 20px rgba(80,0,255,.08),
-inset 0 0 20px rgba(80,0,255,.04);
-
+box-shadow:0 0 20px rgba(80,0,255,.08),inset 0 0 20px rgba(80,0,255,.04);
 z-index:7
 }
 
-.panel-left{
-left:28px;
-top:50%;
-transform:translateY(-50%)
-}
-
-.panel-right{
-right:28px;
-top:50%;
-transform:translateY(-50%)
-}
+.panel-left{left:28px;top:50%;transform:translateY(-50%)}
+.panel-right{right:28px;top:50%;transform:translateY(-50%)}
 
 .panel-title{
 font-size:8px;
@@ -2215,243 +1326,103 @@ font-size:8px;
 letter-spacing:1px
 }
 
-.panel-row:last-child{
-border-bottom:none
-}
+.panel-row:last-child{border-bottom:none}
 
 .panel-value{
 color:#d8ff00;
-text-shadow:
-0 0 6px rgba(216,255,0,.6)
+text-shadow:0 0 6px rgba(216,255,0,.6)
 }
 
 .blue{
 color:#00cfff;
-text-shadow:
-0 0 7px rgba(0,207,255,.7)
+text-shadow:0 0 7px rgba(0,207,255,.7)
 }
 
 .purple{
 color:#b45cff;
-text-shadow:
-0 0 7px rgba(180,92,255,.7)
+text-shadow:0 0 7px rgba(180,92,255,.7)
 }
 
-
-/* =========================================================
-   BOTTOM
-========================================================= */
-
 .bottom{
-
 position:absolute;
-
 bottom:18px;
 left:0;
-
 width:100%;
-
 display:flex;
-
 justify-content:space-between;
 align-items:center;
-
 padding:0 30px;
-
 font-size:8px;
-
 letter-spacing:2px;
-
 line-height:1.5;
-
 color:#4d4d61;
-
-z-index:100
+z-index:10
 }
 
 .bottom-center{
-
 position:absolute;
-
 left:50%;
-
 transform:translateX(-50%);
-
 color:#625c82
 }
 
-
-/* =========================================================
-   SCANLINE
-========================================================= */
-
 .scanline{
-
 position:absolute;
-
 left:0;
 top:-10%;
-
 width:100%;
 height:2px;
-
-background:
-linear-gradient(
-90deg,
-transparent,
-rgba(0,220,255,.2),
-rgba(157,0,255,.3),
-transparent
-);
-
-box-shadow:
-0 0 15px rgba(0,180,255,.4);
-
-animation:
-scanDashboard 7s linear infinite;
-
+background:linear-gradient(90deg,transparent,rgba(0,220,255,.2),rgba(157,0,255,.3),transparent);
+box-shadow:0 0 15px rgba(0,180,255,.4);
+animation:scanDashboard 7s linear infinite;
 pointer-events:none;
-
-/*
-BELOW CORE + TEXT
-*/
-z-index:15
+z-index:20
 }
 
 @keyframes scanDashboard{
-
-0%{
-top:-5%
+0%{top:-5%}
+100%{top:105%}
 }
-
-100%{
-top:105%
-}
-
-}
-
-
-/* =========================================================
-   INITIALIZATION WIRES
-========================================================= */
 
 #initLines{
-
 position:fixed;
-
 inset:0;
-
 pointer-events:none;
-
 z-index:50
 }
 
 .wire{
-
 position:absolute;
-
 width:1px;
 height:0;
-
-background:
-linear-gradient(
-to bottom,
-#fff,
-#00aaff,
-#9d00ff,
-transparent
-);
-
-box-shadow:
-0 0 5px #00aaff,
-0 0 12px #9d00ff;
-
+background:linear-gradient(to bottom,#fff,#00aaff,#9d00ff,transparent);
+box-shadow:0 0 5px #00aaff,0 0 12px #9d00ff;
 transform-origin:top center;
-
 opacity:0
 }
 
 @keyframes wireShoot{
-
-0%{
-height:0;
-opacity:0
+0%{height:0;opacity:0}
+15%{opacity:1}
+100%{height:100vh;opacity:0}
 }
-
-15%{
-opacity:1
-}
-
-100%{
-height:100vh;
-opacity:0
-}
-
-}
-
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
 
 @media(max-width:760px){
 
-.core-top{
-padding:0 17px
-}
-
-.core-logo{
-font-size:11px;
-letter-spacing:2px
-}
-
-.core-system{
-font-size:8px
-}
-
-.layout{
-grid-template-columns:1fr
-}
-
-.coreBox{
-display:none
-}
-
-.inner{
-min-height:650px;
-padding:42px 28px
-}
-
-.chamber{
-min-height:auto
-}
-
-.cards{
-grid-template-columns:1fr
-}
-
-.flow{
-grid-template-columns:1fr 1fr
-}
-
-.terms{
-grid-template-columns:1fr
-}
-
-.hero2 h1{
-font-size:38px
-}
-
-.hud{
-display:none
-}
+.core-top{padding:0 17px}
+.core-logo{font-size:11px;letter-spacing:2px}
+.core-system{font-size:8px}
+.layout{grid-template-columns:1fr}
+.coreBox{display:none}
+.inner{min-height:650px;padding:42px 28px}
+.chamber{min-height:auto}
+.cards{grid-template-columns:1fr}
+.flow{grid-template-columns:1fr 1fr}
+.terms{grid-template-columns:1fr}
+.hero2 h1{font-size:38px}
+.hud{display:none}
 
 }
-
-
-/* =========================================================
-   MOBILE
-========================================================= */
 
 @media(max-width:700px){
 
@@ -2460,103 +1431,46 @@ padding:0 18px;
 background:rgba(5,5,15,.10)
 }
 
-.dashboard-logo{
-font-size:12px;
-letter-spacing:4px
-}
+.dashboard-logo{font-size:12px;letter-spacing:4px}
+.system{font-size:7px}
+.panel{display:none}
 
-.system{
-font-size:7px
-}
+.ring1{width:280px;height:280px}
+.ring2{width:320px;height:320px}
+.ring3{width:360px;height:360px}
+.ring4{width:400px;height:400px}
 
-.panel{
-display:none
-}
-
-.ring1{
-width:280px;
-height:280px
-}
-
-.ring2{
-width:320px;
-height:320px
-}
-
-.ring3{
-width:360px;
-height:360px
-}
-
-.ring4{
-width:400px;
-height:400px
-}
-
-.marker{
-width:380px;
-height:380px
-}
-
-
-/* MOBILE CORE */
+.marker{width:380px;height:380px}
 
 .core-video-wrap{
-
 width:180px;
-height:180px;
-
-z-index:20
+height:180px
 }
 
 #ballVideo{
-
-width:68px;
-height:68px;
-
-z-index:40
-}
-
-.core-video-wrap::before{
-
-width:195px;
-height:195px;
-
-z-index:1
+width:160px;
+height:160px
 }
 
 .core-video-wrap::after{
-
 width:170px;
-height:170px;
-
-z-index:5
+height:170px
 }
 
 .core-video-wrap.listening::after,
 .core-video-wrap.responding::after{
-
 width:176px;
-height:176px;
-
-z-index:5
+height:176px
 }
 
-.core-label{
-
-top:50%;
-
-z-index:200
-}
+.core-label{top:50%}
 
 .core-main{
-
 font-size:10px;
 letter-spacing:3px
 }
 
 .core-sub{
-
 font-size:6px;
 letter-spacing:2px
 }
@@ -2567,168 +1481,72 @@ display:none
 }
 
 .bottom{
-
 padding:0 12px;
-
 font-size:6px
 }
 
-.bottom-center{
-display:none
-}
+.bottom-center{display:none}
 
 .status{
-
 bottom:55px;
-
 font-size:8px;
-
 letter-spacing:3px
 }
 
 #createNewIdBtn{
-
 top:78px;
-
 right:12px;
-
 font-size:8px;
-
 padding:8px 10px
 }
 
 #setupLoginBtn{
-
 top:78px;
-
 left:12px;
-
 font-size:8px;
-
 padding:8px 10px
 }
 
 .jarvis-title{
-
 font-size:15px;
-
 letter-spacing:1.5px;
-
 top:5%
 }
 
 }
 
-
-/* =========================================================
-   SMALL PHONES
-========================================================= */
-
 @media(max-width:450px){
 
-.flow{
-grid-template-columns:1fr
-}
-
-.inner{
-padding:38px 22px
-}
-
-.title{
-font-size:30px
-}
-
-.small{
-flex-wrap:wrap
-}
+.flow{grid-template-columns:1fr}
+.inner{padding:38px 22px}
+.title{font-size:30px}
+.small{flex-wrap:wrap}
 
 .jarvis-title{
-
 font-size:13px;
-
 letter-spacing:1px;
-
 max-width:90vw;
-
 text-align:center
 }
 
-
-/* SMALL PHONE BALL */
-
-.core-video-wrap{
-
-width:160px;
-height:160px
 }
-
-#ballVideo{
-
-width:58px;
-height:58px
-}
-
-.core-video-wrap::before{
-
-width:175px;
-height:175px
-}
-
-.core-video-wrap::after{
-
-width:150px;
-height:150px
-}
-
-.core-video-wrap.listening::after,
-.core-video-wrap.responding::after{
-
-width:156px;
-height:156px
-}
-
-.core-label{
-z-index:200
-}
-
-}
-
-
-/* =========================================================
-   SHORT DESKTOP SCREENS
-========================================================= */
 
 @media(max-height:700px) and (min-width:701px){
 
 .core-area{
-
 top:47%;
-
 height:470px
 }
 
-.core-label{
-
-top:47%
-}
-
-.status{
-
-bottom:48px
-}
-
-.bottom{
-
-bottom:12px
-}
+.core-label{top:47%}
+.status{bottom:48px}
+.bottom{bottom:12px}
 
 }
-
 </style>
 </head>
 
 <body>
-
 
 <canvas id="spaceCanvas"></canvas>
 
@@ -2736,6 +1554,10 @@ bottom:12px
 <div class="aurora a2"></div>
 <div class="aurora a3"></div>
 
+
+<!-- =========================================================
+     TOP BAR
+========================================================= -->
 
 <header class="core-top">
 
@@ -2753,15 +1575,12 @@ SYSTEM ONLINE
 
 
 <!-- =========================================================
-     SETUP PAGE
+     STAGE 1
 ========================================================= -->
 
 <section id="setupStage" class="stage active">
 
-<button
-id="setupLoginBtn"
-onclick="setupLogin()"
->
+<button id="setupLoginBtn" onclick="setupLogin()">
 LOGIN
 </button>
 
@@ -2799,22 +1618,16 @@ J.A.R.V.I.S. // SECURE INITIALIZATION PROTOCOL
 </div>
 
 <h1 class="title">
-
 Welcome to
 <b>J.A.R.V.I.S.</b>
-
 <br>
-
 <i>Core Access</i>
-
 </h1>
 
 <p class="subtitle">
-
 A private interface for your intelligent
 digital system. Create your identity below
 and initialize the core environment.
-
 </p>
 
 <div class="layout">
@@ -2839,7 +1652,6 @@ autocomplete="off"
 
 </div>
 
-
 <div class="setup-field">
 
 <label class="setup-label">
@@ -2856,7 +1668,6 @@ autocomplete="off"
 
 </div>
 
-
 <div class="setup-field">
 
 <label class="setup-label">
@@ -2872,16 +1683,11 @@ placeholder="Create a secure password"
 
 </div>
 
-
-<button
-class="init"
-id="saveSetup"
->
+<button class="init" id="saveSetup">
 INITIALIZE J.A.R.V.I.S. →
 </button>
 
 </div>
-
 
 <div class="small">
 
@@ -2893,7 +1699,6 @@ INITIALIZE J.A.R.V.I.S. →
 
 </div>
 
-
 <div class="coreBox">
 
 <div class="jarvisLogo">
@@ -2901,11 +1706,7 @@ INITIALIZE J.A.R.V.I.S. →
 <div class="logoMarks"></div>
 
 <div class="emblem">
-
-<div class="emblemJ">
-J
-</div>
-
+<div class="emblemJ">J</div>
 </div>
 
 <div class="techLine line1"></div>
@@ -2914,13 +1715,8 @@ J
 <div class="techLine line4"></div>
 
 <div class="logoLabel">
-
 J.A.R.V.I.S.
-
-<strong>
-INTELLIGENCE CORE
-</strong>
-
+<strong>INTELLIGENCE CORE</strong>
 </div>
 
 </div>
@@ -2942,18 +1738,13 @@ INTELLIGENCE CORE
      AUTHORIZATION
 ========================================================= -->
 
-<div
-class="overlay"
-id="authorizationOverlay"
->
+<div class="overlay" id="authorizationOverlay">
 
 <div class="auth">
 
 <div class="authCore"></div>
 
-<h2>
-ACCESS VERIFIED
-</h2>
+<h2>ACCESS VERIFIED</h2>
 
 <p>
 J.A.R.V.I.S. CORE INITIALIZING
@@ -2965,7 +1756,7 @@ J.A.R.V.I.S. CORE INITIALIZING
 
 
 <!-- =========================================================
-     INFORMATION PAGE
+     STAGE 2
 ========================================================= -->
 
 <section id="infoStage" class="stage">
@@ -2983,11 +1774,9 @@ WELCOME
 </h1>
 
 <p>
-
 Your personal intelligent interface —
 designed to listen, understand, respond
 and evolve with the systems you authorize.
-
 </p>
 
 </div>
@@ -2997,7 +1786,6 @@ and evolve with the systems you authorize.
 
 <div class="content">
 
-
 <section class="section">
 
 <h2>
@@ -3005,7 +1793,6 @@ and evolve with the systems you authorize.
 </h2>
 
 <p>
-
 J.A.R.V.I.S. is a modular personal AI interface
 designed to connect voice interaction,
 artificial intelligence, computer control and
@@ -3015,7 +1802,6 @@ environment.
 The interface can act as the command center
 for your own projects while keeping the system
 architecture expandable.
-
 </p>
 
 </section>
@@ -3029,94 +1815,58 @@ architecture expandable.
 
 <div class="cards">
 
-
 <div class="card">
-
-<b>
-VOICE INTERACTION
-</b>
-
+<b>VOICE INTERACTION</b>
 <p>
 Listen for authorized voice commands,
 understand speech and respond through
 a conversational AI layer.
 </p>
-
 </div>
 
-
 <div class="card">
-
-<b>
-AI INTELLIGENCE
-</b>
-
+<b>AI INTELLIGENCE</b>
 <p>
 Connect an AI model to interpret questions,
 reason about tasks and generate useful
 responses.
 </p>
-
 </div>
 
-
 <div class="card">
-
-<b>
-COMPUTER CONTROL
-</b>
-
+<b>COMPUTER CONTROL</b>
 <p>
 Perform predefined local actions such as
 opening approved applications, websites
 and system utilities.
 </p>
-
 </div>
 
-
 <div class="card">
-
-<b>
-WEB INTERFACE
-</b>
-
+<b>WEB INTERFACE</b>
 <p>
 A cinematic visual layer can display
 system state, animations, notifications
 and interaction feedback.
 </p>
-
 </div>
 
-
 <div class="card">
-
-<b>
-AUTOMATION
-</b>
-
+<b>AUTOMATION</b>
 <p>
 Build repeatable workflows around tasks
 you personally authorize the system
 to perform.
 </p>
-
 </div>
 
-
 <div class="card">
-
-<b>
-MODULAR EXPANSION
-</b>
-
+<b>MODULAR EXPANSION</b>
 <p>
 New capabilities can be added later
 without redesigning the entire core
 architecture.
 </p>
-
 </div>
 
 </div>
@@ -3132,94 +1882,58 @@ architecture.
 
 <div class="cards">
 
-
 <div class="card">
-
-<b>
-PERSONALIZATION
-</b>
-
+<b>PERSONALIZATION</b>
 <p>
 The interface can adapt its responses,
 voice behavior and visual feedback around
 your preferred workflow.
 </p>
-
 </div>
 
-
 <div class="card">
-
-<b>
-SYSTEM MONITORING
-</b>
-
+<b>SYSTEM MONITORING</b>
 <p>
 The visual core can represent important
 system states such as listening, processing,
 responding and ready conditions.
 </p>
-
 </div>
 
-
 <div class="card">
-
-<b>
-VOICE-FIRST CONTROL
-</b>
-
+<b>VOICE-FIRST CONTROL</b>
 <p>
 Hands-free interaction allows commands
 to be sent naturally while the system
 remains visually active.
 </p>
-
 </div>
 
-
 <div class="card">
-
-<b>
-LOCAL-FIRST DESIGN
-</b>
-
+<b>LOCAL-FIRST DESIGN</b>
 <p>
 Local computer actions can be separated
 from external services so the architecture
 remains easier to manage.
 </p>
-
 </div>
 
-
 <div class="card">
-
-<b>
-MODULAR COMPONENTS
-</b>
-
+<b>MODULAR COMPONENTS</b>
 <p>
 Voice recognition, AI processing, computer
 control and the visual interface can be
 developed as independent modules.
 </p>
-
 </div>
 
-
 <div class="card">
-
-<b>
-FUTURE EXPANSION
-</b>
-
+<b>FUTURE EXPANSION</b>
 <p>
 Additional devices, services and automation
 modules can be connected as the project
 continues to evolve.
 </p>
-
 </div>
 
 </div>
@@ -3235,72 +1949,28 @@ continues to evolve.
 
 <div class="flow">
 
+<div class="step">
+<div class="num">01</div>
+<h3>LISTEN</h3>
+<p>Receive the authorized input.</p>
+</div>
 
 <div class="step">
-
-<div class="num">
-01
+<div class="num">02</div>
+<h3>UNDERSTAND</h3>
+<p>Interpret the request.</p>
 </div>
-
-<h3>
-LISTEN
-</h3>
-
-<p>
-Receive the authorized input.
-</p>
-
-</div>
-
 
 <div class="step">
-
-<div class="num">
-02
+<div class="num">03</div>
+<h3>DECIDE</h3>
+<p>Select an appropriate action.</p>
 </div>
-
-<h3>
-UNDERSTAND
-</h3>
-
-<p>
-Interpret the request.
-</p>
-
-</div>
-
 
 <div class="step">
-
-<div class="num">
-03
-</div>
-
-<h3>
-DECIDE
-</h3>
-
-<p>
-Select an appropriate action.
-</p>
-
-</div>
-
-
-<div class="step">
-
-<div class="num">
-04
-</div>
-
-<h3>
-RESPOND
-</h3>
-
-<p>
-Return the result.
-</p>
-
+<div class="num">04</div>
+<h3>RESPOND</h3>
+<p>Return the result.</p>
 </div>
 
 </div>
@@ -3316,48 +1986,30 @@ Return the result.
 
 <div class="cards">
 
-
 <div class="card">
-
-<b>
-LOCAL CONTROL
-</b>
-
+<b>LOCAL CONTROL</b>
 <p>
 Computer actions should remain on
 systems you own or are explicitly
 authorized to control.
 </p>
-
 </div>
 
-
 <div class="card">
-
-<b>
-CREDENTIAL STORAGE
-</b>
-
+<b>CREDENTIAL STORAGE</b>
 <p>
 This demo stores access values locally
 in your browser using localStorage.
 </p>
-
 </div>
 
-
 <div class="card">
-
-<b>
-PERMISSIONS
-</b>
-
+<b>PERMISSIONS</b>
 <p>
 Future integrations should request
 clear permission before accessing
 devices or services.
 </p>
-
 </div>
 
 </div>
@@ -3373,93 +2025,57 @@ devices or services.
 
 <div class="terms">
 
-
 <div class="term">
-
-<strong>
-PERSONAL USE
-</strong>
-
+<strong>PERSONAL USE</strong>
 <p>
 Use this interface for your own
 projects and systems.
 </p>
-
 </div>
 
-
 <div class="term">
-
-<strong>
-AUTHORIZATION
-</strong>
-
+<strong>AUTHORIZATION</strong>
 <p>
 Only connect J.A.R.V.I.S. to devices,
 accounts or services you are authorized
 to control.
 </p>
-
 </div>
 
-
 <div class="term">
-
-<strong>
-COMPUTER ACTIONS
-</strong>
-
+<strong>COMPUTER ACTIONS</strong>
 <p>
 Automated actions should be limited
 to safe, intentional and authorized
 operations.
 </p>
-
 </div>
 
-
 <div class="term">
-
-<strong>
-THIRD-PARTY SERVICES
-</strong>
-
+<strong>THIRD-PARTY SERVICES</strong>
 <p>
 External APIs and services may have
 their own rules, limits and privacy
 policies.
 </p>
-
 </div>
 
-
 <div class="term">
-
-<strong>
-AI ACCURACY
-</strong>
-
+<strong>AI ACCURACY</strong>
 <p>
 AI-generated information can be
 incorrect. Important decisions should
 be independently verified.
 </p>
-
 </div>
 
-
 <div class="term">
-
-<strong>
-DEVELOPMENT STATUS
-</strong>
-
+<strong>DEVELOPMENT STATUS</strong>
 <p>
 This interface is a personal development
 project and features may change over
 time.
 </p>
-
 </div>
 
 </div>
@@ -3483,18 +2099,14 @@ ENTER J.A.R.V.I.S. CORE →
 
 
 <!-- =========================================================
-     LOGIN PAGE
+     STAGE 3 LOGIN
 ========================================================= -->
 
 <section id="loginStage" class="stage">
 
-<button
-id="createNewIdBtn"
-onclick="createNewId()"
->
+<button id="createNewIdBtn" onclick="createNewId()">
 CREATE NEW ID
 </button>
-
 
 <div id="loginPage">
 
@@ -3520,7 +2132,6 @@ placeholder="Enter identification"
 autocomplete="off"
 >
 
-
 <label class="login-label">
 ACCESS ID
 </label>
@@ -3533,7 +2144,6 @@ placeholder="Enter access ID"
 autocomplete="off"
 >
 
-
 <label class="login-label">
 PASSWORD
 </label>
@@ -3544,7 +2154,6 @@ class="login-input"
 type="password"
 placeholder="Enter password"
 >
-
 
 <button
 class="login-button"
@@ -3565,7 +2174,7 @@ ACCESS DENIED
 
 
 <!-- =========================================================
-     DASHBOARD
+     STAGE 4 DASHBOARD
 ========================================================= -->
 
 <section id="dashboardStage" class="stage">
@@ -3603,8 +2212,6 @@ Hi, how can I help you today?
 <div class="title-line"></div>
 
 
-<!-- LEFT PANEL -->
-
 <div class="panel panel-left">
 
 <div class="panel-title">
@@ -3612,57 +2219,27 @@ JARVIS CORE
 </div>
 
 <div class="panel-row">
-
-<span>
-AI
-</span>
-
-<span class="panel-value">
-ONLINE
-</span>
-
+<span>AI</span>
+<span class="panel-value">ONLINE</span>
 </div>
 
 <div class="panel-row">
-
-<span>
-GEMINI
-</span>
-
-<span class="blue">
-READY
-</span>
-
+<span>GEMINI</span>
+<span class="blue">READY</span>
 </div>
 
 <div class="panel-row">
-
-<span>
-VOICE
-</span>
-
-<span class="purple">
-ACTIVE
-</span>
-
+<span>VOICE</span>
+<span class="purple">ACTIVE</span>
 </div>
 
 <div class="panel-row">
-
-<span>
-MIC
-</span>
-
-<span class="panel-value">
-READY
-</span>
-
+<span>MIC</span>
+<span class="panel-value">READY</span>
 </div>
 
 </div>
 
-
-<!-- RIGHT PANEL -->
 
 <div class="panel panel-right">
 
@@ -3671,75 +2248,35 @@ SYSTEM STATUS
 </div>
 
 <div class="panel-row">
-
-<span>
-CORE
-</span>
-
-<span class="blue">
-100%
-</span>
-
+<span>CORE</span>
+<span class="blue">100%</span>
 </div>
 
 <div class="panel-row">
-
-<span>
-NETWORK
-</span>
-
-<span class="panel-value">
-STABLE
-</span>
-
+<span>NETWORK</span>
+<span class="panel-value">STABLE</span>
 </div>
 
 <div class="panel-row">
-
-<span>
-WAKE
-</span>
-
-<span class="purple">
-ACTIVE
-</span>
-
+<span>WAKE</span>
+<span class="purple">ACTIVE</span>
 </div>
 
 <div class="panel-row">
-
-<span>
-PC LINK
-</span>
-
-<span class="panel-value">
-READY
-</span>
-
+<span>PC LINK</span>
+<span class="panel-value">READY</span>
 </div>
 
 </div>
 
-
-<!-- =========================================================
-     CENTRAL CORE
-========================================================= -->
 
 <div class="core-area">
 
-
-<!-- OUTER RINGS -->
-
 <div class="hud-ring ring4"></div>
-
 <div class="hud-ring ring3"></div>
-
 <div class="hud-ring ring2"></div>
-
 <div class="hud-ring ring1"></div>
 
-
-<!-- MARKERS -->
 
 <div class="marker">
 
@@ -3751,24 +2288,15 @@ READY
 </div>
 
 
-<!-- CONNECTIONS -->
-
 <div class="core-connections">
 
 <div class="connection connection-left"></div>
-
 <div class="connection connection-right"></div>
-
 <div class="connection-top"></div>
-
 <div class="connection-bottom"></div>
 
 </div>
 
-
-<!-- =====================================================
-     BLACK CORE + BALL
-===================================================== -->
 
 <div class="core-video-wrap">
 
@@ -3790,21 +2318,12 @@ type="video/mp4"
 
 </div>
 
-
 </div>
 
 
-<!-- =====================================================
-     CORE TEXT
-     THIS IS ABOVE THE BALL
-===================================================== -->
-
 <div class="core-label">
 
-<div
-id="coreMain"
-class="core-main"
->
+<div id="coreMain" class="core-main">
 JARVIS CORE // ONLINE
 </div>
 
@@ -3815,10 +2334,7 @@ ARTIFICIAL INTELLIGENCE SYSTEM
 </div>
 
 
-<div
-id="status"
-class="status"
->
+<div id="status" class="status">
 READY // SAY "HEY JARVIS"
 </div>
 
@@ -3867,9 +2383,7 @@ const KEY_DASHBOARD="jarvisDashboardAuthorized";
 
 function showStage(id){
 
-document
-.querySelectorAll(".stage")
-.forEach(stage=>{
+document.querySelectorAll(".stage").forEach(stage=>{
 stage.classList.remove("active");
 });
 
@@ -3888,11 +2402,8 @@ window.scrollTo(0,0);
    SPACE BACKGROUND
 ========================================================= */
 
-const spaceCanvas=
-document.getElementById("spaceCanvas");
-
-const spaceCtx=
-spaceCanvas.getContext("2d");
+const spaceCanvas=document.getElementById("spaceCanvas");
+const spaceCtx=spaceCanvas.getContext("2d");
 
 let spaceW=0;
 let spaceH=0;
@@ -3900,71 +2411,41 @@ let spaceStars=[];
 
 function resizeSpace(){
 
-const dpr=
-window.devicePixelRatio||1;
+const dpr=window.devicePixelRatio||1;
 
-spaceW=
-spaceCanvas.width=
-window.innerWidth*dpr;
+spaceW=spaceCanvas.width=window.innerWidth*dpr;
+spaceH=spaceCanvas.height=window.innerHeight*dpr;
 
-spaceH=
-spaceCanvas.height=
-window.innerHeight*dpr;
+spaceCanvas.style.width=window.innerWidth+"px";
+spaceCanvas.style.height=window.innerHeight+"px";
 
-spaceCanvas.style.width=
-window.innerWidth+"px";
-
-spaceCanvas.style.height=
-window.innerHeight+"px";
-
-spaceStars=
-Array.from(
-{length:180},
-()=>({
+spaceStars=Array.from({length:180},()=>({
 
 x:Math.random()*spaceW,
-
 y:Math.random()*spaceH,
-
 r:Math.random()*1.5*dpr+.25,
-
 a:Math.random(),
-
 s:Math.random()*.35+.08
 
-})
-);
+}));
 
 }
 
-
 function drawSpaceStars(){
 
-spaceCtx.clearRect(
-0,
-0,
-spaceW,
-spaceH
-);
+spaceCtx.clearRect(0,0,spaceW,spaceH);
 
-const dpr=
-window.devicePixelRatio||1;
+const dpr=window.devicePixelRatio||1;
 
 for(const s of spaceStars){
 
 s.y+=s.s*dpr;
 
-if(s.y>spaceH){
-s.y=0;
-}
+if(s.y>spaceH)s.y=0;
 
 s.a+=.008;
 
-const alpha=
-.25+.45*
-(
-(Math.sin(s.a)+1)/2
-);
+const alpha=.25+.45*((Math.sin(s.a)+1)/2);
 
 spaceCtx.beginPath();
 
@@ -3983,19 +2464,13 @@ spaceCtx.fill();
 
 }
 
-requestAnimationFrame(
-drawSpaceStars
-);
+requestAnimationFrame(drawSpaceStars);
 
 }
 
-window.addEventListener(
-"resize",
-resizeSpace
-);
+window.addEventListener("resize",resizeSpace);
 
 resizeSpace();
-
 drawSpaceStars();
 
 
@@ -4005,124 +2480,72 @@ drawSpaceStars();
 
 document
 .getElementById("saveSetup")
-.addEventListener(
-"click",
-function(){
+.addEventListener("click",function(){
 
 const name=
-document
-.getElementById("setupName")
-.value
-.trim();
+document.getElementById("setupName").value.trim();
 
 const access=
-document
-.getElementById("setupAccess")
-.value
-.trim();
+document.getElementById("setupAccess").value.trim();
 
 const pass=
-document
-.getElementById("setupPass")
-.value;
+document.getElementById("setupPass").value;
 
-if(
-!name||
-!access||
-!pass
-){
+if(!name||!access||!pass){
 
-alert(
-"Please complete all three fields."
-);
+alert("Please complete all three fields.");
 
 return;
 
 }
 
-localStorage.setItem(
-KEY_NAME,
-name
-);
+localStorage.setItem(KEY_NAME,name);
+localStorage.setItem(KEY_ACCESS,access);
+localStorage.setItem(KEY_PASSWORD,pass);
+localStorage.setItem(KEY_AUTHORIZED,"true");
 
-localStorage.setItem(
-KEY_ACCESS,
-access
-);
-
-localStorage.setItem(
-KEY_PASSWORD,
-pass
-);
-
-localStorage.setItem(
-KEY_AUTHORIZED,
-"true"
-);
-
-localStorage.removeItem(
-KEY_DASHBOARD
-);
+localStorage.removeItem(KEY_DASHBOARD);
 
 document
-.getElementById(
-"authorizationOverlay"
-)
-.classList
-.add("show");
+.getElementById("authorizationOverlay")
+.classList.add("show");
 
-setTimeout(
-function(){
+setTimeout(function(){
 
 document
-.getElementById(
-"authorizationOverlay"
-)
-.classList
-.remove("show");
+.getElementById("authorizationOverlay")
+.classList.remove("show");
 
 showStage("infoStage");
 
 document
-.getElementById(
-"welcomeName"
-)
+.getElementById("welcomeName")
 .textContent=
-"WELCOME, "+
-name.toUpperCase();
+"WELCOME, "+name.toUpperCase();
 
-},
-1900
-);
+},1900);
 
 });
 
 
 /* =========================================================
-   LOGIN FROM FIRST PAGE
+   NEW FIRST-PAGE LOGIN
 ========================================================= */
 
 function setupLogin(){
 
 const savedName=
-localStorage.getItem(
-KEY_NAME
-);
+localStorage.getItem(KEY_NAME);
 
 const savedAccess=
-localStorage.getItem(
-KEY_ACCESS
-);
+localStorage.getItem(KEY_ACCESS);
 
 const savedPassword=
-localStorage.getItem(
-KEY_PASSWORD
-);
+localStorage.getItem(KEY_PASSWORD);
 
 const authorized=
-localStorage.getItem(
-KEY_AUTHORIZED
-)==="true";
+localStorage.getItem(KEY_AUTHORIZED)==="true";
+
 
 if(
 !authorized||
@@ -4131,18 +2554,21 @@ if(
 !savedPassword
 ){
 
-alert(
-"CREATE AN ID FIRST"
-);
+alert("CREATE AN ID FIRST");
 
 return;
 
 }
 
+
+/*
+   ID ALREADY EXISTS
+   DIRECTLY OPEN THE EXISTING
+   INFORMATION + TERMS PAGE
+*/
+
 document
-.getElementById(
-"welcomeName"
-)
+.getElementById("welcomeName")
 .textContent=
 "WELCOME, "+
 savedName.toUpperCase();
@@ -4158,42 +2584,28 @@ showStage("infoStage");
 
 document
 .getElementById("enterCore")
-.addEventListener(
-"click",
-function(){
+.addEventListener("click",function(){
 
 if(
-localStorage.getItem(
-KEY_AUTHORIZED
-)!=="true"
+localStorage.getItem(KEY_AUTHORIZED)!=="true"
 ){
-
 return;
-
 }
 
-localStorage.setItem(
-KEY_ENTERED,
-"true"
-);
+localStorage.setItem(KEY_ENTERED,"true");
 
 document
 .getElementById("ready")
 .textContent=
 "CORE READY // OPENING J.A.R.V.I.S. INTERFACE";
 
-setTimeout(
-function(){
+setTimeout(function(){
 
-showStage(
-"loginStage"
-);
+showStage("loginStage");
 
 loadSavedCredentials();
 
-},
-700
-);
+},700);
 
 });
 
@@ -4205,34 +2617,24 @@ loadSavedCredentials();
 function loadSavedCredentials(){
 
 const savedName=
-localStorage.getItem(
-KEY_NAME
-);
+localStorage.getItem(KEY_NAME);
 
 const savedAccess=
-localStorage.getItem(
-KEY_ACCESS
-);
+localStorage.getItem(KEY_ACCESS);
 
 if(savedName){
 
 document
-.getElementById(
-"loginName"
-)
-.value=
-savedName;
+.getElementById("loginName")
+.value=savedName;
 
 }
 
 if(savedAccess){
 
 document
-.getElementById(
-"loginAccess"
-)
-.value=
-savedAccess;
+.getElementById("loginAccess")
+.value=savedAccess;
 
 }
 
@@ -4245,76 +2647,24 @@ savedAccess;
 
 function createNewId(){
 
-localStorage.removeItem(
-KEY_DASHBOARD
-);
+localStorage.removeItem(KEY_DASHBOARD);
+localStorage.removeItem(KEY_ENTERED);
+localStorage.removeItem(KEY_NAME);
+localStorage.removeItem(KEY_ACCESS);
+localStorage.removeItem(KEY_PASSWORD);
+localStorage.removeItem(KEY_AUTHORIZED);
 
-localStorage.removeItem(
-KEY_ENTERED
-);
+document.getElementById("loginName").value="";
+document.getElementById("loginAccess").value="";
+document.getElementById("loginPassword").value="";
 
-localStorage.removeItem(
-KEY_NAME
-);
+document.getElementById("setupName").value="";
+document.getElementById("setupAccess").value="";
+document.getElementById("setupPass").value="";
 
-localStorage.removeItem(
-KEY_ACCESS
-);
+document.getElementById("error").style.display="none";
 
-localStorage.removeItem(
-KEY_PASSWORD
-);
-
-localStorage.removeItem(
-KEY_AUTHORIZED
-);
-
-document
-.getElementById(
-"loginName"
-)
-.value="";
-
-document
-.getElementById(
-"loginAccess"
-)
-.value="";
-
-document
-.getElementById(
-"loginPassword"
-)
-.value="";
-
-document
-.getElementById(
-"setupName"
-)
-.value="";
-
-document
-.getElementById(
-"setupAccess"
-)
-.value="";
-
-document
-.getElementById(
-"setupPass"
-)
-.value="";
-
-document
-.getElementById(
-"error"
-)
-.style
-.display="none";
-
-showStage(
-"setupStage"
-);
+showStage("setupStage");
 
 }
 
@@ -4326,56 +2676,32 @@ showStage(
 function initializeJarvis(){
 
 if(
-localStorage.getItem(
-KEY_AUTHORIZED
-)!=="true"
+localStorage.getItem(KEY_AUTHORIZED)!=="true"
 ){
 
-showStage(
-"setupStage"
-);
+showStage("setupStage");
 
 return;
 
 }
 
 const enteredName=
-document
-.getElementById(
-"loginName"
-)
-.value
-.trim();
+document.getElementById("loginName").value.trim();
 
 const enteredAccess=
-document
-.getElementById(
-"loginAccess"
-)
-.value
-.trim();
+document.getElementById("loginAccess").value.trim();
 
 const enteredPassword=
-document
-.getElementById(
-"loginPassword"
-)
-.value;
+document.getElementById("loginPassword").value;
 
 const savedName=
-localStorage.getItem(
-KEY_NAME
-);
+localStorage.getItem(KEY_NAME);
 
 const savedAccess=
-localStorage.getItem(
-KEY_ACCESS
-);
+localStorage.getItem(KEY_ACCESS);
 
 const savedPassword=
-localStorage.getItem(
-KEY_PASSWORD
-);
+localStorage.getItem(KEY_PASSWORD);
 
 if(
 enteredName!==savedName||
@@ -4384,27 +2710,18 @@ enteredPassword!==savedPassword
 ){
 
 document
-.getElementById(
-"error"
-)
-.style
-.display="block";
+.getElementById("error")
+.style.display="block";
 
 return;
 
 }
 
 document
-.getElementById(
-"error"
-)
-.style
-.display="none";
+.getElementById("error")
+.style.display="none";
 
-localStorage.setItem(
-KEY_DASHBOARD,
-"true"
-);
+localStorage.setItem(KEY_DASHBOARD,"true");
 
 showDashboard();
 
@@ -4417,9 +2734,7 @@ showDashboard();
 
 function showDashboard(){
 
-showStage(
-"dashboardStage"
-);
+showStage("dashboardStage");
 
 createDashboardStars();
 
@@ -4429,10 +2744,7 @@ startMicrophone();
 
 startPythonBridge();
 
-setTimeout(
-startWakeRecognition,
-1000
-);
+setTimeout(startWakeRecognition,1000);
 
 }
 
@@ -4444,25 +2756,16 @@ startWakeRecognition,
 function createDashboardStars(){
 
 const container=
-document.getElementById(
-"dashboardStars"
-);
+document.getElementById("dashboardStars");
 
 container.innerHTML="";
 
-for(
-let i=0;
-i<180;
-i++
-){
+for(let i=0;i<180;i++){
 
 const star=
-document.createElement(
-"div"
-);
+document.createElement("div");
 
-star.className=
-"star";
+star.className="star";
 
 star.style.left=
 Math.random()*100+"%";
@@ -4476,15 +2779,10 @@ star.style.opacity=
 const size=
 .5+Math.random()*2;
 
-star.style.width=
-size+"px";
+star.style.width=size+"px";
+star.style.height=size+"px";
 
-star.style.height=
-size+"px";
-
-container.appendChild(
-star
-);
+container.appendChild(star);
 
 }
 
@@ -4498,41 +2796,24 @@ star
 function shootLines(){
 
 const container=
-document.getElementById(
-"initLines"
-);
+document.getElementById("initLines");
 
 container.innerHTML="";
 
 const angles=[
--75,
--60,
--45,
--30,
--15,
-15,
-30,
-45,
-60,
-75
+-75,-60,-45,-30,-15,
+15,30,45,60,75
 ];
 
-angles.forEach(
-(angle,i)=>{
+angles.forEach((angle,i)=>{
 
 const wire=
-document.createElement(
-"div"
-);
+document.createElement("div");
 
-wire.className=
-"wire";
+wire.className="wire";
 
-wire.style.left=
-"50%";
-
-wire.style.top=
-"50%";
+wire.style.left="50%";
+wire.style.top="50%";
 
 wire.style.transform=
 `rotate(${angle}deg)`;
@@ -4540,20 +2821,15 @@ wire.style.transform=
 wire.style.animation=
 `wireShoot 1.1s ease-out ${i*.04}s forwards`;
 
-container.appendChild(
-wire
-);
+container.appendChild(wire);
 
 });
 
-setTimeout(
-function(){
+setTimeout(function(){
 
 container.innerHTML="";
 
-},
-1600
-);
+},1600);
 
 }
 
@@ -4570,11 +2846,9 @@ async function startMicrophone(){
 try{
 
 const stream=
-await navigator.mediaDevices.getUserMedia(
-{
+await navigator.mediaDevices.getUserMedia({
 audio:true
-}
-);
+});
 
 const audioContext=
 new(
@@ -4583,22 +2857,15 @@ window.webkitAudioContext
 )();
 
 const source=
-audioContext
-.createMediaStreamSource(
-stream
-);
+audioContext.createMediaStreamSource(stream);
 
 analyser=
-audioContext
-.createAnalyser();
+audioContext.createAnalyser();
 
 analyser.fftSize=512;
-
 analyser.smoothingTimeConstant=.72;
 
-source.connect(
-analyser
-);
+source.connect(analyser);
 
 audioData=
 new Uint8Array(
@@ -4624,11 +2891,8 @@ error
 function setStatus(text){
 
 document
-.getElementById(
-"status"
-)
-.textContent=
-text;
+.getElementById("status")
+.textContent=text;
 
 }
 
@@ -4640,49 +2904,31 @@ text;
 function setListening(){
 
 const core=
-document.querySelector(
-".core-video-wrap"
-);
+document.querySelector(".core-video-wrap");
 
 if(!core)return;
 
-core.classList.remove(
-"responding"
-);
-
-core.classList.add(
-"listening"
-);
+core.classList.remove("responding");
+core.classList.add("listening");
 
 }
-
 
 function setResponding(){
 
 const core=
-document.querySelector(
-".core-video-wrap"
-);
+document.querySelector(".core-video-wrap");
 
 if(!core)return;
 
-core.classList.remove(
-"listening"
-);
-
-core.classList.add(
-"responding"
-);
+core.classList.remove("listening");
+core.classList.add("responding");
 
 }
-
 
 function setReady(){
 
 const core=
-document.querySelector(
-".core-video-wrap"
-);
+document.querySelector(".core-video-wrap");
 
 if(!core)return;
 
@@ -4733,11 +2979,8 @@ return;
 
 }
 
-lastPythonState=
-data.state;
-
-lastPythonMessage=
-data.message;
+lastPythonState=data.state;
+lastPythonMessage=data.message;
 
 console.log(
 "PYTHON STATE:",
@@ -4746,11 +2989,7 @@ data.message
 );
 
 const state=
-String(
-data.state||""
-)
-.toLowerCase();
-
+String(data.state||"").toLowerCase();
 
 if(
 state.includes("respond")||
@@ -4839,30 +3078,19 @@ updatePythonState();
 ========================================================= */
 
 let recognition=null;
-
 let recognitionStarted=false;
-
 let recognitionRestartTimer=null;
-
 let lastWakeTime=0;
-
 
 function cleanTranscript(text){
 
 return text
 .toLowerCase()
-.replace(
-/[.,!?;:]/g,
-" "
-)
-.replace(
-/\s+/g,
-" "
-)
+.replace(/[.,!?;:]/g," ")
+.replace(/\s+/g," ")
 .trim();
 
 }
-
 
 function containsWakeWord(text){
 
@@ -4878,7 +3106,6 @@ cleaned.includes("ay jarvis")
 
 }
 
-
 function handleTranscript(text){
 
 console.log(
@@ -4888,27 +3115,19 @@ text
 
 setListening();
 
-if(
-!containsWakeWord(text)
-){
-
+if(!containsWakeWord(text)){
 return;
-
 }
 
-const now=
-Date.now();
+const now=Date.now();
 
 if(
 now-lastWakeTime<6000
 ){
-
 return;
-
 }
 
-lastWakeTime=
-now;
+lastWakeTime=now;
 
 console.log(
 "JARVIS WAKE WORD DETECTED"
@@ -4935,9 +3154,7 @@ console.log(
 "Speech Recognition not supported."
 );
 
-setStatus(
-"USE CHROME"
-);
+setStatus("USE CHROME");
 
 return null;
 
@@ -4947,25 +3164,19 @@ const r=
 new SpeechRecognition();
 
 r.continuous=true;
-
 r.interimResults=true;
-
 r.lang="en-US";
-
 r.maxAlternatives=3;
-
 
 r.onstart=function(){
 
-recognitionStarted=
-true;
+recognitionStarted=true;
 
 console.log(
 "JARVIS voice recognition ACTIVE"
 );
 
 };
-
 
 r.onresult=function(event){
 
@@ -4986,26 +3197,21 @@ j<result.length;
 j++
 ){
 
-text+=" "+
-result[j].transcript;
+text+=" "+result[j].transcript;
 
 }
 
-text=
-text.trim();
+text=text.trim();
 
 if(text){
 
-handleTranscript(
-text
-);
+handleTranscript(text);
 
 }
 
 }
 
 };
-
 
 r.onerror=function(event){
 
@@ -5014,17 +3220,14 @@ console.log(
 event.error
 );
 
-recognitionStarted=
-false;
+recognitionStarted=false;
 
 if(
 event.error==="not-allowed"||
 event.error==="service-not-allowed"
 ){
 
-setStatus(
-"MIC PERMISSION"
-);
+setStatus("MIC PERMISSION");
 
 return;
 
@@ -5034,15 +3237,13 @@ scheduleRecognitionRestart();
 
 };
 
-
 r.onend=function(){
 
 console.log(
 "Recognition stopped."
 );
 
-recognitionStarted=
-false;
+recognitionStarted=false;
 
 scheduleRecognitionRestart();
 
@@ -5059,26 +3260,18 @@ return r;
 
 function scheduleRecognitionRestart(){
 
-if(
-recognitionRestartTimer
-){
-
+if(recognitionRestartTimer){
 return;
-
 }
 
 recognitionRestartTimer=
-setTimeout(
-function(){
+setTimeout(function(){
 
-recognitionRestartTimer=
-null;
+recognitionRestartTimer=null;
 
 startWakeRecognition();
 
-},
-700
-);
+},700);
 
 }
 
@@ -5091,9 +3284,7 @@ function startWakeRecognition(){
 
 if(
 !document
-.getElementById(
-"dashboardStage"
-)
+.getElementById("dashboardStage")
 .classList
 .contains("active")
 ){
@@ -5139,21 +3330,16 @@ scheduleRecognitionRestart();
    KEEP RECOGNITION ALIVE
 ========================================================= */
 
-setInterval(
-function(){
+setInterval(function(){
 
 if(
 document
-.getElementById(
-"dashboardStage"
-)
+.getElementById("dashboardStage")
 .classList
 .contains("active")
 ){
 
-if(
-!recognitionStarted
-){
+if(!recognitionStarted){
 
 startWakeRecognition();
 
@@ -5161,9 +3347,7 @@ startWakeRecognition();
 
 }
 
-},
-3000
-);
+},3000);
 
 
 /* =========================================================
@@ -5180,9 +3364,7 @@ event.key.toLowerCase()==="j"
 
 if(
 document
-.getElementById(
-"dashboardStage"
-)
+.getElementById("dashboardStage")
 .classList
 .contains("active")
 ){
@@ -5204,26 +3386,18 @@ activateJarvis();
 function routeOnLoad(){
 
 const authorized=
-localStorage.getItem(
-KEY_AUTHORIZED
-)==="true";
+localStorage.getItem(KEY_AUTHORIZED)==="true";
 
 const entered=
-localStorage.getItem(
-KEY_ENTERED
-)==="true";
+localStorage.getItem(KEY_ENTERED)==="true";
 
 const dashboardAuthorized=
-localStorage.getItem(
-KEY_DASHBOARD
-)==="true";
+localStorage.getItem(KEY_DASHBOARD)==="true";
 
 
 if(!authorized){
 
-showStage(
-"setupStage"
-);
+showStage("setupStage");
 
 return;
 
@@ -5249,25 +3423,19 @@ authorized&&
 ){
 
 const name=
-localStorage.getItem(
-KEY_NAME
-);
+localStorage.getItem(KEY_NAME);
 
 if(name){
 
 document
-.getElementById(
-"welcomeName"
-)
+.getElementById("welcomeName")
 .textContent=
 "WELCOME, "+
 name.toUpperCase();
 
 }
 
-showStage(
-"infoStage"
-);
+showStage("infoStage");
 
 return;
 
@@ -5282,17 +3450,13 @@ entered&&
 
 loadSavedCredentials();
 
-showStage(
-"loginStage"
-);
+showStage("loginStage");
 
 return;
 
 }
 
-showStage(
-"setupStage"
-);
+showStage("setupStage");
 
 }
 
@@ -5311,7 +3475,8 @@ console.log(
 
 routeOnLoad();
 
-});
+}
+);
 
 </script>
 
