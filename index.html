@@ -3,3050 +3,1617 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#02030a">
+
 <title>J.A.R.V.I.S. // CORE</title>
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-
-:root{
---purple:#a855f7;
---violet:#c084fc;
---cyan:#22d3ee;
---blue:#3b82f6;
---pink:#f472b6;
---red:#fb456b;
---green:#39ff88;
---white:#f7f3ff;
-}
-
-html{scroll-behavior:smooth}
-
-body{
-min-height:100vh;
-background:#020107;
-color:var(--white);
-font-family:'Rajdhani',Arial,sans-serif;
-overflow-x:hidden
-}
-
-button,input{font-family:inherit}
-
-#spaceCanvas{
-position:fixed;
-inset:0;
-width:100%;
-height:100%;
-z-index:-10;
-background:#020107
-}
-
-body::before{
-content:"";
-position:fixed;
-inset:0;
-z-index:-9;
-pointer-events:none;
-background:
-radial-gradient(circle at 18% 20%,rgba(139,92,246,.15),transparent 28%),
-radial-gradient(circle at 82% 30%,rgba(6,182,212,.11),transparent 25%),
-radial-gradient(circle at 52% 90%,rgba(236,72,153,.10),transparent 30%)
-}
-
-body::after{
-content:"";
-position:fixed;
-inset:0;
-z-index:-8;
-pointer-events:none;
-opacity:.12;
-background-image:
-linear-gradient(rgba(168,85,247,.18) 1px,transparent 1px),
-linear-gradient(90deg,rgba(34,211,238,.13) 1px,transparent 1px);
-background-size:70px 70px;
-mask-image:linear-gradient(transparent,black 20%,black 80%,transparent)
-}
-
-.aurora{
-position:fixed;
-border-radius:50%;
-filter:blur(100px);
-pointer-events:none;
-z-index:-7;
-opacity:.20
-}
-
-.a1{width:430px;height:430px;background:#9333ea;left:-180px;top:-160px}
-.a2{width:380px;height:380px;background:#06b6d4;right:-170px;top:35%}
-.a3{width:420px;height:420px;background:#db2777;left:35%;bottom:-260px}
-
-.core-top{
-height:70px;
-position:fixed;
-top:0;
-left:0;
-right:0;
-z-index:500;
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:0 35px;
-background:rgba(3,2,8,.78);
-backdrop-filter:blur(16px);
-border-bottom:1px solid rgba(192,132,252,.15)
-}
-
-.core-logo{
-font-family:'Orbitron',sans-serif;
-font-size:15px;
-font-weight:700;
-letter-spacing:4px
-}
-
-.core-logo span{
-color:var(--cyan);
-text-shadow:0 0 8px var(--cyan),0 0 22px rgba(34,211,238,.4)
-}
-
-.core-system{
-font-family:'Orbitron',sans-serif;
-font-size:10px;
-letter-spacing:2px;
-color:#aaa5b8
-}
-
-.core-dot{
-display:inline-block;
-width:7px;
-height:7px;
-margin-right:8px;
-background:var(--green);
-border-radius:50%;
-box-shadow:0 0 7px var(--green),0 0 18px rgba(57,255,136,.7);
-animation:dotPulse 1.8s infinite
-}
-
-@keyframes dotPulse{
-0%,100%{opacity:.5;transform:scale(.8)}
-50%{opacity:1;transform:scale(1.2)}
-}
-
-.stage{display:none;min-height:100vh}
-.stage.active{display:block}
-
-#setupStage,#infoStage{padding-top:70px}
-
-.access{
-min-height:calc(100vh - 70px);
-display:grid;
-place-items:center;
-position:relative;
-padding:40px 18px
-}
-
-.hud{
-position:absolute;
-font-family:'Orbitron',sans-serif;
-font-size:8px;
-letter-spacing:3px;
-color:rgba(192,132,252,.45);
-pointer-events:none
-}
-
-.h1{top:15%;left:6%}
-.h2{top:30%;right:5%;color:rgba(34,211,238,.42)}
-.h3{bottom:15%;left:8%;color:rgba(244,114,182,.4)}
-.h4{bottom:20%;right:7%;color:rgba(57,255,136,.35)}
-
-.chamber{
-width:min(940px,94vw);
-min-height:590px;
-position:relative;
-padding:1px;
-background:linear-gradient(115deg,#a855f7,#22d3ee,#f472b6,#3b82f6,#a855f7);
-background-size:300% 300%;
-animation:borderFlow 9s linear infinite;
-clip-path:polygon(0 0,97% 0,100% 8%,100% 92%,97% 100%,3% 100%,0 92%,0 8%);
-filter:drop-shadow(0 0 35px rgba(124,58,237,.18))
-}
-
-@keyframes borderFlow{
-0%{background-position:0% 50%}
-50%{background-position:100% 50%}
-100%{background-position:0% 50%}
-}
-
-.inner{
-min-height:588px;
-position:relative;
-overflow:hidden;
-padding:55px 58px;
-background:linear-gradient(135deg,rgba(8,5,16,.97),rgba(12,7,23,.94),rgba(5,7,19,.97));
-clip-path:inherit
-}
-
-.inner::before{
-content:"";
-position:absolute;
-inset:0;
-pointer-events:none;
-background:
-linear-gradient(90deg,transparent 49.8%,rgba(34,211,238,.035) 50%,transparent 50.2%),
-linear-gradient(rgba(192,132,252,.025) 1px,transparent 1px);
-background-size:100% 100%,100% 45px
-}
-
-.scan{
-position:absolute;
-left:0;
-right:0;
-height:2px;
-background:linear-gradient(90deg,transparent,var(--cyan),transparent);
-box-shadow:0 0 18px var(--cyan);
-opacity:.25;
-animation:scan 5s linear infinite
-}
-
-@keyframes scan{
-from{top:-5%}
-to{top:105%}
-}
-
-.corner{
-position:absolute;
-width:28px;
-height:28px;
-border-color:rgba(34,211,238,.55);
-border-style:solid
-}
-
-.c1{top:24px;left:24px;border-width:1px 0 0 1px}
-.c2{top:24px;right:24px;border-width:1px 1px 0 0}
-.c3{bottom:24px;left:24px;border-width:0 0 1px 1px}
-.c4{bottom:24px;right:24px;border-width:0 1px 1px 0}
-
-.chip{
-font-family:'Orbitron',sans-serif;
-font-size:9px;
-letter-spacing:3px;
-color:#8e8aa2;
-margin-bottom:14px
-}
-
-.title{
-font-family:'Orbitron',sans-serif;
-font-size:clamp(30px,5vw,55px);
-font-weight:700;
-letter-spacing:2px;
-line-height:1.05
-}
-
-.title b{
-color:var(--violet);
-text-shadow:0 0 12px rgba(192,132,252,.5),0 0 35px rgba(168,85,247,.25)
-}
-
-.title i{
-font-style:normal;
-color:var(--cyan);
-text-shadow:0 0 15px rgba(34,211,238,.5)
-}
-
-.subtitle{
-max-width:620px;
-color:#aaa5b8;
-font-size:15px;
-line-height:1.6;
-margin:18px 0 30px
-}
-
-.layout{
-display:grid;
-grid-template-columns:1fr 260px;
-gap:42px;
-align-items:center
-}
-
-.fields{display:grid;gap:14px}
-
-.setup-label{
-font-family:'Orbitron',sans-serif;
-font-size:9px;
-letter-spacing:2px;
-color:#8e8aa2
-}
-
-.setup-field{position:relative}
-
-.setup-input{
-width:100%;
-margin-top:7px;
-padding:15px 16px;
-background:rgba(8,6,17,.8);
-border:1px solid rgba(139,92,246,.22);
-color:#fff;
-font-family:'Rajdhani',sans-serif;
-font-size:15px;
-outline:none;
-transition:.25s;
-box-shadow:inset 0 0 25px rgba(0,0,0,.8)
-}
-
-.setup-input::placeholder{color:#5e596e}
-
-.setup-input:focus{
-border-color:rgba(34,211,238,.75);
-box-shadow:0 0 20px rgba(34,211,238,.1),inset 0 0 25px rgba(0,0,0,.8)
-}
-
-.init{
-margin-top:8px;
-padding:17px 24px;
-background:linear-gradient(100deg,#7c3aed,#c026d3,#0891b2);
-background-size:200%;
-color:#fff;
-border:none;
-font-family:'Orbitron',sans-serif;
-font-size:11px;
-font-weight:700;
-letter-spacing:2px;
-cursor:pointer;
-box-shadow:0 0 24px rgba(168,85,247,.2);
-transition:.3s
-}
-
-.init:hover{
-background-position:100%;
-transform:translateY(-2px);
-box-shadow:0 0 35px rgba(34,211,238,.35)
-}
-
-.init:active{transform:scale(.98)}
-
-.coreBox{
-height:270px;
-display:grid;
-place-items:center;
-position:relative
-}
-
-.jarvisLogo{
-width:205px;
-height:205px;
-position:relative;
-display:grid;
-place-items:center
-}
-
-.jarvisLogo::before{
-content:"";
-position:absolute;
-inset:3px;
-border-radius:50%;
-border:1px solid rgba(34,211,238,.65);
-box-shadow:0 0 15px rgba(34,211,238,.25),inset 0 0 20px rgba(34,211,238,.08);
-animation:logoSpin 12s linear infinite
-}
-
-.jarvisLogo::after{
-content:"";
-position:absolute;
-inset:19px;
-border-radius:50%;
-border:1px dashed rgba(192,132,252,.55);
-animation:logoSpinReverse 9s linear infinite
-}
-
-@keyframes logoSpin{to{transform:rotate(360deg)}}
-@keyframes logoSpinReverse{to{transform:rotate(-360deg)}}
-
-.logoMarks{
-position:absolute;
-inset:-4px;
-border-radius:50%;
-background:conic-gradient(from 0deg,transparent 0deg,transparent 25deg,var(--cyan) 27deg,transparent 31deg,transparent 85deg,var(--pink) 87deg,transparent 91deg,transparent 175deg,var(--violet) 178deg,transparent 182deg,transparent 265deg,var(--blue) 268deg,transparent 272deg,transparent 330deg,var(--cyan) 333deg,transparent 337deg);
--webkit-mask:radial-gradient(transparent 66%,#000 67%,#000 69%,transparent 70%);
-mask:radial-gradient(transparent 66%,#000 67%,#000 69%,transparent 70%);
-animation:logoSpin 16s linear infinite
-}
-
-.emblem{
-width:115px;
-height:115px;
-position:relative;
-display:grid;
-place-items:center;
-background:radial-gradient(circle,rgba(34,211,238,.08),rgba(168,85,247,.05) 55%,transparent 70%);
-clip-path:polygon(50% 0%,90% 23%,90% 77%,50% 100%,10% 77%,10% 23%);
-border:1px solid rgba(255,255,255,.2);
-box-shadow:0 0 25px rgba(168,85,247,.25),inset 0 0 30px rgba(34,211,238,.08);
-animation:emblemPulse 3s ease-in-out infinite
-}
-
-@keyframes emblemPulse{
-0%,100%{filter:drop-shadow(0 0 8px rgba(34,211,238,.35))}
-50%{filter:drop-shadow(0 0 25px rgba(192,132,252,.6))}
-}
-
-.emblemJ{
-font-family:'Orbitron',sans-serif;
-font-size:64px;
-font-weight:800;
-line-height:1;
-color:transparent;
-background:linear-gradient(145deg,#fff,#22d3ee 35%,#c084fc 70%,#f472b6);
--webkit-background-clip:text;
-background-clip:text;
-text-shadow:0 0 25px rgba(34,211,238,.35);
-transform:translateY(-2px)
-}
-
-.techLine{
-position:absolute;
-height:1px;
-background:linear-gradient(90deg,transparent,var(--cyan),transparent);
-box-shadow:0 0 8px var(--cyan);
-opacity:.65
-}
-
-.line1{width:45px;left:-20px;top:50%}
-.line2{width:45px;right:-20px;top:50%}
-.line3{width:32px;left:50%;top:-12px;transform:rotate(90deg)}
-.line4{width:32px;left:50%;bottom:-12px;transform:rotate(90deg)}
-
-.logoLabel{
-position:absolute;
-bottom:-35px;
-left:50%;
-transform:translateX(-50%);
-white-space:nowrap;
-text-align:center;
-font-family:'Orbitron',sans-serif;
-font-size:9px;
-letter-spacing:4px;
-color:#aaa;
-text-shadow:0 0 10px rgba(192,132,252,.3)
-}
-
-.logoLabel strong{
-display:block;
-margin-top:7px;
-color:var(--cyan);
-font-size:8px;
-letter-spacing:3px
-}
-
-.small{
-display:flex;
-gap:18px;
-margin-top:24px;
-color:#666277;
-font-family:'Orbitron',sans-serif;
-font-size:8px;
-letter-spacing:2px
-}
-
-.small span:nth-child(1){color:var(--violet)}
-.small span:nth-child(2){color:var(--cyan)}
-.small span:nth-child(3){color:var(--pink)}
-
-.overlay{
-position:fixed;
-inset:0;
-z-index:1000;
-display:none;
-place-items:center;
-background:rgba(2,1,7,.96);
-backdrop-filter:blur(12px)
-}
-
-.overlay.show{display:grid}
-
-.auth{text-align:center}
-
-.authCore{
-width:120px;
-height:120px;
-border-radius:50%;
-margin:auto;
-background:radial-gradient(circle,#fff 0%,var(--green) 8%,#0b3924 30%,#020c08 65%);
-box-shadow:0 0 35px var(--green),0 0 100px rgba(57,255,136,.27);
-animation:authPulse 1.4s infinite
-}
-
-.auth h2{
-font-family:'Orbitron',sans-serif;
-font-size:22px;
-letter-spacing:4px;
-color:var(--green);
-margin-top:28px;
-text-shadow:0 0 20px var(--green)
-}
-
-.auth p{
-font-family:'Orbitron',sans-serif;
-font-size:10px;
-letter-spacing:3px;
-color:#777;
-margin-top:12px
-}
-
-@keyframes authPulse{50%{transform:scale(1.12)}}
-
-#infoStage{padding-bottom:100px}
-
-.hero2{
-min-height:65vh;
-display:grid;
-place-items:center;
-text-align:center;
-padding:90px 20px 55px
-}
-
-.eyebrow{
-font-family:'Orbitron',sans-serif;
-font-size:9px;
-letter-spacing:5px;
-color:var(--cyan);
-margin-bottom:20px
-}
-
-.hero2 h1{
-font-family:'Orbitron',sans-serif;
-font-size:clamp(40px,8vw,90px);
-font-weight:700;
-background:linear-gradient(90deg,#c084fc,#22d3ee,#f472b6,#c084fc);
-background-size:250%;
--webkit-background-clip:text;
-background-clip:text;
-color:transparent;
-animation:gradient 7s linear infinite
-}
-
-.hero2 p{
-max-width:760px;
-color:#aaa5b8;
-font-size:17px;
-line-height:1.7;
-margin:24px auto
-}
-
-@keyframes gradient{to{background-position:250%}}
-
-.content{width:min(1100px,92vw);margin:auto}
-
-.section{
-margin:35px 0;
-padding:35px;
-border:1px solid rgba(192,132,252,.13);
-background:linear-gradient(135deg,rgba(10,6,20,.8),rgba(5,8,16,.8));
-position:relative;
-overflow:hidden
-}
-
-.section::before{
-content:"";
-position:absolute;
-left:0;
-top:0;
-bottom:0;
-width:3px;
-background:linear-gradient(var(--violet),var(--cyan),var(--pink))
-}
-
-.section h2{
-font-family:'Orbitron',sans-serif;
-font-size:20px;
-font-weight:600;
-letter-spacing:2px;
-margin-bottom:16px
-}
-
-.section>p{
-color:#aaa5b8;
-line-height:1.8;
-font-size:15px
-}
-
-.cards{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:15px
-}
-
-.card{
-padding:24px;
-border:1px solid rgba(255,255,255,.06);
-background:rgba(255,255,255,.02);
-transition:.3s
-}
-
-.card:hover{
-transform:translateY(-5px);
-border-color:rgba(34,211,238,.4);
-box-shadow:0 15px 40px rgba(34,211,238,.06)
-}
-
-.card b{
-display:block;
-font-family:'Orbitron',sans-serif;
-font-size:12px;
-color:var(--violet);
-margin-bottom:12px
-}
-
-.card p{
-font-size:13px;
-line-height:1.6;
-color:#9993a9
-}
-
-.flow{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:12px
-}
-
-.step{
-text-align:center;
-padding:22px 12px;
-border:1px solid rgba(255,255,255,.06);
-background:rgba(255,255,255,.02)
-}
-
-.num{
-font-family:'Orbitron',sans-serif;
-font-size:24px;
-color:var(--cyan);
-text-shadow:0 0 12px rgba(34,211,238,.5)
-}
-
-.step h3{
-font-family:'Orbitron',sans-serif;
-font-size:12px;
-margin:10px 0
-}
-
-.step p{font-size:12px;color:#888394}
-
-.terms{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:12px
-}
-
-.term{
-padding:18px;
-border-left:2px solid var(--purple);
-background:rgba(255,255,255,.02)
-}
-
-.term strong{
-font-family:'Orbitron',sans-serif;
-font-size:11px;
-color:var(--pink)
-}
-
-.term p{
-font-size:12px;
-margin-top:7px;
-color:#888394
-}
-
-.enter{
-text-align:center;
-margin-top:45px
-}
-
-.enter button{
-padding:18px 35px;
-border:none;
-color:#fff;
-font-family:'Orbitron',sans-serif;
-font-size:11px;
-letter-spacing:2px;
-cursor:pointer;
-background:linear-gradient(90deg,#7c3aed,#0891b2);
-box-shadow:0 0 30px rgba(124,58,237,.2);
-transition:.3s
-}
-
-.enter button:hover{
-transform:translateY(-3px) scale(1.02);
-box-shadow:0 0 45px rgba(34,211,238,.35)
-}
-
-.ready{
-min-height:15px;
-margin-top:18px;
-font-family:'Orbitron',sans-serif;
-font-size:10px;
-letter-spacing:3px;
-color:var(--green);
-text-shadow:0 0 15px var(--green)
-}
-
 
 /* =========================================================
-   FIRST PAGE LOGIN
+   GLOBAL
 ========================================================= */
-
-#setupLoginBtn{
-position:fixed;
-top:82px;
-left:24px;
-z-index:99999;
-
-padding:9px 16px;
-
-border:1px solid rgba(34,211,238,.45);
-border-radius:5px;
-
-background:rgba(5,3,18,.82);
-color:#22d3ee;
-
-font-family:Arial,Helvetica,sans-serif;
-font-size:9px;
-letter-spacing:2px;
-
-cursor:pointer;
-
-box-shadow:0 0 12px rgba(34,211,238,.18);
-
-transition:.25s
-}
-
-#setupLoginBtn:hover{
-color:white;
-border-color:#22d3ee;
-
-box-shadow:0 0 22px rgba(34,211,238,.65);
-
-transform:translateY(-1px)
-}
-
-
-/* =========================================================
-   LOGIN PAGE
-========================================================= */
-
-#loginStage{
-min-height:100vh;
-background:radial-gradient(circle at 50% 50%,rgba(80,0,150,.10),transparent 40%),#020207
-}
-
-#loginPage{
-width:100vw;
-min-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-padding:80px 20px 30px
-}
-
-.login-box{
-width:360px;
-padding:35px;
-border:1px solid #9d00ff;
-border-radius:18px;
-background:rgba(5,5,15,.88);
-box-shadow:0 0 25px rgba(157,0,255,.35),inset 0 0 25px rgba(157,0,255,.05)
-}
-
-.login-box h1{
-text-align:center;
-font-size:34px;
-letter-spacing:6px;
-color:white;
-text-shadow:0 0 8px #9d00ff,0 0 20px #5c00ff
-}
-
-.login-subtitle{
-text-align:center;
-margin-top:8px;
-margin-bottom:30px;
-font-size:11px;
-letter-spacing:4px;
-color:#9d7cff
-}
-
-.login-label{
-display:block;
-font-size:10px;
-letter-spacing:2px;
-color:#8e8eaa;
-margin-bottom:7px
-}
-
-.login-input{
-width:100%;
-padding:13px;
-margin-bottom:18px;
-border:1px solid #3b2460;
-border-radius:7px;
-outline:none;
-background:#080810;
-color:white;
-font-size:14px
-}
-
-.login-input:focus{
-border-color:#9d00ff;
-box-shadow:0 0 10px rgba(157,0,255,.25)
-}
-
-.login-button{
-width:100%;
-padding:13px;
-border:none;
-border-radius:7px;
-background:linear-gradient(90deg,#7d00ff,#b000ff);
-color:white;
-font-weight:bold;
-letter-spacing:3px;
-cursor:pointer;
-box-shadow:0 0 18px rgba(157,0,255,.4)
-}
-
-.login-button:hover{
-box-shadow:0 0 28px rgba(157,0,255,.7)
-}
-
-#error{
-text-align:center;
-color:#ff3b6b;
-font-size:11px;
-margin-top:12px;
-display:none
-}
-
-
-/* =========================================================
-   CREATE NEW ID
-========================================================= */
-
-#createNewIdBtn{
-position:fixed;
-top:82px;
-right:24px;
-width:auto;
-padding:9px 14px;
-border:1px solid rgba(157,0,255,.55);
-border-radius:5px;
-background:rgba(5,3,18,.82);
-color:#c084fc;
-font-family:Arial,Helvetica,sans-serif;
-font-size:9px;
-letter-spacing:2px;
-cursor:pointer;
-z-index:99999;
-box-shadow:0 0 12px rgba(157,0,255,.2);
-transition:.25s
-}
-
-#createNewIdBtn:hover{
-color:white;
-border-color:#9d00ff;
-box-shadow:0 0 22px rgba(157,0,255,.65);
-transform:translateY(-1px)
-}
-
-
-/* =========================================================
-   ORIGINAL DASHBOARD
-========================================================= */
-
-#dashboardStage{
-width:100vw;
-height:100vh;
-overflow:hidden;
-background:#020207
-}
-
-#dashboard{
-display:block;
-width:100vw;
-height:100vh;
-position:relative;
-overflow:hidden;
-background:
-radial-gradient(circle at 50% 48%,rgba(90,0,255,.12),transparent 25%),
-radial-gradient(circle at 50% 48%,rgba(0,180,255,.07),transparent 48%),
-#020207
-}
-
-.grid{
-position:absolute;
-inset:0;
-opacity:.16;
-background-image:
-linear-gradient(rgba(100,70,255,.15) 1px,transparent 1px),
-linear-gradient(90deg,rgba(0,180,255,.12) 1px,transparent 1px);
-background-size:55px 55px;
-transform:perspective(500px) rotateX(60deg) scale(1.8);
-transform-origin:center bottom;
-bottom:-35%;
-pointer-events:none
-}
-
-#dashboardStars{
-position:absolute;
-inset:0;
-pointer-events:none;
-z-index:0
-}
-
-.star{
-position:absolute;
-width:2px;
-height:2px;
-border-radius:50%;
-background:white;
-opacity:.5;
-box-shadow:0 0 5px white
-}
-
-
-/* =========================================================
-   DASHBOARD TOP BAR
-   VERY TRANSPARENT
-========================================================= */
-
-.topbar{
-position:absolute;
-top:0;
-left:0;
-width:100%;
-height:75px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:0 35px;
-
-background:rgba(5,5,15,.10);
-
-border-bottom:1px solid rgba(157,0,255,.10);
-
-backdrop-filter:blur(5px);
-
-z-index:10
-}
-
-.dashboard-logo{
-font-size:17px;
-font-weight:bold;
-letter-spacing:6px;
-color:#fff;
-text-shadow:0 0 5px #fff,0 0 15px #a000ff,0 0 30px #6200ff
-}
-
-.system{
-display:flex;
-align-items:center;
-gap:10px;
-font-size:9px;
-letter-spacing:3px;
-color:#d8ff00;
-text-shadow:0 0 8px #d8ff00
-}
-
-.system-dot{
-width:7px;
-height:7px;
-border-radius:50%;
-background:#d8ff00;
-box-shadow:0 0 7px #d8ff00,0 0 18px #d8ff00;
-animation:blink 1.5s infinite
-}
-
-@keyframes blink{
-0%,100%{opacity:1}
-50%{opacity:.35}
-}
-
-.core-area{
-position:absolute;
-left:50%;
-top:52%;
-transform:translate(-50%,-50%);
-width:min(720px,90vw);
-height:min(600px,75vh);
-display:flex;
-align-items:center;
-justify-content:center;
-overflow:visible
-}
-
-.hud-ring{
-position:absolute;
-left:50%;
-top:50%;
-border-radius:50%;
-transform:translate(-50%,-50%);
-pointer-events:none
-}
-
-.ring1{
-width:340px;
-height:340px;
-border:1px solid rgba(0,180,255,.28);
-box-shadow:0 0 20px rgba(0,180,255,.12),inset 0 0 20px rgba(0,180,255,.05);
-animation:rotateClockwise 18s linear infinite
-}
-
-.ring2{
-width:390px;
-height:390px;
-border:1px dashed rgba(157,0,255,.35);
-animation:rotateReverse 25s linear infinite
-}
-
-.ring3{
-width:450px;
-height:450px;
-border:1px solid rgba(255,220,0,.12);
-animation:rotateClockwise 35s linear infinite
-}
-
-.ring4{
-width:500px;
-height:500px;
-border:1px dashed rgba(255,40,70,.10);
-animation:rotateReverse 45s linear infinite
-}
-
-@keyframes rotateClockwise{
-from{transform:translate(-50%,-50%) rotate(0deg)}
-to{transform:translate(-50%,-50%) rotate(360deg)}
-}
-
-@keyframes rotateReverse{
-from{transform:translate(-50%,-50%) rotate(360deg)}
-to{transform:translate(-50%,-50%) rotate(0deg)}
-}
-
-.marker{
-position:absolute;
-left:50%;
-top:50%;
-width:470px;
-height:470px;
-transform:translate(-50%,-50%);
-pointer-events:none
-}
-
-.marker span{
-position:absolute;
-width:7px;
-height:7px;
-border-radius:50%;
-background:#00cfff;
-box-shadow:0 0 7px #00cfff,0 0 15px #00cfff
-}
-
-.marker span:nth-child(1){top:0;left:50%}
-.marker span:nth-child(2){bottom:0;left:50%}
-.marker span:nth-child(3){left:0;top:50%}
-.marker span:nth-child(4){right:0;top:50%}
-
-.core-video-wrap{
-position:absolute;
-left:50%;
-top:50%;
-transform:translate(-50%,-50%);
-width:210px;
-height:210px;
-display:flex;
-align-items:center;
-justify-content:center;
-z-index:5
-}
-
-.core-video-wrap::before{
-content:"";
-position:absolute;
-width:230px;
-height:230px;
-border-radius:50%;
-background:radial-gradient(circle,rgba(255,220,0,.20),rgba(80,0,255,.14),transparent 70%);
-filter:blur(15px);
-animation:coreGlow 2.2s ease-in-out infinite
-}
-
-@keyframes coreGlow{
-0%,100%{transform:scale(.92);opacity:.7}
-50%{transform:scale(1.08);opacity:1}
-}
-
-.core-video-wrap::after{
-content:"";
-position:absolute;
-width:218px;
-height:218px;
-border-radius:50%;
-border:2px solid transparent;
-background:
-linear-gradient(#020207,#020207) padding-box,
-linear-gradient(90deg,#ff1744,#ff7300,#d8ff00,#00ff66,#00d9ff,#7a00ff,#ff1744) border-box;
-background-size:100% 100%,300% 100%;
-animation:coreBorderFlow 4s linear infinite;
-opacity:.8;
-box-shadow:0 0 8px rgba(0,217,255,.4),0 0 18px rgba(157,0,255,.3);
-z-index:2;
-pointer-events:none
-}
-
-@keyframes coreBorderFlow{
-0%{background-position:0 0,0% 50%}
-100%{background-position:0 0,300% 50%}
-}
-
-.core-video-wrap.listening::after{
-width:224px;
-height:224px;
-border:2px solid #ff1744;
-background:transparent;
-opacity:1;
-box-shadow:0 0 5px #ff1744,0 0 12px #ff1744,0 0 25px #ff1744,0 0 45px rgba(255,23,68,.9),0 0 75px rgba(255,23,68,.45);
-animation:listeningPulse 1s ease-in-out infinite
-}
-
-@keyframes listeningPulse{
-0%,100%{transform:scale(.97);opacity:.75}
-50%{transform:scale(1.05);opacity:1}
-}
-
-.core-video-wrap.responding::after{
-width:224px;
-height:224px;
-border:2px solid #00ff66;
-background:transparent;
-opacity:1;
-box-shadow:0 0 5px #00ff66,0 0 12px #00ff66,0 0 25px #00ff66,0 0 45px rgba(0,255,102,.9),0 0 75px rgba(0,255,102,.45);
-animation:respondingPulse 1s ease-in-out infinite
-}
-
-@keyframes respondingPulse{
-0%,100%{transform:scale(.97);opacity:.75}
-50%{transform:scale(1.05);opacity:1}
-}
-
-#ballVideo{
-position:relative;
-width:190px;
-height:190px;
-object-fit:contain;
-border-radius:50%;
-z-index:3;
-filter:drop-shadow(0 0 8px #00cfff) drop-shadow(0 0 22px rgba(120,0,255,.8));
-mix-blend-mode:screen
-}
-
-.core-connections{
-position:absolute;
-left:50%;
-top:50%;
-width:100vw;
-height:1px;
-transform:translate(-50%,-50%);
-pointer-events:none;
-z-index:4
-}
-
-.connection{
-position:absolute;
-height:1px;
-transform-origin:left center;
-background:linear-gradient(90deg,transparent,#00d9ff,#9d00ff,#d8ff00,transparent);
-box-shadow:0 0 5px #00d9ff,0 0 12px #9d00ff;
-opacity:.35
-}
-
-.connection-left{
-width:calc(50% - 110px);
-left:0;
-top:0
-}
-
-.connection-right{
-width:calc(50% - 110px);
-right:0;
-top:0;
-transform-origin:right center
-}
-
-.connection-top{
-position:absolute;
-width:1px;
-height:calc(50vh - 120px);
-left:50%;
-bottom:105px;
-background:linear-gradient(to top,transparent,#00d9ff,#9d00ff,transparent);
-box-shadow:0 0 6px #00d9ff,0 0 12px #9d00ff;
-opacity:.3
-}
-
-.connection-bottom{
-position:absolute;
-width:1px;
-height:calc(50vh - 130px);
-left:50%;
-top:105px;
-background:linear-gradient(to bottom,transparent,#d8ff00,#ff1744,transparent);
-box-shadow:0 0 6px #d8ff00,0 0 12px #ff1744;
-opacity:.3
-}
-
-
-/* =========================================================
-   DASHBOARD GREETING
-========================================================= */
-
-.jarvis-title{
-position:absolute;
-left:50%;
-top:4.5%;
-transform:translateX(-50%);
-z-index:8;
-
-font-family:'Rajdhani',Arial,sans-serif;
-font-size:clamp(16px,2.2vw,27px);
-font-weight:500;
-letter-spacing:2px;
-white-space:nowrap;
-
-color:rgba(255,255,255,.92);
-
-text-shadow:
-0 0 5px rgba(255,255,255,.55),
-0 0 14px rgba(176,0,255,.55),
-0 0 28px rgba(101,0,255,.28);
-
-animation:titleFloat 4s ease-in-out infinite,
-titlePulse 2.5s ease-in-out infinite
-}
-
-@keyframes titleFloat{
-0%,100%{transform:translateX(-50%) translateY(0)}
-50%{transform:translateX(-50%) translateY(-5px)}
-}
-
-@keyframes titlePulse{
-0%,100%{opacity:.82}
-50%{opacity:1}
-}
-
-.title-line{
-position:absolute;
-left:50%;
-top:13%;
-transform:translateX(-50%);
-width:180px;
-height:1px;
-background:linear-gradient(90deg,transparent,#d8ff00,#00cfff,#9d00ff,transparent);
-box-shadow:0 0 10px #d8ff00,0 0 20px #9d00ff
-}
-
-.core-label{
-position:absolute;
-left:50%;
-top:52%;
-transform:translate(-50%,-50%);
-z-index:12;
-text-align:center;
-white-space:nowrap;
-pointer-events:none
-}
-
-.core-main{
-font-size:12px;
-letter-spacing:5px;
-font-weight:bold;
-background:linear-gradient(90deg,#ff1744,#ff7300,#d8ff00,#00ff66,#00d9ff,#7a00ff,#ff1744);
-background-size:300% 100%;
--webkit-background-clip:text;
-background-clip:text;
--webkit-text-fill-color:transparent;
-animation:neonTextFlow 3s linear infinite;
-filter:drop-shadow(0 0 5px rgba(255,23,68,.7)) drop-shadow(0 0 10px rgba(0,217,255,.5))
-}
-
-@keyframes neonTextFlow{
-0%{background-position:0% 50%}
-100%{background-position:300% 50%}
-}
-
-.core-sub{
-margin-top:8px;
-font-size:8px;
-letter-spacing:4px;
-color:#766f9c
-}
-
-.status{
-position:absolute;
-bottom:62px;
-left:50%;
-transform:translateX(-50%);
-z-index:15;
-font-size:10px;
-letter-spacing:5px;
-color:#00d9ff;
-text-shadow:0 0 8px #00d9ff,0 0 18px rgba(0,217,255,.5);
-transition:.3s;
-white-space:nowrap
-}
-
-.panel{
-position:absolute;
-width:185px;
-padding:17px;
-border:1px solid rgba(100,80,255,.3);
-background:linear-gradient(135deg,rgba(15,5,35,.65),rgba(3,8,20,.45));
-backdrop-filter:blur(8px);
-box-shadow:0 0 20px rgba(80,0,255,.08),inset 0 0 20px rgba(80,0,255,.04);
-z-index:7
-}
-
-.panel-left{left:28px;top:50%;transform:translateY(-50%)}
-.panel-right{right:28px;top:50%;transform:translateY(-50%)}
-
-.panel-title{
-font-size:8px;
-letter-spacing:3px;
-color:#6f6a92;
-margin-bottom:13px
-}
-
-.panel-row{
-display:flex;
-justify-content:space-between;
-padding:7px 0;
-border-bottom:1px solid rgba(255,255,255,.05);
-font-size:8px;
-letter-spacing:1px
-}
-
-.panel-row:last-child{border-bottom:none}
-
-.panel-value{
-color:#d8ff00;
-text-shadow:0 0 6px rgba(216,255,0,.6)
-}
-
-.blue{
-color:#00cfff;
-text-shadow:0 0 7px rgba(0,207,255,.7)
-}
-
-.purple{
-color:#b45cff;
-text-shadow:0 0 7px rgba(180,92,255,.7)
-}
-
-.bottom{
-position:absolute;
-bottom:18px;
-left:0;
-width:100%;
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:0 30px;
-font-size:8px;
-letter-spacing:2px;
-line-height:1.5;
-color:#4d4d61;
-z-index:10
-}
-
-.bottom-center{
-position:absolute;
-left:50%;
-transform:translateX(-50%);
-color:#625c82
-}
-
-.scanline{
-position:absolute;
-left:0;
-top:-10%;
-width:100%;
-height:2px;
-background:linear-gradient(90deg,transparent,rgba(0,220,255,.2),rgba(157,0,255,.3),transparent);
-box-shadow:0 0 15px rgba(0,180,255,.4);
-animation:scanDashboard 7s linear infinite;
-pointer-events:none;
-z-index:20
-}
-
-@keyframes scanDashboard{
-0%{top:-5%}
-100%{top:105%}
-}
-
-#initLines{
-position:fixed;
-inset:0;
-pointer-events:none;
-z-index:50
-}
-
-.wire{
-position:absolute;
-width:1px;
-height:0;
-background:linear-gradient(to bottom,#fff,#00aaff,#9d00ff,transparent);
-box-shadow:0 0 5px #00aaff,0 0 12px #9d00ff;
-transform-origin:top center;
-opacity:0
-}
-
-@keyframes wireShoot{
-0%{height:0;opacity:0}
-15%{opacity:1}
-100%{height:100vh;opacity:0}
-}
-
-@media(max-width:760px){
-
-.core-top{padding:0 17px}
-.core-logo{font-size:11px;letter-spacing:2px}
-.core-system{font-size:8px}
-.layout{grid-template-columns:1fr}
-.coreBox{display:none}
-.inner{min-height:650px;padding:42px 28px}
-.chamber{min-height:auto}
-.cards{grid-template-columns:1fr}
-.flow{grid-template-columns:1fr 1fr}
-.terms{grid-template-columns:1fr}
-.hero2 h1{font-size:38px}
-.hud{display:none}
-
-}
-
-@media(max-width:700px){
-
-.topbar{
-padding:0 18px;
-background:rgba(5,5,15,.10)
-}
-
-.dashboard-logo{font-size:12px;letter-spacing:4px}
-.system{font-size:7px}
-.panel{display:none}
-
-.ring1{width:280px;height:280px}
-.ring2{width:320px;height:320px}
-.ring3{width:360px;height:360px}
-.ring4{width:400px;height:400px}
-
-.marker{width:380px;height:380px}
-
-.core-video-wrap{
-width:180px;
-height:180px
-}
-
-#ballVideo{
-width:160px;
-height:160px
-}
-
-.core-video-wrap::after{
-width:170px;
-height:170px
-}
-
-.core-video-wrap.listening::after,
-.core-video-wrap.responding::after{
-width:176px;
-height:176px
-}
-
-.core-label{top:50%}
-
-.core-main{
-font-size:10px;
-letter-spacing:3px
-}
-
-.core-sub{
-font-size:6px;
-letter-spacing:2px
-}
-
-.connection-left,
-.connection-right{
-display:none
-}
-
-.bottom{
-padding:0 12px;
-font-size:6px
-}
-
-.bottom-center{display:none}
-
-.status{
-bottom:55px;
-font-size:8px;
-letter-spacing:3px
-}
-
-#createNewIdBtn{
-top:78px;
-right:12px;
-font-size:8px;
-padding:8px 10px
-}
-
-#setupLoginBtn{
-top:78px;
-left:12px;
-font-size:8px;
-padding:8px 10px
-}
-
-.jarvis-title{
-font-size:15px;
-letter-spacing:1.5px;
-top:5%
-}
-
-}
-
-@media(max-width:450px){
-
-.flow{grid-template-columns:1fr}
-.inner{padding:38px 22px}
-.title{font-size:30px}
-.small{flex-wrap:wrap}
-
-.jarvis-title{
-font-size:13px;
-letter-spacing:1px;
-max-width:90vw;
-text-align:center
-}
-
-}
-
-@media(max-height:700px) and (min-width:701px){
-
-.core-area{
-top:47%;
-height:470px
-}
-
-.core-label{top:47%}
-.status{bottom:48px}
-.bottom{bottom:12px}
-
-}
-</style>
-</head>
-
-<body>
-
-<canvas id="spaceCanvas"></canvas>
-
-<div class="aurora a1"></div>
-<div class="aurora a2"></div>
-<div class="aurora a3"></div>
-
-
-<!-- =========================================================
-     TOP BAR
-========================================================= -->
-
-<header class="core-top">
-
-<div class="core-logo">
-J.A.R.V.I.S.
-<span>// CORE</span>
-</div>
-
-<div class="core-system">
-<span class="core-dot"></span>
-SYSTEM ONLINE
-</div>
-
-</header>
-
-
-<!-- =========================================================
-     STAGE 1
-========================================================= -->
-
-<section id="setupStage" class="stage active">
-
-<button id="setupLoginBtn" onclick="setupLogin()">
-LOGIN
-</button>
-
-<main class="access">
-
-<div class="hud h1">
-NEURAL INTERFACE // 01
-</div>
-
-<div class="hud h2">
-QUANTUM LINK // STABLE
-</div>
-
-<div class="hud h3">
-AUTH CHANNEL // ENCRYPTED
-</div>
-
-<div class="hud h4">
-CORE STATUS // WAITING
-</div>
-
-<div class="chamber">
-
-<div class="inner">
-
-<div class="scan"></div>
-
-<div class="corner c1"></div>
-<div class="corner c2"></div>
-<div class="corner c3"></div>
-<div class="corner c4"></div>
-
-<div class="chip">
-J.A.R.V.I.S. // SECURE INITIALIZATION PROTOCOL
-</div>
-
-<h1 class="title">
-Welcome to
-<b>J.A.R.V.I.S.</b>
-<br>
-<i>Core Access</i>
-</h1>
-
-<p class="subtitle">
-A private interface for your intelligent
-digital system. Create your identity below
-and initialize the core environment.
-</p>
-
-<div class="layout">
-
-<div>
-
-<div class="fields">
-
-<div class="setup-field">
-
-<label class="setup-label">
-NAME
-</label>
-
-<input
-id="setupName"
-class="setup-input"
-type="text"
-placeholder="Enter your name"
-autocomplete="off"
->
-
-</div>
-
-<div class="setup-field">
-
-<label class="setup-label">
-CREATE ACCESS ID
-</label>
-
-<input
-id="setupAccess"
-class="setup-input"
-type="text"
-placeholder="Choose an access ID"
-autocomplete="off"
->
-
-</div>
-
-<div class="setup-field">
-
-<label class="setup-label">
-CREATE PASSWORD
-</label>
-
-<input
-id="setupPass"
-class="setup-input"
-type="password"
-placeholder="Create a secure password"
->
-
-</div>
-
-<button class="init" id="saveSetup">
-INITIALIZE J.A.R.V.I.S. →
-</button>
-
-</div>
-
-<div class="small">
-
-<span>LOCAL CORE</span>
-<span>AI READY</span>
-<span>AUTH SECURE</span>
-
-</div>
-
-</div>
-
-<div class="coreBox">
-
-<div class="jarvisLogo">
-
-<div class="logoMarks"></div>
-
-<div class="emblem">
-<div class="emblemJ">J</div>
-</div>
-
-<div class="techLine line1"></div>
-<div class="techLine line2"></div>
-<div class="techLine line3"></div>
-<div class="techLine line4"></div>
-
-<div class="logoLabel">
-J.A.R.V.I.S.
-<strong>INTELLIGENCE CORE</strong>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</main>
-
-</section>
-
-
-<!-- =========================================================
-     AUTHORIZATION
-========================================================= -->
-
-<div class="overlay" id="authorizationOverlay">
-
-<div class="auth">
-
-<div class="authCore"></div>
-
-<h2>ACCESS VERIFIED</h2>
-
-<p>
-J.A.R.V.I.S. CORE INITIALIZING
-</p>
-
-</div>
-
-</div>
-
-
-<!-- =========================================================
-     STAGE 2
-========================================================= -->
-
-<section id="infoStage" class="stage">
-
-<section class="hero2">
-
-<div>
-
-<div class="eyebrow">
-J.A.R.V.I.S. // CORE SYSTEM ONLINE
-</div>
-
-<h1 id="welcomeName">
-WELCOME
-</h1>
-
-<p>
-Your personal intelligent interface —
-designed to listen, understand, respond
-and evolve with the systems you authorize.
-</p>
-
-</div>
-
-</section>
-
-
-<div class="content">
-
-<section class="section">
-
-<h2>
-01 // WHAT IS J.A.R.V.I.S.?
-</h2>
-
-<p>
-J.A.R.V.I.S. is a modular personal AI interface
-designed to connect voice interaction,
-artificial intelligence, computer control and
-visual system feedback into one unified
-environment.
-
-The interface can act as the command center
-for your own projects while keeping the system
-architecture expandable.
-</p>
-
-</section>
-
-
-<section class="section">
-
-<h2>
-02 // CAPABILITY MATRIX
-</h2>
-
-<div class="cards">
-
-<div class="card">
-<b>VOICE INTERACTION</b>
-<p>
-Listen for authorized voice commands,
-understand speech and respond through
-a conversational AI layer.
-</p>
-</div>
-
-<div class="card">
-<b>AI INTELLIGENCE</b>
-<p>
-Connect an AI model to interpret questions,
-reason about tasks and generate useful
-responses.
-</p>
-</div>
-
-<div class="card">
-<b>COMPUTER CONTROL</b>
-<p>
-Perform predefined local actions such as
-opening approved applications, websites
-and system utilities.
-</p>
-</div>
-
-<div class="card">
-<b>WEB INTERFACE</b>
-<p>
-A cinematic visual layer can display
-system state, animations, notifications
-and interaction feedback.
-</p>
-</div>
-
-<div class="card">
-<b>AUTOMATION</b>
-<p>
-Build repeatable workflows around tasks
-you personally authorize the system
-to perform.
-</p>
-</div>
-
-<div class="card">
-<b>MODULAR EXPANSION</b>
-<p>
-New capabilities can be added later
-without redesigning the entire core
-architecture.
-</p>
-</div>
-
-</div>
-
-</section>
-
-
-<section class="section">
-
-<h2>
-03 // CORE ARCHITECTURE
-</h2>
-
-<div class="cards">
-
-<div class="card">
-<b>PERSONALIZATION</b>
-<p>
-The interface can adapt its responses,
-voice behavior and visual feedback around
-your preferred workflow.
-</p>
-</div>
-
-<div class="card">
-<b>SYSTEM MONITORING</b>
-<p>
-The visual core can represent important
-system states such as listening, processing,
-responding and ready conditions.
-</p>
-</div>
-
-<div class="card">
-<b>VOICE-FIRST CONTROL</b>
-<p>
-Hands-free interaction allows commands
-to be sent naturally while the system
-remains visually active.
-</p>
-</div>
-
-<div class="card">
-<b>LOCAL-FIRST DESIGN</b>
-<p>
-Local computer actions can be separated
-from external services so the architecture
-remains easier to manage.
-</p>
-</div>
-
-<div class="card">
-<b>MODULAR COMPONENTS</b>
-<p>
-Voice recognition, AI processing, computer
-control and the visual interface can be
-developed as independent modules.
-</p>
-</div>
-
-<div class="card">
-<b>FUTURE EXPANSION</b>
-<p>
-Additional devices, services and automation
-modules can be connected as the project
-continues to evolve.
-</p>
-</div>
-
-</div>
-
-</section>
-
-
-<section class="section">
-
-<h2>
-04 // HOW THE CORE THINKS
-</h2>
-
-<div class="flow">
-
-<div class="step">
-<div class="num">01</div>
-<h3>LISTEN</h3>
-<p>Receive the authorized input.</p>
-</div>
-
-<div class="step">
-<div class="num">02</div>
-<h3>UNDERSTAND</h3>
-<p>Interpret the request.</p>
-</div>
-
-<div class="step">
-<div class="num">03</div>
-<h3>DECIDE</h3>
-<p>Select an appropriate action.</p>
-</div>
-
-<div class="step">
-<div class="num">04</div>
-<h3>RESPOND</h3>
-<p>Return the result.</p>
-</div>
-
-</div>
-
-</section>
-
-
-<section class="section">
-
-<h2>
-05 // SECURITY & PRIVACY
-</h2>
-
-<div class="cards">
-
-<div class="card">
-<b>LOCAL CONTROL</b>
-<p>
-Computer actions should remain on
-systems you own or are explicitly
-authorized to control.
-</p>
-</div>
-
-<div class="card">
-<b>CREDENTIAL STORAGE</b>
-<p>
-This demo stores access values locally
-in your browser using localStorage.
-</p>
-</div>
-
-<div class="card">
-<b>PERMISSIONS</b>
-<p>
-Future integrations should request
-clear permission before accessing
-devices or services.
-</p>
-</div>
-
-</div>
-
-</section>
-
-
-<section class="section">
-
-<h2>
-06 // TERMS & CONDITIONS
-</h2>
-
-<div class="terms">
-
-<div class="term">
-<strong>PERSONAL USE</strong>
-<p>
-Use this interface for your own
-projects and systems.
-</p>
-</div>
-
-<div class="term">
-<strong>AUTHORIZATION</strong>
-<p>
-Only connect J.A.R.V.I.S. to devices,
-accounts or services you are authorized
-to control.
-</p>
-</div>
-
-<div class="term">
-<strong>COMPUTER ACTIONS</strong>
-<p>
-Automated actions should be limited
-to safe, intentional and authorized
-operations.
-</p>
-</div>
-
-<div class="term">
-<strong>THIRD-PARTY SERVICES</strong>
-<p>
-External APIs and services may have
-their own rules, limits and privacy
-policies.
-</p>
-</div>
-
-<div class="term">
-<strong>AI ACCURACY</strong>
-<p>
-AI-generated information can be
-incorrect. Important decisions should
-be independently verified.
-</p>
-</div>
-
-<div class="term">
-<strong>DEVELOPMENT STATUS</strong>
-<p>
-This interface is a personal development
-project and features may change over
-time.
-</p>
-</div>
-
-</div>
-
-</section>
-
-
-<div class="enter">
-
-<button id="enterCore">
-ENTER J.A.R.V.I.S. CORE →
-</button>
-
-<div class="ready" id="ready"></div>
-
-</div>
-
-</div>
-
-</section>
-
-
-<!-- =========================================================
-     STAGE 3 LOGIN
-========================================================= -->
-
-<section id="loginStage" class="stage">
-
-<button id="createNewIdBtn" onclick="createNewId()">
-CREATE NEW ID
-</button>
-
-<div id="loginPage">
-
-<div class="login-box">
-
-<h1>
-J.A.R.V.I.S.
-</h1>
-
-<div class="login-subtitle">
-JARVIS CORE ACCESS
-</div>
-
-<label class="login-label">
-IDENTIFICATION
-</label>
-
-<input
-id="loginName"
-class="login-input"
-type="text"
-placeholder="Enter identification"
-autocomplete="off"
->
-
-<label class="login-label">
-ACCESS ID
-</label>
-
-<input
-id="loginAccess"
-class="login-input"
-type="text"
-placeholder="Enter access ID"
-autocomplete="off"
->
-
-<label class="login-label">
-PASSWORD
-</label>
-
-<input
-id="loginPassword"
-class="login-input"
-type="password"
-placeholder="Enter password"
->
-
-<button
-class="login-button"
-onclick="initializeJarvis()"
->
-INITIALIZE
-</button>
-
-<div id="error">
-ACCESS DENIED
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-
-<!-- =========================================================
-     STAGE 4 — J.A.R.V.I.S. FUTURISTIC CORE DASHBOARD
-========================================================= -->
-
-<section id="dashboardStage" class="stage">
-
-<div id="dashboard">
-
-    <!-- =====================================================
-         SPACE
-    ====================================================== -->
-
-    <div id="dashboardStars"></div>
-
-    <div class="dashboard-nebula nebula-one"></div>
-    <div class="dashboard-nebula nebula-two"></div>
-    <div class="dashboard-nebula nebula-three"></div>
-
-    <div class="grid"></div>
-
-    <div class="scanline"></div>
-
-
-    <!-- =====================================================
-         TOP BAR
-    ====================================================== -->
-
-    <div class="topbar">
-
-        <div class="dashboard-logo">
-            J.A.R.V.I.S.
-            <span>// CORE</span>
-        </div>
-
-        <div class="system">
-
-            <span class="system-dot"></span>
-
-            SYSTEM ONLINE
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         THREE DOT MENU
-    ====================================================== -->
-
-    <button
-        id="jarvisMenuButton"
-        class="jarvis-menu-button"
-        aria-label="Open JARVIS menu"
-    >
-
-        <span></span>
-        <span></span>
-        <span></span>
-
-    </button>
-
-
-    <!-- =====================================================
-         MENU
-    ====================================================== -->
-
-    <div id="jarvisMenu" class="jarvis-menu">
-
-        <div class="menu-header">
-
-            <span>J.A.R.V.I.S.</span>
-
-            <button id="closeJarvisMenu">
-                ×
-            </button>
-
-        </div>
-
-
-        <div class="menu-line"></div>
-
-
-        <button
-            class="menu-item"
-            data-panel="helpPanel"
-        >
-
-            <span class="menu-icon">?</span>
-
-            <span>
-
-                <strong>HELP</strong>
-
-                <small>
-                    Learn how to use JARVIS
-                </small>
-
-            </span>
-
-            <b>›</b>
-
-        </button>
-
-
-        <button
-            class="menu-item"
-            data-panel="trainPanel"
-        >
-
-            <span class="menu-icon">AI</span>
-
-            <span>
-
-                <strong>TRAIN YOUR AI</strong>
-
-                <small>
-                    Teach JARVIS your preferences
-                </small>
-
-            </span>
-
-            <b>›</b>
-
-        </button>
-
-
-        <button
-            class="menu-item"
-            data-panel="aboutPanel"
-        >
-
-            <span class="menu-icon">◇</span>
-
-            <span>
-
-                <strong>ABOUT JARVIS</strong>
-
-                <small>
-                    Core architecture
-                </small>
-
-            </span>
-
-            <b>›</b>
-
-        </button>
-
-
-        <button
-            class="menu-item"
-            data-panel="statusPanel"
-        >
-
-            <span class="menu-icon">◉</span>
-
-            <span>
-
-                <strong>SYSTEM STATUS</strong>
-
-                <small>
-                    Live system information
-                </small>
-
-            </span>
-
-            <b>›</b>
-
-        </button>
-
-
-        <button
-            class="menu-item"
-            data-panel="settingsPanel"
-        >
-
-            <span class="menu-icon">⚙</span>
-
-            <span>
-
-                <strong>SETTINGS</strong>
-
-                <small>
-                    Interface controls
-                </small>
-
-            </span>
-
-            <b>›</b>
-
-        </button>
-
-    </div>
-
-
-    <!-- =====================================================
-         GREETING
-    ====================================================== -->
-
-    <div class="jarvis-title">
-        Hi, how can I help you today?
-    </div>
-
-    <div class="title-line"></div>
-
-
-    <!-- =====================================================
-         LEFT HUD
-    ====================================================== -->
-
-    <div class="panel panel-left">
-
-        <div class="panel-corner"></div>
-
-        <div class="panel-title">
-            JARVIS CORE
-        </div>
-
-        <div class="panel-row">
-
-            <span>AI ENGINE</span>
-
-            <span class="panel-value green">
-                ONLINE
-            </span>
-
-        </div>
-
-        <div class="panel-row">
-
-            <span>GEMINI</span>
-
-            <span class="panel-value blue">
-                READY
-            </span>
-
-        </div>
-
-        <div class="panel-row">
-
-            <span>VOICE</span>
-
-            <span class="panel-value purple">
-                ACTIVE
-            </span>
-
-        </div>
-
-        <div class="panel-row">
-
-            <span>MIC</span>
-
-            <span class="panel-value green">
-                READY
-            </span>
-
-        </div>
-
-        <div class="panel-divider"></div>
-
-        <div class="panel-mini">
-            NEURAL PROCESSOR
-        </div>
-
-        <div class="panel-bars">
-
-            <i></i>
-            <i></i>
-            <i></i>
-            <i></i>
-            <i></i>
-            <i></i>
-            <i></i>
-            <i></i>
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         RIGHT HUD
-    ====================================================== -->
-
-    <div class="panel panel-right">
-
-        <div class="panel-corner"></div>
-
-        <div class="panel-title">
-            SYSTEM STATUS
-        </div>
-
-        <div class="panel-row">
-
-            <span>CORE</span>
-
-            <span class="panel-value blue">
-                100%
-            </span>
-
-        </div>
-
-        <div class="panel-row">
-
-            <span>NETWORK</span>
-
-            <span class="panel-value green">
-                STABLE
-            </span>
-
-        </div>
-
-        <div class="panel-row">
-
-            <span>WAKE</span>
-
-            <span class="panel-value purple">
-                ACTIVE
-            </span>
-
-        </div>
-
-        <div class="panel-row">
-
-            <span>PC LINK</span>
-
-            <span class="panel-value green">
-                READY
-            </span>
-
-        </div>
-
-        <div class="panel-divider"></div>
-
-        <div class="panel-mini">
-            CORE SYNCHRONIZATION
-        </div>
-
-        <div class="sync-bar">
-
-            <span></span>
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         CENTRAL CORE
-    ====================================================== -->
-
-    <div class="core-area">
-
-        <div class="hud-ring ring-outer">
-
-            <div class="ring-notch notch-one"></div>
-            <div class="ring-notch notch-two"></div>
-            <div class="ring-notch notch-three"></div>
-            <div class="ring-notch notch-four"></div>
-
-        </div>
-
-
-        <div class="rgb-ring">
-
-            <div class="rgb-ring-inner"></div>
-
-        </div>
-
-
-        <div class="hud-ring ring-four"></div>
-
-        <div class="hud-ring ring-three"></div>
-
-        <div class="hud-ring ring-two"></div>
-
-        <div class="hud-ring ring-one"></div>
-
-
-        <div class="orbit-marker marker-top"></div>
-        <div class="orbit-marker marker-right"></div>
-        <div class="orbit-marker marker-bottom"></div>
-        <div class="orbit-marker marker-left"></div>
-
-
-        <div class="core-connections">
-
-            <div class="connection connection-left"></div>
-
-            <div class="connection connection-right"></div>
-
-            <div class="connection connection-top"></div>
-
-            <div class="connection connection-bottom"></div>
-
-        </div>
-
-
-        <div class="core-video-wrap">
-
-            <div class="ball-energy"></div>
-
-            <video
-                id="ballVideo"
-                autoplay
-                loop
-                muted
-                playsinline
-                preload="auto"
-            >
-
-                <source
-                    src="ball.mp4"
-                    type="video/mp4"
-                >
-
-            </video>
-
-        </div>
-
-
-        <div class="core-crosshair">
-
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         CORE TEXT
-    ====================================================== -->
-
-    <div class="core-label">
-
-        <div
-            id="coreMain"
-            class="core-main"
-        >
-            JARVIS CORE // ONLINE
-        </div>
-
-        <div class="core-sub">
-            ARTIFICIAL INTELLIGENCE SYSTEM
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         STATUS
-    ====================================================== -->
-
-    <div
-        id="status"
-        class="status"
-    >
-
-        <span class="status-dot"></span>
-
-        READY // SAY "HEY JARVIS"
-
-    </div>
-
-
-    <!-- =====================================================
-         BOTTOM BAR
-    ====================================================== -->
-
-    <div class="bottom">
-
-        <span>
-            JARVIS CORE // CONNECTED
-        </span>
-
-        <span class="bottom-center">
-            SECURE NEURAL LINK
-        </span>
-
-        <span>
-            AI // READY
-        </span>
-
-    </div>
-
-
-    <!-- =====================================================
-         INFORMATION OVERLAY
-    ====================================================== -->
-
-    <div
-        id="jarvisInfoOverlay"
-        class="jarvis-info-overlay"
-    >
-
-        <div
-            id="jarvisInfoBox"
-            class="jarvis-info-box"
-        >
-
-            <button
-                id="closeInfoPanel"
-                class="info-close"
-            >
-                ×
-            </button>
-
-
-            <!-- HELP -->
-
-            <div
-                class="info-content"
-                id="helpPanel"
-            >
-
-                <div class="info-kicker">
-                    J.A.R.V.I.S. // HELP
-                </div>
-
-                <h2>
-                    How to use JARVIS
-                </h2>
-
-                <p class="info-intro">
-                    Your voice-controlled AI interface is ready
-                    to listen, process and respond.
-                </p>
-
-                <div class="info-points">
-
-                    <div>
-                        <span>01</span>
-                        <p>
-                            Say <b>HEY JARVIS</b> to activate
-                            the voice interface.
-                        </p>
-                    </div>
-
-                    <div>
-                        <span>02</span>
-                        <p>
-                            Speak your command after JARVIS
-                            enters listening mode.
-                        </p>
-                    </div>
-
-                    <div>
-                        <span>03</span>
-                        <p>
-                            JARVIS can communicate with your
-                            connected AI engine.
-                        </p>
-                    </div>
-
-                    <div>
-                        <span>04</span>
-                        <p>
-                            The central core changes state
-                            while JARVIS listens or responds.
-                        </p>
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- TRAIN AI -->
-
-            <div
-                class="info-content"
-                id="trainPanel"
-            >
-
-                <div class="info-kicker">
-                    J.A.R.V.I.S. // LEARNING
-                </div>
-
-                <h2>
-                    Train Your AI
-                </h2>
-
-                <p class="info-intro">
-                    Build a more personalized JARVIS by
-                    teaching it how you want your system to work.
-                </p>
-
-                <div class="info-points">
-
-                    <div>
-                        <span>01</span>
-                        <p>
-                            Teach JARVIS your preferred commands
-                            and workflows.
-                        </p>
-                    </div>
-
-                    <div>
-                        <span>02</span>
-                        <p>
-                            Add custom responses and command
-                            shortcuts.
-                        </p>
-                    </div>
-
-                    <div>
-                        <span>03</span>
-                        <p>
-                            Connect new PC functions through
-                            your Python control layer.
-                        </p>
-                    </div>
-
-                    <div>
-                        <span>04</span>
-                        <p>
-                            Expand JARVIS gradually as your
-                            system grows.
-                        </p>
-                    </div>
-
-                </div>
-
-
-                <div class="training-memory">
-
-                    <div class="training-memory-title">
-
-                        <span>
-                            NEURAL MEMORY INPUT
-                        </span>
-
-                        <small>
-                            TYPE WHAT YOU WANT JARVIS TO REMEMBER
-                        </small>
-
-                    </div>
-
-
-                    <textarea
-                        id="trainingMemoryInput"
-                        placeholder="Type here... JARVIS will remember this."
-                        autocomplete="off"
-                        spellcheck="false"
-                    ></textarea>
-
-
-                    <div class="training-memory-actions">
-
-                        <button
-                            id="saveTrainingMemory"
-                            type="button"
-                        >
-                            SAVE TO MEMORY
-                        </button>
-
-                        <button
-                            id="clearTrainingMemory"
-                            type="button"
-                        >
-                            CLEAR MEMORY
-                        </button>
-
-                    </div>
-
-
-                    <div
-                        id="trainingMemoryStatus"
-                        class="training-memory-status"
-                    >
-                        MEMORY // READY
-                    </div>
-
-
-                    <div
-                        id="savedMemoryList"
-                        class="saved-memory-list"
-                    ></div>
-
-                </div>
-
-            </div>
-
-
-            <!-- ABOUT -->
-
-            <div
-                class="info-content"
-                id="aboutPanel"
-            >
-
-                <div class="info-kicker">
-                    J.A.R.V.I.S. // CORE
-                </div>
-
-                <h2>
-                    About JARVIS
-                </h2>
-
-                <p class="info-intro">
-                    JARVIS is a futuristic personal AI interface
-                    designed to connect voice, intelligence and
-                    computer control.
-                </p>
-
-                <div class="info-points">
-
-                    <div>
-                        <span>01</span>
-                        <p>
-                            <b>AI CORE</b> — handles reasoning,
-                            responses and intelligent interaction.
-                        </p>
-                    </div>
-
-                    <div>
-                        <span>02</span>
-                        <p>
-                            <b>VOICE CORE</b> — detects the
-                            wake word and processes speech.
-                        </p>
-                    </div>
-
-                    <div>
-                        <span>03</span>
-                        <p>
-                            <b>WEB CORE</b> — provides this
-                            futuristic visual interface.
-                        </p>
-                    </div>
-
-                    <div>
-                        <span>04</span>
-                        <p>
-                            <b>PYTHON BRIDGE</b> — connects
-                            JARVIS with supported computer actions.
-                        </p>
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- STATUS -->
-
-            <div
-                class="info-content"
-                id="statusPanel"
-            >
-
-                <div class="info-kicker">
-                    J.A.R.V.I.S. // DIAGNOSTICS
-                </div>
-
-                <h2>
-                    System Status
-                </h2>
-
-                <div class="status-grid">
-
-                    <div class="status-card">
-                        <span>AI ENGINE</span>
-                        <b class="status-online">ONLINE</b>
-                    </div>
-
-                    <div class="status-card">
-                        <span>VOICE ENGINE</span>
-                        <b class="status-online">READY</b>
-                    </div>
-
-                    <div class="status-card">
-                        <span>MICROPHONE</span>
-                        <b class="status-online">ACTIVE</b>
-                    </div>
-
-                    <div class="status-card">
-                        <span>PYTHON BRIDGE</span>
-                        <b class="status-online">CONNECTED</b>
-                    </div>
-
-                    <div class="status-card">
-                        <span>WAKE WORD</span>
-                        <b class="status-online">ACTIVE</b>
-                    </div>
-
-                    <div class="status-card">
-                        <span>CORE</span>
-                        <b class="status-online">100%</b>
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- SETTINGS -->
-
-            <div
-                class="info-content"
-                id="settingsPanel"
-            >
-
-                <div class="info-kicker">
-                    J.A.R.V.I.S. // CONFIGURATION
-                </div>
-
-                <h2>
-                    Settings
-                </h2>
-
-                <p class="info-intro">
-                    Interface configuration for the JARVIS
-                    dashboard.
-                </p>
-
-                <div class="settings-list">
-
-                    <div class="setting-row">
-                        <span>RGB CORE</span>
-                        <b>ACTIVE</b>
-                    </div>
-
-                    <div class="setting-row">
-                        <span>VOICE WAKE</span>
-                        <b>HEY JARVIS</b>
-                    </div>
-
-                    <div class="setting-row">
-                        <span>VISUAL EFFECTS</span>
-                        <b>HIGH</b>
-                    </div>
-
-                    <div class="setting-row">
-                        <span>NEURAL LINK</span>
-                        <b>SECURE</b>
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-</section>
-
-
-<!-- =========================================================
-     DASHBOARD CSS
-========================================================= -->
-
-<style>
 
 *{
     box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+:root{
+    --bg:#02030a;
+    --bg2:#050611;
+
+    --cyan:#22d3ee;
+    --blue:#3b82f6;
+    --purple:#a855f7;
+    --violet:#c084fc;
+    --pink:#f472b6;
+
+    --red:#ff1744;
+    --green:#39ff88;
+    --yellow:#d8ff00;
+
+    --white:#f7f3ff;
+    --muted:#77819a;
+}
+
+body{
+    min-height:100vh;
+    background:var(--bg);
+    color:#fff;
+    font-family:Arial,Helvetica,sans-serif;
+    overflow-x:hidden;
+}
+
+button,
+input,
+textarea{
+    font-family:inherit;
+}
+
+button{
+    -webkit-tap-highlight-color:transparent;
+}
+
+input,
+textarea{
+    -webkit-appearance:none;
 }
 
 
 /* =========================================================
-   ROOT
+   BACKGROUND SPACE
 ========================================================= */
+
+#spaceCanvas{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    background:#020107;
+    z-index:-20;
+    pointer-events:none;
+}
+
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:-19;
+    pointer-events:none;
+
+    background:
+        radial-gradient(
+            circle at 15% 20%,
+            rgba(139,92,246,.14),
+            transparent 28%
+        ),
+        radial-gradient(
+            circle at 85% 28%,
+            rgba(6,182,212,.10),
+            transparent 26%
+        ),
+        radial-gradient(
+            circle at 50% 100%,
+            rgba(236,72,153,.08),
+            transparent 32%
+        );
+}
+
+body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:-18;
+    pointer-events:none;
+    opacity:.09;
+
+    background-image:
+        linear-gradient(
+            rgba(168,85,247,.18) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(34,211,238,.14) 1px,
+            transparent 1px
+        );
+
+    background-size:70px 70px;
+
+    mask-image:
+        linear-gradient(
+            transparent,
+            black 20%,
+            black 80%,
+            transparent
+        );
+}
+
+.aurora{
+    position:fixed;
+    border-radius:50%;
+    filter:blur(110px);
+    pointer-events:none;
+    z-index:-17;
+    opacity:.18;
+}
+
+.a1{
+    width:430px;
+    height:430px;
+    background:#9333ea;
+    left:-180px;
+    top:-160px;
+}
+
+.a2{
+    width:390px;
+    height:390px;
+    background:#06b6d4;
+    right:-180px;
+    top:30%;
+}
+
+.a3{
+    width:430px;
+    height:430px;
+    background:#db2777;
+    left:35%;
+    bottom:-280px;
+}
+
+
+/* =========================================================
+   COMMON STAGES
+========================================================= */
+
+.stage{
+    display:none;
+    min-height:100vh;
+}
+
+.stage.active{
+    display:block;
+}
+
+
+/* =========================================================
+   GLOBAL TOP BAR
+========================================================= */
+
+.core-top{
+    height:70px;
+
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+
+    z-index:500;
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    padding:0 35px;
+
+    background:rgba(3,2,8,.72);
+    backdrop-filter:blur(16px);
+
+    border-bottom:1px solid rgba(192,132,252,.14);
+}
+
+.core-logo{
+    font-family:Arial,Helvetica,sans-serif;
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:4px;
+}
+
+.core-logo span{
+    color:var(--cyan);
+
+    text-shadow:
+        0 0 8px var(--cyan),
+        0 0 22px rgba(34,211,238,.4);
+}
+
+.core-system{
+    display:flex;
+    align-items:center;
+
+    font-size:9px;
+    letter-spacing:2px;
+
+    color:#aaa5b8;
+}
+
+.core-dot{
+    width:7px;
+    height:7px;
+
+    margin-right:8px;
+
+    border-radius:50%;
+
+    background:var(--green);
+
+    box-shadow:
+        0 0 7px var(--green),
+        0 0 18px rgba(57,255,136,.7);
+
+    animation:dotPulse 1.8s infinite;
+}
+
+@keyframes dotPulse{
+    0%,100%{
+        opacity:.5;
+        transform:scale(.8);
+    }
+
+    50%{
+        opacity:1;
+        transform:scale(1.2);
+    }
+}
+
+
+/* =========================================================
+   SETUP PAGE
+========================================================= */
+
+#setupStage{
+    padding-top:70px;
+}
+
+.access{
+    min-height:calc(100vh - 70px);
+
+    display:grid;
+    place-items:center;
+
+    position:relative;
+
+    padding:40px 18px;
+}
+
+.hud{
+    position:absolute;
+
+    font-size:8px;
+    letter-spacing:3px;
+
+    color:rgba(192,132,252,.42);
+
+    pointer-events:none;
+}
+
+.h1{
+    top:15%;
+    left:6%;
+}
+
+.h2{
+    top:30%;
+    right:5%;
+    color:rgba(34,211,238,.42);
+}
+
+.h3{
+    bottom:15%;
+    left:8%;
+    color:rgba(244,114,182,.38);
+}
+
+.h4{
+    bottom:20%;
+    right:7%;
+    color:rgba(57,255,136,.35);
+}
+
+
+/* =========================================================
+   SETUP CHAMBER
+========================================================= */
+
+.chamber{
+    width:min(940px,94vw);
+
+    min-height:590px;
+
+    position:relative;
+
+    padding:1px;
+
+    background:
+        linear-gradient(
+            115deg,
+            #a855f7,
+            #22d3ee,
+            #f472b6,
+            #3b82f6,
+            #a855f7
+        );
+
+    background-size:300% 300%;
+
+    animation:borderFlow 9s linear infinite;
+
+    clip-path:
+        polygon(
+            0 0,
+            97% 0,
+            100% 8%,
+            100% 92%,
+            97% 100%,
+            3% 100%,
+            0 92%,
+            0 8%
+        );
+
+    filter:
+        drop-shadow(
+            0 0 35px rgba(124,58,237,.18)
+        );
+}
+
+@keyframes borderFlow{
+    0%{
+        background-position:0% 50%;
+    }
+
+    50%{
+        background-position:100% 50%;
+    }
+
+    100%{
+        background-position:0% 50%;
+    }
+}
+
+.inner{
+    min-height:588px;
+
+    position:relative;
+
+    overflow:hidden;
+
+    padding:55px 58px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(8,5,16,.98),
+            rgba(12,7,23,.96),
+            rgba(5,7,19,.98)
+        );
+
+    clip-path:inherit;
+}
+
+.inner::before{
+    content:"";
+
+    position:absolute;
+    inset:0;
+
+    pointer-events:none;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent 49.8%,
+            rgba(34,211,238,.035) 50%,
+            transparent 50.2%
+        ),
+        linear-gradient(
+            rgba(192,132,252,.025) 1px,
+            transparent 1px
+        );
+
+    background-size:
+        100% 100%,
+        100% 45px;
+}
+
+.scan{
+    position:absolute;
+
+    left:0;
+    right:0;
+
+    height:2px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            var(--cyan),
+            transparent
+        );
+
+    box-shadow:0 0 18px var(--cyan);
+
+    opacity:.25;
+
+    animation:scan 5s linear infinite;
+}
+
+@keyframes scan{
+    from{
+        top:-5%;
+    }
+
+    to{
+        top:105%;
+    }
+}
+
+.corner{
+    position:absolute;
+
+    width:28px;
+    height:28px;
+
+    border-color:rgba(34,211,238,.55);
+    border-style:solid;
+}
+
+.c1{
+    top:24px;
+    left:24px;
+    border-width:1px 0 0 1px;
+}
+
+.c2{
+    top:24px;
+    right:24px;
+    border-width:1px 1px 0 0;
+}
+
+.c3{
+    bottom:24px;
+    left:24px;
+    border-width:0 0 1px 1px;
+}
+
+.c4{
+    bottom:24px;
+    right:24px;
+    border-width:0 1px 1px 0;
+}
+
+
+/* =========================================================
+   SETUP CONTENT
+========================================================= */
+
+.chip{
+    font-size:9px;
+    letter-spacing:3px;
+
+    color:#8e8aa2;
+
+    margin-bottom:14px;
+}
+
+.title{
+    font-size:clamp(30px,5vw,55px);
+
+    font-weight:700;
+
+    letter-spacing:2px;
+
+    line-height:1.05;
+}
+
+.title b{
+    color:var(--violet);
+
+    text-shadow:
+        0 0 12px rgba(192,132,252,.5),
+        0 0 35px rgba(168,85,247,.25);
+}
+
+.title i{
+    font-style:normal;
+
+    color:var(--cyan);
+
+    text-shadow:
+        0 0 15px rgba(34,211,238,.5);
+}
+
+.subtitle{
+    max-width:620px;
+
+    color:#aaa5b8;
+
+    font-size:15px;
+
+    line-height:1.6;
+
+    margin:18px 0 30px;
+}
+
+.layout{
+    display:grid;
+
+    grid-template-columns:1fr 260px;
+
+    gap:42px;
+
+    align-items:center;
+}
+
+.fields{
+    display:grid;
+    gap:14px;
+}
+
+.setup-label{
+    display:block;
+
+    font-size:9px;
+    letter-spacing:2px;
+
+    color:#8e8aa2;
+}
+
+.setup-input{
+    width:100%;
+
+    margin-top:7px;
+
+    padding:15px 16px;
+
+    background:rgba(8,6,17,.82);
+
+    border:1px solid rgba(139,92,246,.22);
+
+    color:#fff;
+
+    font-size:15px;
+
+    outline:none;
+
+    transition:.25s;
+
+    box-shadow:
+        inset 0 0 25px rgba(0,0,0,.8);
+}
+
+.setup-input::placeholder{
+    color:#5e596e;
+}
+
+.setup-input:focus{
+    border-color:rgba(34,211,238,.75);
+
+    box-shadow:
+        0 0 20px rgba(34,211,238,.1),
+        inset 0 0 25px rgba(0,0,0,.8);
+}
+
+
+/* =========================================================
+   SAVE BUTTON
+========================================================= */
+
+.init{
+    width:100%;
+
+    margin-top:8px;
+
+    padding:17px 24px;
+
+    background:
+        linear-gradient(
+            100deg,
+            #7c3aed,
+            #c026d3,
+            #0891b2
+        );
+
+    background-size:200%;
+
+    color:#fff;
+
+    border:none;
+
+    font-size:11px;
+    font-weight:700;
+
+    letter-spacing:2px;
+
+    cursor:pointer;
+
+    box-shadow:
+        0 0 24px rgba(168,85,247,.2);
+
+    transition:.3s;
+}
+
+.init:hover{
+    background-position:100%;
+
+    transform:translateY(-2px);
+
+    box-shadow:
+        0 0 35px rgba(34,211,238,.35);
+}
+
+.init:active{
+    transform:scale(.98);
+}
+
+.init.saved{
+    background:
+        linear-gradient(
+            90deg,
+            #00a85a,
+            #39ff88,
+            #00a85a
+        );
+
+    box-shadow:
+        0 0 30px rgba(57,255,136,.45);
+}
+
+
+/* =========================================================
+   SETUP LOGO
+========================================================= */
+
+.coreBox{
+    height:270px;
+
+    display:grid;
+    place-items:center;
+
+    position:relative;
+}
+
+.jarvisLogo{
+    width:205px;
+    height:205px;
+
+    position:relative;
+
+    display:grid;
+    place-items:center;
+}
+
+.jarvisLogo::before{
+    content:"";
+
+    position:absolute;
+    inset:3px;
+
+    border-radius:50%;
+
+    border:1px solid rgba(34,211,238,.65);
+
+    box-shadow:
+        0 0 15px rgba(34,211,238,.25),
+        inset 0 0 20px rgba(34,211,238,.08);
+
+    animation:logoSpin 12s linear infinite;
+}
+
+.jarvisLogo::after{
+    content:"";
+
+    position:absolute;
+    inset:19px;
+
+    border-radius:50%;
+
+    border:1px dashed rgba(192,132,252,.55);
+
+    animation:logoSpinReverse 9s linear infinite;
+}
+
+@keyframes logoSpin{
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+@keyframes logoSpinReverse{
+    to{
+        transform:rotate(-360deg);
+    }
+}
+
+.logoMarks{
+    position:absolute;
+
+    inset:-4px;
+
+    border-radius:50%;
+
+    background:
+        conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            transparent 25deg,
+            var(--cyan) 27deg,
+            transparent 31deg,
+            transparent 85deg,
+            var(--pink) 87deg,
+            transparent 91deg,
+            transparent 175deg,
+            var(--violet) 178deg,
+            transparent 182deg,
+            transparent 265deg,
+            var(--blue) 268deg,
+            transparent 272deg,
+            transparent 330deg,
+            var(--cyan) 333deg,
+            transparent 337deg
+        );
+
+    -webkit-mask:
+        radial-gradient(
+            transparent 66%,
+            #000 67%,
+            #000 69%,
+            transparent 70%
+        );
+
+    mask:
+        radial-gradient(
+            transparent 66%,
+            #000 67%,
+            #000 69%,
+            transparent 70%
+        );
+
+    animation:logoSpin 16s linear infinite;
+}
+
+.emblem{
+    width:115px;
+    height:115px;
+
+    position:relative;
+
+    display:grid;
+    place-items:center;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(34,211,238,.08),
+            rgba(168,85,247,.05) 55%,
+            transparent 70%
+        );
+
+    clip-path:
+        polygon(
+            50% 0%,
+            90% 23%,
+            90% 77%,
+            50% 100%,
+            10% 77%,
+            10% 23%
+        );
+
+    border:1px solid rgba(255,255,255,.2);
+
+    box-shadow:
+        0 0 25px rgba(168,85,247,.25),
+        inset 0 0 30px rgba(34,211,238,.08);
+
+    animation:emblemPulse 3s ease-in-out infinite;
+}
+
+@keyframes emblemPulse{
+    0%,100%{
+        filter:
+            drop-shadow(
+                0 0 8px rgba(34,211,238,.35)
+            );
+    }
+
+    50%{
+        filter:
+            drop-shadow(
+                0 0 25px rgba(192,132,252,.6)
+            );
+    }
+}
+
+.emblemJ{
+    font-size:64px;
+    font-weight:800;
+
+    line-height:1;
+
+    color:transparent;
+
+    background:
+        linear-gradient(
+            145deg,
+            #fff,
+            #22d3ee 35%,
+            #c084fc 70%,
+            #f472b6
+        );
+
+    -webkit-background-clip:text;
+    background-clip:text;
+
+    transform:translateY(-2px);
+}
+
+.techLine{
+    position:absolute;
+
+    height:1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            var(--cyan),
+            transparent
+        );
+
+    box-shadow:0 0 8px var(--cyan);
+
+    opacity:.65;
+}
+
+.line1{
+    width:45px;
+    left:-20px;
+    top:50%;
+}
+
+.line2{
+    width:45px;
+    right:-20px;
+    top:50%;
+}
+
+.line3{
+    width:32px;
+    left:50%;
+    top:-12px;
+    transform:rotate(90deg);
+}
+
+.line4{
+    width:32px;
+    left:50%;
+    bottom:-12px;
+    transform:rotate(90deg);
+}
+
+.logoLabel{
+    position:absolute;
+
+    bottom:-35px;
+    left:50%;
+
+    transform:translateX(-50%);
+
+    white-space:nowrap;
+
+    text-align:center;
+
+    font-size:9px;
+    letter-spacing:4px;
+
+    color:#aaa;
+
+    text-shadow:
+        0 0 10px rgba(192,132,252,.3);
+}
+
+.logoLabel strong{
+    display:block;
+
+    margin-top:7px;
+
+    color:var(--cyan);
+
+    font-size:8px;
+
+    letter-spacing:3px;
+}
+
+.small{
+    display:flex;
+
+    gap:18px;
+
+    margin-top:24px;
+
+    color:#666277;
+
+    font-size:8px;
+
+    letter-spacing:2px;
+}
+
+.small span:nth-child(1){
+    color:var(--violet);
+}
+
+.small span:nth-child(2){
+    color:var(--cyan);
+}
+
+.small span:nth-child(3){
+    color:var(--pink);
+}
+
+
+/* =========================================================
+   SETUP LOGIN BUTTON
+========================================================= */
+
+#setupLoginBtn,
+#createNewIdBtn{
+    position:fixed;
+
+    top:82px;
+
+    z-index:9999;
+
+    padding:9px 15px;
+
+    border-radius:5px;
+
+    background:rgba(5,3,18,.82);
+
+    font-size:9px;
+
+    letter-spacing:2px;
+
+    cursor:pointer;
+
+    transition:.25s;
+}
+
+#setupLoginBtn{
+    left:24px;
+
+    border:1px solid rgba(34,211,238,.45);
+
+    color:#22d3ee;
+
+    box-shadow:
+        0 0 12px rgba(34,211,238,.18);
+}
+
+#setupLoginBtn:hover{
+    color:#fff;
+
+    border-color:#22d3ee;
+
+    box-shadow:
+        0 0 22px rgba(34,211,238,.65);
+}
+
+#createNewIdBtn{
+    right:24px;
+
+    border:1px solid rgba(157,0,255,.55);
+
+    color:#c084fc;
+
+    box-shadow:
+        0 0 12px rgba(157,0,255,.2);
+}
+
+#createNewIdBtn:hover{
+    color:#fff;
+
+    border-color:#9d00ff;
+
+    box-shadow:
+        0 0 22px rgba(157,0,255,.65);
+}
+
+
+/* =========================================================
+   AUTHORIZATION
+========================================================= */
+
+.overlay{
+    position:fixed;
+
+    inset:0;
+
+    z-index:10000;
+
+    display:none;
+
+    place-items:center;
+
+    background:rgba(2,1,7,.96);
+
+    backdrop-filter:blur(12px);
+}
+
+.overlay.show{
+    display:grid;
+}
+
+.auth{
+    text-align:center;
+}
+
+.authCore{
+    width:120px;
+    height:120px;
+
+    margin:auto;
+
+    border-radius:50%;
+
+    background:
+        radial-gradient(
+            circle,
+            #fff 0%,
+            var(--green) 8%,
+            #0b3924 30%,
+            #020c08 65%
+        );
+
+    box-shadow:
+        0 0 35px var(--green),
+        0 0 100px rgba(57,255,136,.27);
+
+    animation:authPulse 1.4s infinite;
+}
+
+.auth h2{
+    margin-top:28px;
+
+    font-size:22px;
+
+    letter-spacing:4px;
+
+    color:var(--green);
+
+    text-shadow:
+        0 0 20px var(--green);
+}
+
+.auth p{
+    margin-top:12px;
+
+    font-size:10px;
+
+    letter-spacing:3px;
+
+    color:#777;
+}
+
+@keyframes authPulse{
+    50%{
+        transform:scale(1.12);
+    }
+}
+
+
+/* =========================================================
+   INFORMATION PAGE
+========================================================= */
+
+#infoStage{
+    padding-top:70px;
+    padding-bottom:100px;
+}
+
+.hero2{
+    min-height:65vh;
+
+    display:grid;
+    place-items:center;
+
+    text-align:center;
+
+    padding:90px 20px 55px;
+}
+
+.eyebrow{
+    font-size:9px;
+
+    letter-spacing:5px;
+
+    color:var(--cyan);
+
+    margin-bottom:20px;
+}
+
+.hero2 h1{
+    font-size:clamp(40px,8vw,90px);
+
+    font-weight:700;
+
+    background:
+        linear-gradient(
+            90deg,
+            #c084fc,
+            #22d3ee,
+            #f472b6,
+            #c084fc
+        );
+
+    background-size:250%;
+
+    -webkit-background-clip:text;
+    background-clip:text;
+
+    color:transparent;
+
+    animation:gradient 7s linear infinite;
+}
+
+@keyframes gradient{
+    to{
+        background-position:250%;
+    }
+}
+
+.hero2 p{
+    max-width:760px;
+
+    color:#aaa5b8;
+
+    font-size:17px;
+
+    line-height:1.7;
+
+    margin:24px auto;
+}
+
+.content{
+    width:min(1100px,92vw);
+
+    margin:auto;
+}
+
+.section{
+    margin:35px 0;
+
+    padding:35px;
+
+    border:1px solid rgba(192,132,252,.13);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(10,6,20,.8),
+            rgba(5,8,16,.8)
+        );
+
+    position:relative;
+
+    overflow:hidden;
+}
+
+.section::before{
+    content:"";
+
+    position:absolute;
+
+    left:0;
+    top:0;
+    bottom:0;
+
+    width:3px;
+
+    background:
+        linear-gradient(
+            var(--violet),
+            var(--cyan),
+            var(--pink)
+        );
+}
+
+.section h2{
+    font-size:20px;
+
+    font-weight:600;
+
+    letter-spacing:2px;
+
+    margin-bottom:16px;
+}
+
+.section>p{
+    color:#aaa5b8;
+
+    line-height:1.8;
+
+    font-size:15px;
+}
+
+.cards{
+    display:grid;
+
+    grid-template-columns:
+        repeat(3,1fr);
+
+    gap:15px;
+}
+
+.card{
+    padding:24px;
+
+    border:1px solid rgba(255,255,255,.06);
+
+    background:rgba(255,255,255,.02);
+
+    transition:.3s;
+}
+
+.card:hover{
+    transform:translateY(-5px);
+
+    border-color:
+        rgba(34,211,238,.4);
+
+    box-shadow:
+        0 15px 40px rgba(34,211,238,.06);
+}
+
+.card b{
+    display:block;
+
+    font-size:12px;
+
+    color:var(--violet);
+
+    margin-bottom:12px;
+}
+
+.card p{
+    font-size:13px;
+
+    line-height:1.6;
+
+    color:#9993a9;
+}
+
+.flow{
+    display:grid;
+
+    grid-template-columns:
+        repeat(4,1fr);
+
+    gap:12px;
+}
+
+.step{
+    text-align:center;
+
+    padding:22px 12px;
+
+    border:1px solid rgba(255,255,255,.06);
+
+    background:rgba(255,255,255,.02);
+}
+
+.num{
+    font-size:24px;
+
+    color:var(--cyan);
+
+    text-shadow:
+        0 0 12px rgba(34,211,238,.5);
+}
+
+.step h3{
+    font-size:12px;
+
+    margin:10px 0;
+}
+
+.step p{
+    font-size:12px;
+
+    color:#888394;
+}
+
+.terms{
+    display:grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap:12px;
+}
+
+.term{
+    padding:18px;
+
+    border-left:
+        2px solid var(--purple);
+
+    background:rgba(255,255,255,.02);
+}
+
+.term strong{
+    font-size:11px;
+
+    color:var(--pink);
+}
+
+.term p{
+    font-size:12px;
+
+    margin-top:7px;
+
+    color:#888394;
+}
+
+.enter{
+    text-align:center;
+
+    margin-top:45px;
+}
+
+.enter button{
+    padding:18px 35px;
+
+    border:none;
+
+    color:#fff;
+
+    font-size:11px;
+
+    letter-spacing:2px;
+
+    cursor:pointer;
+
+    background:
+        linear-gradient(
+            90deg,
+            #7c3aed,
+            #0891b2
+        );
+
+    box-shadow:
+        0 0 30px rgba(124,58,237,.2);
+
+    transition:.3s;
+}
+
+.enter button:hover{
+    transform:
+        translateY(-3px)
+        scale(1.02);
+
+    box-shadow:
+        0 0 45px rgba(34,211,238,.35);
+}
+
+.ready{
+    min-height:15px;
+
+    margin-top:18px;
+
+    font-size:10px;
+
+    letter-spacing:3px;
+
+    color:var(--green);
+
+    text-shadow:
+        0 0 15px var(--green);
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+#loginStage{
+    min-height:100vh;
+
+    background:
+        radial-gradient(
+            circle at 50% 50%,
+            rgba(80,0,150,.12),
+            transparent 40%
+        ),
+        #020207;
+}
+
+#loginPage{
+    width:100vw;
+    min-height:100vh;
+
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+
+    padding:80px 20px 30px;
+}
+
+.login-box{
+    width:360px;
+
+    padding:35px;
+
+    border:1px solid #9d00ff;
+
+    border-radius:18px;
+
+    background:rgba(5,5,15,.90);
+
+    box-shadow:
+        0 0 25px rgba(157,0,255,.35),
+        inset 0 0 25px rgba(157,0,255,.05);
+}
+
+.login-box h1{
+    text-align:center;
+
+    font-size:34px;
+
+    letter-spacing:6px;
+
+    color:#fff;
+
+    text-shadow:
+        0 0 8px #9d00ff,
+        0 0 20px #5c00ff;
+}
+
+.login-subtitle{
+    text-align:center;
+
+    margin-top:8px;
+    margin-bottom:30px;
+
+    font-size:11px;
+
+    letter-spacing:4px;
+
+    color:#9d7cff;
+}
+
+.login-label{
+    display:block;
+
+    font-size:10px;
+
+    letter-spacing:2px;
+
+    color:#8e8eaa;
+
+    margin-bottom:7px;
+}
+
+.login-input{
+    width:100%;
+
+    padding:13px;
+
+    margin-bottom:18px;
+
+    border:1px solid #3b2460;
+
+    border-radius:7px;
+
+    outline:none;
+
+    background:#080810;
+
+    color:#fff;
+
+    font-size:14px;
+}
+
+.login-input:focus{
+    border-color:#9d00ff;
+
+    box-shadow:
+        0 0 10px rgba(157,0,255,.25);
+}
+
+.login-button{
+    width:100%;
+
+    padding:13px;
+
+    border:none;
+
+    border-radius:7px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #7d00ff,
+            #b000ff
+        );
+
+    color:white;
+
+    font-weight:bold;
+
+    letter-spacing:3px;
+
+    cursor:pointer;
+
+    box-shadow:
+        0 0 18px rgba(157,0,255,.4);
+
+    transition:.25s;
+}
+
+.login-button:hover{
+    box-shadow:
+        0 0 28px rgba(157,0,255,.7);
+}
+
+#error{
+    text-align:center;
+
+    color:#ff3b6b;
+
+    font-size:11px;
+
+    margin-top:12px;
+
+    display:none;
+}
+
+#error.show{
+    display:block;
+
+    animation:errorShake .3s ease;
+}
+
+@keyframes errorShake{
+    25%{
+        transform:translateX(-5px);
+    }
+
+    75%{
+        transform:translateX(5px);
+    }
+}
+
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+#dashboardStage{
+    width:100vw;
+    height:100vh;
+
+    min-height:620px;
+
+    overflow:hidden;
+
+    background:#01030a;
+}
 
 #dashboard{
     position:relative;
+
     width:100%;
     height:100vh;
+
     min-height:620px;
+
     overflow:hidden;
 
     background:
@@ -3066,67 +1633,75 @@ ACCESS DENIED
             transparent 28%
         ),
         #01030a;
-
-    color:#fff;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
 }
 
 
 /* =========================================================
-   NEBULA
+   DASHBOARD NEBULA
 ========================================================= */
 
 .dashboard-nebula{
     position:absolute;
+
     border-radius:50%;
+
     filter:blur(80px);
+
     pointer-events:none;
+
     z-index:1;
 }
 
 .nebula-one{
     width:380px;
     height:380px;
+
     left:10%;
     top:20%;
+
     background:rgba(100,40,255,.07);
 }
 
 .nebula-two{
     width:400px;
     height:400px;
+
     right:5%;
     bottom:10%;
+
     background:rgba(0,200,255,.055);
 }
 
 .nebula-three{
     width:280px;
     height:280px;
+
     left:42%;
     top:35%;
+
     background:rgba(255,0,100,.035);
 }
 
 
 /* =========================================================
-   STARS
+   DASHBOARD STARS
 ========================================================= */
 
 #dashboardStars{
     position:absolute;
+
     inset:0;
+
     z-index:2;
+
     pointer-events:none;
 }
 
 #dashboardStars .star{
     position:absolute;
+
     border-radius:50%;
+
     background:#fff;
 
     box-shadow:
@@ -3138,7 +1713,6 @@ ACCESS DENIED
 }
 
 @keyframes starPulse{
-
     from{
         transform:scale(.6);
         opacity:.25;
@@ -3148,20 +1722,22 @@ ACCESS DENIED
         transform:scale(1.35);
         opacity:1;
     }
-
 }
 
 
 /* =========================================================
-   GRID
+   DASHBOARD GRID
 ========================================================= */
 
 #dashboard .grid{
     position:absolute;
+
     left:-10%;
     right:-10%;
+
     top:55%;
     bottom:-30%;
+
     z-index:3;
 
     background:
@@ -3195,52 +1771,7 @@ ACCESS DENIED
 
 
 /* =========================================================
-   SCANLINE
-========================================================= */
-
-#dashboard .scanline{
-    position:absolute;
-
-    top:-10px;
-    left:0;
-    right:0;
-
-    height:1px;
-
-    z-index:50;
-
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            rgba(0,240,255,.75),
-            transparent
-        );
-
-    box-shadow:
-        0 0 15px rgba(0,240,255,.7);
-
-    animation:
-        dashboardScan 7s linear infinite;
-
-    pointer-events:none;
-}
-
-@keyframes dashboardScan{
-
-    from{
-        top:-10px;
-    }
-
-    to{
-        top:110%;
-    }
-
-}
-
-
-/* =========================================================
-   TOP BAR
+   DASHBOARD TOPBAR
 ========================================================= */
 
 #dashboard .topbar{
@@ -3255,7 +1786,9 @@ ACCESS DENIED
     z-index:80;
 
     display:flex;
+
     align-items:center;
+
     justify-content:space-between;
 
     padding:0 18px;
@@ -3276,7 +1809,9 @@ ACCESS DENIED
     margin-left:58px;
 
     font-size:18px;
+
     font-weight:700;
+
     letter-spacing:5px;
 
     text-shadow:
@@ -3286,17 +1821,23 @@ ACCESS DENIED
 
 .dashboard-logo span{
     font-size:8px;
+
     letter-spacing:3px;
+
     color:#7e8aa7;
 }
 
 .system{
     display:flex;
+
     align-items:center;
+
     gap:9px;
 
     font-size:9px;
+
     letter-spacing:3px;
+
     color:#8dffca;
 
     text-shadow:
@@ -3306,7 +1847,9 @@ ACCESS DENIED
 .system-dot{
     width:7px;
     height:7px;
+
     border-radius:50%;
+
     background:#55ffae;
 
     box-shadow:
@@ -3318,7 +1861,6 @@ ACCESS DENIED
 }
 
 @keyframes systemPulse{
-
     from{
         transform:scale(.65);
         opacity:.45;
@@ -3328,35 +1870,36 @@ ACCESS DENIED
         transform:scale(1.15);
         opacity:1;
     }
-
 }
 
 
 /* =========================================================
-   THREE DOT BUTTON
+   THREE DOT MENU BUTTON
 ========================================================= */
 
 .jarvis-menu-button{
     position:absolute;
 
-    top:29px;
+    top:92px;
     left:38px;
 
-    z-index:100;
+    z-index:600;
 
     width:38px;
     height:38px;
 
     border:1px solid rgba(120,200,255,.25);
+
     border-radius:8px;
 
-    background:
-        rgba(5,10,25,.6);
+    background:rgba(5,10,25,.6);
 
     backdrop-filter:blur(8px);
 
     display:flex;
+
     flex-direction:column;
+
     align-items:center;
     justify-content:center;
 
@@ -3370,6 +1913,7 @@ ACCESS DENIED
 .jarvis-menu-button span{
     width:4px;
     height:4px;
+
     border-radius:50%;
 
     background:#fff;
@@ -3395,12 +1939,12 @@ ACCESS DENIED
 .jarvis-menu{
     position:absolute;
 
-    top:78px;
+    top:140px;
     left:38px;
 
     width:310px;
 
-    z-index:120;
+    z-index:620;
 
     padding:16px;
 
@@ -3410,7 +1954,7 @@ ACCESS DENIED
     background:
         linear-gradient(
             145deg,
-            rgba(5,10,28,.95),
+            rgba(5,10,28,.96),
             rgba(12,5,30,.94)
         );
 
@@ -3444,17 +1988,21 @@ ACCESS DENIED
 
 .menu-header{
     display:flex;
+
     justify-content:space-between;
+
     align-items:center;
 
     color:#fff;
 
     font-size:10px;
+
     letter-spacing:4px;
 }
 
 .menu-header button{
     border:0;
+
     background:none;
 
     color:#8090ae;
@@ -3487,6 +2035,7 @@ ACCESS DENIED
 
 .menu-item{
     width:100%;
+
     min-height:55px;
 
     border:0;
@@ -3495,13 +2044,16 @@ ACCESS DENIED
         1px solid rgba(120,170,255,.08);
 
     background:transparent;
+
     color:#fff;
 
     display:grid;
 
-    grid-template-columns:34px 1fr 15px;
+    grid-template-columns:
+        34px 1fr 15px;
 
     align-items:center;
+
     text-align:left;
 
     gap:8px;
@@ -3536,6 +2088,7 @@ ACCESS DENIED
         1px solid rgba(100,210,255,.3);
 
     display:flex;
+
     align-items:center;
     justify-content:center;
 
@@ -3551,6 +2104,7 @@ ACCESS DENIED
     display:block;
 
     font-size:9px;
+
     letter-spacing:2px;
 }
 
@@ -3562,6 +2116,7 @@ ACCESS DENIED
     color:#65728d;
 
     font-size:7px;
+
     letter-spacing:.5px;
 }
 
@@ -3569,12 +2124,13 @@ ACCESS DENIED
     color:#65728d;
 
     font-size:18px;
+
     font-weight:normal;
 }
 
 
 /* =========================================================
-   GREETING
+   DASHBOARD GREETING
 ========================================================= */
 
 .jarvis-title{
@@ -3586,6 +2142,10 @@ ACCESS DENIED
     transform:translateX(-50%);
 
     z-index:45;
+
+    width:100%;
+
+    text-align:center;
 
     white-space:nowrap;
 
@@ -3599,6 +2159,34 @@ ACCESS DENIED
     text-shadow:
         0 0 10px rgba(255,255,255,.6),
         0 0 25px rgba(120,70,255,.6);
+
+    animation:
+        titleFloat 4s ease-in-out infinite,
+        titlePulse 2.5s ease-in-out infinite;
+}
+
+@keyframes titleFloat{
+    0%,100%{
+        transform:
+            translateX(-50%)
+            translateY(0);
+    }
+
+    50%{
+        transform:
+            translateX(-50%)
+            translateY(-5px);
+    }
+}
+
+@keyframes titlePulse{
+    0%,100%{
+        opacity:.82;
+    }
+
+    50%{
+        opacity:1;
+    }
 }
 
 .title-line{
@@ -3610,6 +2198,7 @@ ACCESS DENIED
     transform:translateX(-50%);
 
     width:390px;
+
     max-width:55vw;
 
     height:1px;
@@ -3643,6 +2232,7 @@ ACCESS DENIED
     transform:translateY(-50%);
 
     width:205px;
+
     min-height:225px;
 
     z-index:35;
@@ -3713,6 +2303,7 @@ ACCESS DENIED
     color:#22d3ee;
 
     font-size:9px;
+
     letter-spacing:3px;
 
     text-shadow:
@@ -3723,11 +2314,13 @@ ACCESS DENIED
     display:flex;
 
     align-items:center;
+
     justify-content:space-between;
 
     margin:15px 0;
 
     font-size:8px;
+
     letter-spacing:1.5px;
 
     color:#65728d;
@@ -3791,7 +2384,10 @@ ACCESS DENIED
     width:7px;
 
     height:
-        calc(5px + var(--bar-height, 8px));
+        calc(
+            5px +
+            var(--bar-height,8px)
+        );
 
     background:
         linear-gradient(
@@ -3807,17 +2403,39 @@ ACCESS DENIED
         barPulse 1.2s ease-in-out infinite alternate;
 }
 
-.panel-bars i:nth-child(1){--bar-height:4px}
-.panel-bars i:nth-child(2){--bar-height:8px}
-.panel-bars i:nth-child(3){--bar-height:12px}
-.panel-bars i:nth-child(4){--bar-height:6px}
-.panel-bars i:nth-child(5){--bar-height:15px}
-.panel-bars i:nth-child(6){--bar-height:9px}
-.panel-bars i:nth-child(7){--bar-height:13px}
-.panel-bars i:nth-child(8){--bar-height:7px}
+.panel-bars i:nth-child(1){
+    --bar-height:4px;
+}
+
+.panel-bars i:nth-child(2){
+    --bar-height:8px;
+}
+
+.panel-bars i:nth-child(3){
+    --bar-height:12px;
+}
+
+.panel-bars i:nth-child(4){
+    --bar-height:6px;
+}
+
+.panel-bars i:nth-child(5){
+    --bar-height:15px;
+}
+
+.panel-bars i:nth-child(6){
+    --bar-height:9px;
+}
+
+.panel-bars i:nth-child(7){
+    --bar-height:13px;
+}
+
+.panel-bars i:nth-child(8){
+    --bar-height:7px;
+}
 
 @keyframes barPulse{
-
     from{
         opacity:.35;
     }
@@ -3825,7 +2443,6 @@ ACCESS DENIED
     to{
         opacity:1;
     }
-
 }
 
 .sync-bar{
@@ -3859,7 +2476,6 @@ ACCESS DENIED
 }
 
 @keyframes syncMove{
-
     from{
         width:62%;
     }
@@ -3867,12 +2483,11 @@ ACCESS DENIED
     to{
         width:94%;
     }
-
 }
 
 
 /* =========================================================
-   CORE AREA
+   CENTRAL CORE
 ========================================================= */
 
 .core-area{
@@ -3890,14 +2505,11 @@ ACCESS DENIED
     z-index:15;
 
     pointer-events:none;
-
-    transition:
-        filter .25s ease;
 }
 
 
 /* =========================================================
-   OUTER HUD RING
+   OUTER RINGS
 ========================================================= */
 
 .hud-ring{
@@ -3977,7 +2589,6 @@ ACCESS DENIED
 }
 
 @keyframes outerRotate{
-
     from{
         transform:
             translate(-50%,-50%)
@@ -3989,11 +2600,9 @@ ACCESS DENIED
             translate(-50%,-50%)
             rotate(360deg);
     }
-
 }
 
 @keyframes reverseRotate{
-
     from{
         transform:
             translate(-50%,-50%)
@@ -4005,12 +2614,11 @@ ACCESS DENIED
             translate(-50%,-50%)
             rotate(0deg);
     }
-
 }
 
 
 /* =========================================================
-   RGB RING
+   RGB CORE RING
 ========================================================= */
 
 .rgb-ring{
@@ -4052,9 +2660,7 @@ ACCESS DENIED
         0 0 25px rgba(0,220,255,.25),
         0 0 45px rgba(255,0,150,.12);
 
-    transition:
-        background .25s ease,
-        box-shadow .25s ease;
+    transition:.25s;
 }
 
 .rgb-ring::before{
@@ -4090,27 +2696,6 @@ ACCESS DENIED
     z-index:-1;
 }
 
-@keyframes rgbRotate{
-
-    from{
-        transform:
-            translate(-50%,-50%)
-            rotate(0deg);
-    }
-
-    to{
-        transform:
-            translate(-50%,-50%)
-            rotate(360deg);
-    }
-
-}
-
-
-/* =========================================================
-   RGB INNER SHINE
-========================================================= */
-
 .rgb-ring-inner{
     position:absolute;
 
@@ -4125,6 +2710,20 @@ ACCESS DENIED
 
     box-shadow:
         0 0 8px rgba(255,255,255,.15);
+}
+
+@keyframes rgbRotate{
+    from{
+        transform:
+            translate(-50%,-50%)
+            rotate(0deg);
+    }
+
+    to{
+        transform:
+            translate(-50%,-50%)
+            rotate(360deg);
+    }
 }
 
 
@@ -4152,24 +2751,30 @@ ACCESS DENIED
 .notch-one{
     top:-1px;
     left:50%;
+
     transform:translateX(-50%);
 }
 
 .notch-two{
     right:-1px;
     top:50%;
+
     transform:rotate(90deg);
 }
 
 .notch-three{
     bottom:-1px;
     left:50%;
-    transform:translateX(-50%) rotate(180deg);
+
+    transform:
+        translateX(-50%)
+        rotate(180deg);
 }
 
 .notch-four{
     left:-1px;
     top:50%;
+
     transform:rotate(-90deg);
 }
 
@@ -4193,39 +2798,39 @@ ACCESS DENIED
         0 0 15px #22d3ee;
 
     z-index:8;
-
-    transition:
-        background .25s,
-        box-shadow .25s;
 }
 
 .marker-top{
     top:33px;
     left:50%;
+
     transform:translateX(-50%);
 }
 
 .marker-right{
     right:33px;
     top:50%;
+
     transform:translateY(-50%);
 }
 
 .marker-bottom{
     bottom:33px;
     left:50%;
+
     transform:translateX(-50%);
 }
 
 .marker-left{
     left:33px;
     top:50%;
+
     transform:translateY(-50%);
 }
 
 
 /* =========================================================
-   CONNECTIONS
+   CORE CONNECTIONS
 ========================================================= */
 
 .core-connections{
@@ -4252,9 +2857,7 @@ ACCESS DENIED
     box-shadow:
         0 0 7px rgba(0,220,255,.4);
 
-    transition:
-        background .25s,
-        box-shadow .25s;
+    transition:.25s;
 }
 
 .connection-left{
@@ -4307,7 +2910,9 @@ ACCESS DENIED
 
 
 /* =========================================================
-   BALL CONTAINER
+   BALL
+   IMPORTANT:
+   BALL = BELOW CORE TEXT
 ========================================================= */
 
 .core-video-wrap{
@@ -4332,9 +2937,6 @@ ACCESS DENIED
     justify-content:center;
 
     overflow:visible;
-
-    transition:
-        filter .2s ease;
 }
 
 .ball-energy{
@@ -4355,14 +2957,9 @@ ACCESS DENIED
 
     animation:
         ballEnergy 3s ease-in-out infinite alternate;
-
-    transition:
-        background .25s,
-        filter .25s;
 }
 
 @keyframes ballEnergy{
-
     from{
         transform:scale(.92);
         opacity:.4;
@@ -4372,13 +2969,7 @@ ACCESS DENIED
         transform:scale(1.08);
         opacity:.9;
     }
-
 }
-
-
-/* =========================================================
-   BALL VIDEO
-========================================================= */
 
 #ballVideo{
     position:relative;
@@ -4408,12 +2999,10 @@ ACCESS DENIED
     animation:
         ballPulse 3s ease-in-out infinite;
 
-    transition:
-        box-shadow .2s ease;
+    transition:.2s;
 }
 
 @keyframes ballPulse{
-
     0%,100%{
         transform:scale(.985);
     }
@@ -4421,7 +3010,6 @@ ACCESS DENIED
     50%{
         transform:scale(1.02);
     }
-
 }
 
 
@@ -4483,7 +3071,8 @@ ACCESS DENIED
 
 
 /* =========================================================
-   CORE LABEL
+   CORE TEXT
+   ABOVE BALL
 ========================================================= */
 
 .core-label{
@@ -4533,12 +3122,15 @@ ACCESS DENIED
         coreTextFlow 5s linear infinite;
 
     filter:
-        drop-shadow(0 0 5px rgba(255,255,255,.45))
-        drop-shadow(0 0 15px rgba(100,70,255,.5));
+        drop-shadow(
+            0 0 5px rgba(255,255,255,.45)
+        )
+        drop-shadow(
+            0 0 15px rgba(100,70,255,.5)
+        );
 }
 
 @keyframes coreTextFlow{
-
     from{
         background-position:0% 50%;
     }
@@ -4546,7 +3138,6 @@ ACCESS DENIED
     to{
         background-position:300% 50%;
     }
-
 }
 
 .core-sub{
@@ -4578,6 +3169,7 @@ ACCESS DENIED
     z-index:60;
 
     display:flex;
+
     align-items:center;
 
     white-space:nowrap;
@@ -4591,9 +3183,7 @@ ACCESS DENIED
     text-shadow:
         0 0 8px rgba(0,255,160,.7);
 
-    transition:
-        color .2s,
-        text-shadow .2s;
+    transition:.2s;
 }
 
 .status-dot{
@@ -4615,7 +3205,6 @@ ACCESS DENIED
 }
 
 @keyframes statusPulse{
-
     from{
         opacity:.35;
         transform:scale(.7);
@@ -4625,26 +3214,27 @@ ACCESS DENIED
         opacity:1;
         transform:scale(1.15);
     }
-
 }
 
 
 /* =========================================================
-   LIVE LISTENING — RED
+   LISTENING = RED
 ========================================================= */
 
 .core-area.listening .core-video-wrap{
-
     filter:
-        drop-shadow(0 0 18px rgba(255,20,55,.95))
-        drop-shadow(0 0 45px rgba(255,0,50,.60));
+        drop-shadow(
+            0 0 18px rgba(255,20,55,.95)
+        )
+        drop-shadow(
+            0 0 45px rgba(255,0,50,.60)
+        );
 
     animation:
         listeningGlow 1.1s ease-in-out infinite alternate;
 }
 
 .core-area.listening #ballVideo{
-
     box-shadow:
         0 0 18px rgba(255,20,55,1),
         0 0 40px rgba(255,20,55,.85),
@@ -4653,7 +3243,6 @@ ACCESS DENIED
 }
 
 .core-area.listening .rgb-ring{
-
     background:
         conic-gradient(
             from 0deg,
@@ -4672,7 +3261,6 @@ ACCESS DENIED
 }
 
 .core-area.listening .ball-energy{
-
     background:
         radial-gradient(
             circle,
@@ -4683,11 +3271,17 @@ ACCESS DENIED
     filter:blur(16px);
 }
 
-.core-area.listening .ring-outer,
-.core-area.listening .ring-three,
-.core-area.listening .ring-two,
-.core-area.listening .ring-one{
+.core-area.listening
+.ring-outer,
 
+.core-area.listening
+.ring-three,
+
+.core-area.listening
+.ring-two,
+
+.core-area.listening
+.ring-one{
     border-color:
         rgba(255,35,70,.35);
 
@@ -4695,8 +3289,8 @@ ACCESS DENIED
         0 0 14px rgba(255,20,55,.20);
 }
 
-.core-area.listening .orbit-marker{
-
+.core-area.listening
+.orbit-marker{
     background:#ff1744;
 
     box-shadow:
@@ -4705,8 +3299,8 @@ ACCESS DENIED
         0 0 40px rgba(255,0,50,.7);
 }
 
-.core-area.listening .connection{
-
+.core-area.listening
+.connection{
     background:
         linear-gradient(
             90deg,
@@ -4719,7 +3313,8 @@ ACCESS DENIED
         0 0 10px rgba(255,20,55,.8);
 }
 
-.core-area.listening .status{
+.core-area.listening
+.status{
     color:#ff5a76;
 
     text-shadow:
@@ -4728,38 +3323,46 @@ ACCESS DENIED
 }
 
 @keyframes listeningGlow{
-
     from{
         filter:
-            drop-shadow(0 0 14px rgba(255,20,55,.70))
-            drop-shadow(0 0 35px rgba(255,0,50,.35));
+            drop-shadow(
+                0 0 14px rgba(255,20,55,.70)
+            )
+            drop-shadow(
+                0 0 35px rgba(255,0,50,.35)
+            );
     }
 
     to{
         filter:
-            drop-shadow(0 0 28px rgba(255,20,55,1))
-            drop-shadow(0 0 70px rgba(255,0,50,.70));
+            drop-shadow(
+                0 0 28px rgba(255,20,55,1)
+            )
+            drop-shadow(
+                0 0 70px rgba(255,0,50,.70)
+            );
     }
-
 }
 
 
 /* =========================================================
-   LIVE SPEAKING — GREEN
+   RESPONDING = GREEN
 ========================================================= */
 
 .core-area.responding .core-video-wrap{
-
     filter:
-        drop-shadow(0 0 18px rgba(50,255,150,.95))
-        drop-shadow(0 0 45px rgba(0,255,120,.60));
+        drop-shadow(
+            0 0 18px rgba(50,255,150,.95)
+        )
+        drop-shadow(
+            0 0 45px rgba(0,255,120,.60)
+        );
 
     animation:
         respondingGlow 1.1s ease-in-out infinite alternate;
 }
 
 .core-area.responding #ballVideo{
-
     box-shadow:
         0 0 18px rgba(50,255,150,1),
         0 0 40px rgba(50,255,150,.85),
@@ -4768,7 +3371,6 @@ ACCESS DENIED
 }
 
 .core-area.responding .rgb-ring{
-
     background:
         conic-gradient(
             from 0deg,
@@ -4787,7 +3389,6 @@ ACCESS DENIED
 }
 
 .core-area.responding .ball-energy{
-
     background:
         radial-gradient(
             circle,
@@ -4798,11 +3399,17 @@ ACCESS DENIED
     filter:blur(16px);
 }
 
-.core-area.responding .ring-outer,
-.core-area.responding .ring-three,
-.core-area.responding .ring-two,
-.core-area.responding .ring-one{
+.core-area.responding
+.ring-outer,
 
+.core-area.responding
+.ring-three,
+
+.core-area.responding
+.ring-two,
+
+.core-area.responding
+.ring-one{
     border-color:
         rgba(50,255,150,.35);
 
@@ -4810,8 +3417,8 @@ ACCESS DENIED
         0 0 14px rgba(50,255,150,.20);
 }
 
-.core-area.responding .orbit-marker{
-
+.core-area.responding
+.orbit-marker{
     background:#39ff88;
 
     box-shadow:
@@ -4820,8 +3427,8 @@ ACCESS DENIED
         0 0 40px rgba(0,255,120,.7);
 }
 
-.core-area.responding .connection{
-
+.core-area.responding
+.connection{
     background:
         linear-gradient(
             90deg,
@@ -4834,8 +3441,8 @@ ACCESS DENIED
         0 0 10px rgba(50,255,150,.8);
 }
 
-.core-area.responding .status{
-
+.core-area.responding
+.status{
     color:#61ffb1;
 
     text-shadow:
@@ -4844,24 +3451,30 @@ ACCESS DENIED
 }
 
 @keyframes respondingGlow{
-
     from{
         filter:
-            drop-shadow(0 0 14px rgba(50,255,150,.70))
-            drop-shadow(0 0 35px rgba(0,255,120,.35));
+            drop-shadow(
+                0 0 14px rgba(50,255,150,.70)
+            )
+            drop-shadow(
+                0 0 35px rgba(0,255,120,.35)
+            );
     }
 
     to{
         filter:
-            drop-shadow(0 0 28px rgba(50,255,150,1))
-            drop-shadow(0 0 70px rgba(0,255,120,.70));
+            drop-shadow(
+                0 0 28px rgba(50,255,150,1)
+            )
+            drop-shadow(
+                0 0 70px rgba(0,255,120,.70)
+            );
     }
-
 }
 
 
 /* =========================================================
-   BOTTOM
+   BOTTOM BAR
 ========================================================= */
 
 .bottom{
@@ -4901,7 +3514,50 @@ ACCESS DENIED
 
 
 /* =========================================================
-   INFO OVERLAY
+   DASHBOARD SCAN
+========================================================= */
+
+#dashboard .scanline{
+    position:absolute;
+
+    top:-10px;
+    left:0;
+    right:0;
+
+    height:1px;
+
+    z-index:50;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(0,240,255,.75),
+            transparent
+        );
+
+    box-shadow:
+        0 0 15px rgba(0,240,255,.7);
+
+    animation:
+        dashboardScan 7s linear infinite;
+
+    pointer-events:none;
+}
+
+@keyframes dashboardScan{
+    from{
+        top:-10px;
+    }
+
+    to{
+        top:110%;
+    }
+}
+
+
+/* =========================================================
+   INFORMATION OVERLAY
 ========================================================= */
 
 .jarvis-info-overlay{
@@ -4936,11 +3592,6 @@ ACCESS DENIED
     visibility:visible;
 }
 
-
-/* =========================================================
-   INFO BOX
-========================================================= */
-
 .jarvis-info-box{
     position:relative;
 
@@ -4970,8 +3621,7 @@ ACCESS DENIED
         scale(.94)
         translateY(15px);
 
-    transition:
-        transform .3s;
+    transition:.3s;
 
     scrollbar-width:thin;
 
@@ -4999,11 +3649,6 @@ ACCESS DENIED
 
     pointer-events:none;
 }
-
-
-/* =========================================================
-   INFO CLOSE
-========================================================= */
 
 .info-close{
     position:absolute;
@@ -5038,11 +3683,6 @@ ACCESS DENIED
         0 0 15px rgba(0,220,255,.2);
 }
 
-
-/* =========================================================
-   INFO CONTENT
-========================================================= */
-
 .info-content{
     display:none;
 }
@@ -5055,6 +3695,7 @@ ACCESS DENIED
     color:#22d3ee;
 
     font-size:8px;
+
     letter-spacing:4px;
 
     margin-bottom:10px;
@@ -5067,6 +3708,7 @@ ACCESS DENIED
     margin:0;
 
     font-size:30px;
+
     font-weight:500;
 
     letter-spacing:2px;
@@ -5097,11 +3739,6 @@ ACCESS DENIED
     line-height:1.8;
 }
 
-
-/* =========================================================
-   INFO POINTS
-========================================================= */
-
 .info-points{
     margin-top:25px;
 
@@ -5110,10 +3747,11 @@ ACCESS DENIED
     gap:10px;
 }
 
-.info-points > div{
+.info-points>div{
     display:grid;
 
-    grid-template-columns:40px 1fr;
+    grid-template-columns:
+        40px 1fr;
 
     gap:12px;
 
@@ -5130,7 +3768,7 @@ ACCESS DENIED
     transition:.2s;
 }
 
-.info-points > div:hover{
+.info-points>div:hover{
     border-color:
         rgba(34,211,238,.28);
 
@@ -5144,9 +3782,8 @@ ACCESS DENIED
     color:#22d3ee;
 
     font-size:8px;
-    letter-spacing:2px;
 
-    padding-top:2px;
+    letter-spacing:2px;
 }
 
 .info-points p{
@@ -5183,10 +3820,8 @@ ACCESS DENIED
     color:#22d3ee;
 
     font-size:8px;
-    letter-spacing:2.5px;
 
-    text-shadow:
-        0 0 8px rgba(0,220,255,.45);
+    letter-spacing:2.5px;
 }
 
 .training-memory-title small{
@@ -5222,26 +3857,14 @@ ACCESS DENIED
 
     color:#e5edff;
 
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
     font-size:10px;
 
     line-height:1.7;
-
-    letter-spacing:.3px;
 
     box-shadow:
         inset 0 0 20px rgba(30,90,160,.05);
 
     transition:.25s;
-}
-
-#trainingMemoryInput:hover{
-    border-color:
-        rgba(34,211,238,.35);
 }
 
 #trainingMemoryInput:focus{
@@ -5278,11 +3901,6 @@ ACCESS DENIED
 
     color:#bfeaff;
 
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
     font-size:7px;
 
     letter-spacing:1.8px;
@@ -5299,9 +3917,6 @@ ACCESS DENIED
 
     box-shadow:
         0 0 15px rgba(34,211,238,.18);
-
-    background:
-        rgba(20,40,70,.75);
 }
 
 #clearTrainingMemory{
@@ -5309,13 +3924,6 @@ ACCESS DENIED
 
     border-color:
         rgba(168,85,247,.25);
-}
-
-#clearTrainingMemory:hover{
-    border-color:#a855f7;
-
-    box-shadow:
-        0 0 15px rgba(168,85,247,.18);
 }
 
 .training-memory-status{
@@ -5340,12 +3948,6 @@ ACCESS DENIED
     max-height:160px;
 
     overflow:auto;
-
-    scrollbar-width:thin;
-
-    scrollbar-color:
-        rgba(80,170,255,.35)
-        transparent;
 }
 
 .saved-memory{
@@ -5366,15 +3968,6 @@ ACCESS DENIED
     line-height:1.6;
 
     word-break:break-word;
-
-    transition:.2s;
-}
-
-.saved-memory:hover{
-    border-color:
-        rgba(34,211,238,.25);
-
-    color:#aebbd2;
 }
 
 .saved-memory::before{
@@ -5503,69 +4096,33 @@ ACCESS DENIED
    MOBILE
 ========================================================= */
 
-@media(max-width:700px){
+@media(max-width:900px){
 
-    #dashboard{
+    .layout{
+        grid-template-columns:1fr;
+    }
+
+    .coreBox{
+        display:none;
+    }
+
+    .chamber{
+        min-height:auto;
+    }
+
+    .inner{
         min-height:600px;
+        padding:45px 35px;
     }
 
-    #dashboard .topbar{
-        top:15px;
-        left:15px;
-        right:15px;
-
-        height:45px;
-
-        padding:0 8px;
+    .cards{
+        grid-template-columns:
+            repeat(2,1fr);
     }
 
-    .dashboard-logo{
-        margin-left:44px;
-
-        font-size:12px;
-
-        letter-spacing:3px;
-    }
-
-    .dashboard-logo span{
-        font-size:6px;
-    }
-
-    .system{
-        font-size:6px;
-        letter-spacing:1.5px;
-    }
-
-    .jarvis-menu-button{
-        top:18px;
-        left:18px;
-
-        width:32px;
-        height:32px;
-    }
-
-    .jarvis-menu{
-        top:60px;
-        left:15px;
-
-        width:min(310px,calc(100vw - 30px));
-    }
-
-    .jarvis-title{
-        top:80px;
-
-        width:100%;
-
-        text-align:center;
-
-        font-size:16px;
-
-        letter-spacing:1px;
-    }
-
-    .title-line{
-        top:115px;
-        width:65vw;
+    .flow{
+        grid-template-columns:
+            repeat(2,1fr);
     }
 
     .panel{
@@ -5644,6 +4201,16 @@ ACCESS DENIED
         height:70px;
     }
 
+    .jarvis-title{
+        top:80px;
+        font-size:16px;
+    }
+
+    .title-line{
+        top:115px;
+        width:65vw;
+    }
+
     .bottom{
         left:15px;
         right:15px;
@@ -5660,12 +4227,66 @@ ACCESS DENIED
         letter-spacing:2px;
     }
 
-    .jarvis-info-box{
-        padding:27px 20px;
+    .jarvis-menu-button{
+        top:88px;
+        left:18px;
+
+        width:32px;
+        height:32px;
     }
 
-    .info-content h2{
-        font-size:24px;
+    .jarvis-menu{
+        top:130px;
+        left:15px;
+
+        width:
+            min(
+                310px,
+                calc(100vw - 30px)
+            );
+    }
+
+    #dashboard .topbar{
+        top:15px;
+        left:15px;
+        right:15px;
+
+        height:45px;
+
+        padding:0 8px;
+    }
+
+    .dashboard-logo{
+        margin-left:44px;
+
+        font-size:12px;
+        letter-spacing:3px;
+    }
+
+    .dashboard-logo span{
+        font-size:6px;
+    }
+
+    .system{
+        font-size:6px;
+        letter-spacing:1.5px;
+    }
+
+    #setupLoginBtn,
+    #createNewIdBtn{
+        top:78px;
+
+        font-size:8px;
+
+        padding:8px 10px;
+    }
+
+    #setupLoginBtn{
+        left:12px;
+    }
+
+    #createNewIdBtn{
+        right:12px;
     }
 
     .status-grid{
@@ -5676,34 +4297,76 @@ ACCESS DENIED
         flex-direction:column;
     }
 
-    #trainingMemoryInput{
-        min-height:105px;
+    .jarvis-info-box{
+        padding:27px 20px;
     }
 
+    .info-content h2{
+        font-size:24px;
+    }
 }
 
 
-/* =========================================================
-   SMALL MOBILE
-========================================================= */
+@media(max-width:600px){
+
+    .core-top{
+        padding:0 17px;
+    }
+
+    .core-logo{
+        font-size:11px;
+        letter-spacing:2px;
+    }
+
+    .core-system{
+        font-size:8px;
+    }
+
+    .cards{
+        grid-template-columns:1fr;
+    }
+
+    .flow{
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+    .terms{
+        grid-template-columns:1fr;
+    }
+
+    .inner{
+        padding:40px 24px;
+    }
+
+    .title{
+        font-size:30px;
+    }
+
+    .small{
+        flex-wrap:wrap;
+    }
+}
+
 
 @media(max-width:450px){
 
-    .dashboard-logo{
-        margin-left:42px;
-
-        font-size:10px;
-        letter-spacing:2px;
+    .flow{
+        grid-template-columns:1fr;
     }
 
-    .dashboard-logo span{
-        font-size:5px;
-        letter-spacing:2px;
+    .hero2 h1{
+        font-size:38px;
     }
 
-    .system{
-        font-size:5px;
+    .jarvis-title{
+        font-size:13px;
+
         letter-spacing:1px;
+
+        max-width:90vw;
+
+        text-align:center;
     }
 
     .core-area{
@@ -5760,65 +4423,2187 @@ ACCESS DENIED
         font-size:4px;
     }
 
-    .jarvis-title{
-        font-size:13px;
+    .login-box{
+        width:
+            min(
+                360px,
+                calc(100vw - 30px)
+            );
+
+        padding:27px 22px;
     }
 
+    .login-box h1{
+        font-size:27px;
+    }
 }
 
 </style>
+</head>
+
+
+<body>
+
+<canvas id="spaceCanvas"></canvas>
+
+<div class="aurora a1"></div>
+<div class="aurora a2"></div>
+<div class="aurora a3"></div>
 
 
 <!-- =========================================================
-     DASHBOARD JAVASCRIPT
+     GLOBAL TOP BAR
 ========================================================= -->
+
+<header class="core-top">
+
+    <div class="core-logo">
+        J.A.R.V.I.S.
+        <span>// CORE</span>
+    </div>
+
+    <div class="core-system">
+        <span class="core-dot"></span>
+        SYSTEM ONLINE
+    </div>
+
+</header>
+
+
+<!-- =========================================================
+     STAGE 1 — SETUP
+========================================================= -->
+
+<section id="setupStage" class="stage active">
+
+    <button
+        id="setupLoginBtn"
+        type="button"
+    >
+        LOGIN
+    </button>
+
+
+    <main class="access">
+
+        <div class="hud h1">
+            NEURAL INTERFACE // 01
+        </div>
+
+        <div class="hud h2">
+            QUANTUM LINK // STABLE
+        </div>
+
+        <div class="hud h3">
+            AUTH CHANNEL // ENCRYPTED
+        </div>
+
+        <div class="hud h4">
+            CORE STATUS // WAITING
+        </div>
+
+
+        <div class="chamber">
+
+            <div class="inner">
+
+                <div class="scan"></div>
+
+                <div class="corner c1"></div>
+                <div class="corner c2"></div>
+                <div class="corner c3"></div>
+                <div class="corner c4"></div>
+
+
+                <div class="chip">
+                    J.A.R.V.I.S. // SECURE INITIALIZATION PROTOCOL
+                </div>
+
+
+                <h1 class="title">
+
+                    Welcome to
+                    <b>J.A.R.V.I.S.</b>
+
+                    <br>
+
+                    <i>Core Access</i>
+
+                </h1>
+
+
+                <p class="subtitle">
+
+                    A private interface for your intelligent
+                    digital system. Create your identity below
+                    and initialize the core environment.
+
+                </p>
+
+
+                <div class="layout">
+
+
+                    <div>
+
+                        <div class="fields">
+
+
+                            <div class="setup-field">
+
+                                <label class="setup-label">
+                                    NAME
+                                </label>
+
+                                <input
+                                    id="setupName"
+                                    class="setup-input"
+                                    type="text"
+                                    placeholder="Enter your name"
+                                    autocomplete="off"
+                                >
+
+                            </div>
+
+
+                            <div class="setup-field">
+
+                                <label class="setup-label">
+                                    CREATE ACCESS ID
+                                </label>
+
+                                <input
+                                    id="setupAccess"
+                                    class="setup-input"
+                                    type="text"
+                                    placeholder="Choose an access ID"
+                                    autocomplete="off"
+                                >
+
+                            </div>
+
+
+                            <div class="setup-field">
+
+                                <label class="setup-label">
+                                    CREATE PASSWORD
+                                </label>
+
+                                <input
+                                    id="setupPass"
+                                    class="setup-input"
+                                    type="password"
+                                    placeholder="Create a secure password"
+                                    autocomplete="new-password"
+                                >
+
+                            </div>
+
+
+                            <button
+                                class="init"
+                                id="saveSetup"
+                                type="button"
+                            >
+                                INITIALIZE J.A.R.V.I.S. →
+                            </button>
+
+
+                        </div>
+
+
+                        <div class="small">
+
+                            <span>LOCAL CORE</span>
+                            <span>AI READY</span>
+                            <span>AUTH SECURE</span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="coreBox">
+
+                        <div class="jarvisLogo">
+
+                            <div class="logoMarks"></div>
+
+                            <div class="emblem">
+                                <div class="emblemJ">
+                                    J
+                                </div>
+                            </div>
+
+                            <div class="techLine line1"></div>
+                            <div class="techLine line2"></div>
+                            <div class="techLine line3"></div>
+                            <div class="techLine line4"></div>
+
+                            <div class="logoLabel">
+                                J.A.R.V.I.S.
+
+                                <strong>
+                                    INTELLIGENCE CORE
+                                </strong>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </main>
+
+</section>
+
+
+<!-- =========================================================
+     AUTHORIZATION
+========================================================= -->
+
+<div
+    class="overlay"
+    id="authorizationOverlay"
+>
+
+    <div class="auth">
+
+        <div class="authCore"></div>
+
+        <h2>
+            ACCESS VERIFIED
+        </h2>
+
+        <p>
+            J.A.R.V.I.S. CORE INITIALIZING
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     STAGE 2 — INFORMATION
+========================================================= -->
+
+<section
+    id="infoStage"
+    class="stage"
+>
+
+
+    <section class="hero2">
+
+        <div>
+
+            <div class="eyebrow">
+                J.A.R.V.I.S. // CORE SYSTEM ONLINE
+            </div>
+
+            <h1 id="welcomeName">
+                WELCOME
+            </h1>
+
+            <p>
+                Your personal intelligent interface —
+                designed to listen, understand, respond
+                and evolve with the systems you authorize.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <div class="content">
+
+
+        <section class="section">
+
+            <h2>
+                01 // WHAT IS J.A.R.V.I.S.?
+            </h2>
+
+            <p>
+
+                J.A.R.V.I.S. is a modular personal AI interface
+                designed to connect voice interaction,
+                artificial intelligence, computer control and
+                visual system feedback into one unified
+                environment.
+
+                <br><br>
+
+                The interface can act as the command center
+                for your own projects while keeping the system
+                architecture expandable.
+
+            </p>
+
+        </section>
+
+
+        <section class="section">
+
+            <h2>
+                02 // CAPABILITY MATRIX
+            </h2>
+
+
+            <div class="cards">
+
+
+                <div class="card">
+
+                    <b>VOICE INTERACTION</b>
+
+                    <p>
+                        Listen for authorized voice commands,
+                        understand speech and respond through
+                        a conversational AI layer.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>AI INTELLIGENCE</b>
+
+                    <p>
+                        Connect an AI model to interpret questions,
+                        reason about tasks and generate useful
+                        responses.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>COMPUTER CONTROL</b>
+
+                    <p>
+                        Perform predefined local actions such as
+                        opening approved applications, websites
+                        and system utilities.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>WEB INTERFACE</b>
+
+                    <p>
+                        A cinematic visual layer can display
+                        system state, animations, notifications
+                        and interaction feedback.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>AUTOMATION</b>
+
+                    <p>
+                        Build repeatable workflows around tasks
+                        you personally authorize the system
+                        to perform.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>MODULAR EXPANSION</b>
+
+                    <p>
+                        New capabilities can be added later
+                        without redesigning the entire core
+                        architecture.
+                    </p>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        <section class="section">
+
+            <h2>
+                03 // CORE ARCHITECTURE
+            </h2>
+
+
+            <div class="cards">
+
+
+                <div class="card">
+
+                    <b>PERSONALIZATION</b>
+
+                    <p>
+                        The interface can adapt its responses,
+                        voice behavior and visual feedback around
+                        your preferred workflow.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>SYSTEM MONITORING</b>
+
+                    <p>
+                        The visual core can represent important
+                        system states such as listening,
+                        processing, responding and ready conditions.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>VOICE-FIRST CONTROL</b>
+
+                    <p>
+                        Hands-free interaction allows commands
+                        to be sent naturally while the system
+                        remains visually active.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>LOCAL-FIRST DESIGN</b>
+
+                    <p>
+                        Local computer actions can be separated
+                        from external services so the architecture
+                        remains easier to manage.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>MODULAR COMPONENTS</b>
+
+                    <p>
+                        Voice recognition, AI processing,
+                        computer control and the visual interface
+                        can be developed as independent modules.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>FUTURE EXPANSION</b>
+
+                    <p>
+                        Additional devices, services and automation
+                        modules can be connected as the project
+                        continues to evolve.
+                    </p>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        <section class="section">
+
+            <h2>
+                04 // HOW THE CORE THINKS
+            </h2>
+
+
+            <div class="flow">
+
+
+                <div class="step">
+
+                    <div class="num">
+                        01
+                    </div>
+
+                    <h3>
+                        LISTEN
+                    </h3>
+
+                    <p>
+                        Receive the authorized input.
+                    </p>
+
+                </div>
+
+
+                <div class="step">
+
+                    <div class="num">
+                        02
+                    </div>
+
+                    <h3>
+                        UNDERSTAND
+                    </h3>
+
+                    <p>
+                        Interpret the request.
+                    </p>
+
+                </div>
+
+
+                <div class="step">
+
+                    <div class="num">
+                        03
+                    </div>
+
+                    <h3>
+                        DECIDE
+                    </h3>
+
+                    <p>
+                        Select an appropriate action.
+                    </p>
+
+                </div>
+
+
+                <div class="step">
+
+                    <div class="num">
+                        04
+                    </div>
+
+                    <h3>
+                        RESPOND
+                    </h3>
+
+                    <p>
+                        Return the result.
+                    </p>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        <section class="section">
+
+            <h2>
+                05 // SECURITY & PRIVACY
+            </h2>
+
+
+            <div class="cards">
+
+
+                <div class="card">
+
+                    <b>LOCAL CONTROL</b>
+
+                    <p>
+                        Computer actions should remain on
+                        systems you own or are explicitly
+                        authorized to control.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>CREDENTIAL STORAGE</b>
+
+                    <p>
+                        This demo stores access values locally
+                        in your browser using localStorage.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <b>PERMISSIONS</b>
+
+                    <p>
+                        <b>CAMERA</b> — Camera access for supported
+                        visual features.<br>
+                        <b>MIC</b> — Microphone access for voice
+                        input and wake-word detection.<br>
+                        <b>PC CONTROL</b> — Permission for supported
+                        computer actions through the control bridge.
+                    </p>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        <section class="section">
+
+            <h2>
+                06 // TERMS & CONDITIONS
+            </h2>
+
+
+            <div class="terms">
+
+
+                <div class="term">
+
+                    <strong>
+                        PERSONAL USE
+                    </strong>
+
+                    <p>
+                        Use this interface for your own
+                        projects and systems.
+                    </p>
+
+                </div>
+
+
+                <div class="term">
+
+                    <strong>
+                        AUTHORIZATION
+                    </strong>
+
+                    <p>
+                        Only connect J.A.R.V.I.S. to devices,
+                        accounts or services you are authorized
+                        to control.
+                    </p>
+
+                </div>
+
+
+                <div class="term">
+
+                    <strong>
+                        COMPUTER ACTIONS
+                    </strong>
+
+                    <p>
+                        Automated actions should be limited
+                        to safe, intentional and authorized
+                        operations.
+                    </p>
+
+                </div>
+
+
+                <div class="term">
+
+                    <strong>
+                        THIRD-PARTY SERVICES
+                    </strong>
+
+                    <p>
+                        External APIs and services may have
+                        their own rules, limits and privacy
+                        policies.
+                    </p>
+
+                </div>
+
+
+                <div class="term">
+
+                    <strong>
+                        AI ACCURACY
+                    </strong>
+
+                    <p>
+                        AI-generated information can be
+                        incorrect. Important decisions should
+                        be independently verified.
+                    </p>
+
+                </div>
+
+
+                <div class="term">
+
+                    <strong>
+                        DEVELOPMENT STATUS
+                    </strong>
+
+                    <p>
+                        This interface is a personal development
+                        project and features may change over
+                        time.
+                    </p>
+
+                </div>
+
+
+                <div class="term">
+
+                    <strong>
+                        DATA PRIVACY
+                    </strong>
+
+                    <p>
+                        Keep personal information, credentials
+                        and private data protected when using
+                        connected systems.
+                    </p>
+
+                </div>
+
+
+                <div class="term">
+
+                    <strong>
+                        SECURITY
+                    </strong>
+
+                    <p>
+                        Maintain secure access credentials and
+                        avoid granting unnecessary permissions
+                        to connected devices or services.
+                    </p>
+
+                </div>
+
+
+                <div class="term">
+
+                    <strong>
+                        USER CONTROL
+                    </strong>
+
+                    <p>
+                        You remain responsible for the actions
+                        performed through the interface and
+                        connected systems.
+                    </p>
+
+                </div>
+
+
+                <div class="term">
+
+                    <strong>
+                        SYSTEM CHANGES
+                    </strong>
+
+                    <p>
+                        Features, integrations and system
+                        behavior may be updated or modified
+                        as development continues.
+                    </p>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        <div class="enter">
+
+            <button
+                id="enterCore"
+                type="button"
+            >
+                ENTER J.A.R.V.I.S. CORE →
+            </button>
+
+            <div
+                class="ready"
+                id="ready"
+            ></div>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     STAGE 3 — LOGIN
+========================================================= -->
+
+<section
+    id="loginStage"
+    class="stage"
+>
+
+
+    <button
+        id="createNewIdBtn"
+        type="button"
+    >
+        CREATE NEW ID
+    </button>
+
+
+    <div id="loginPage">
+
+        <div class="login-box">
+
+
+            <h1>
+                J.A.R.V.I.S.
+            </h1>
+
+
+            <div class="login-subtitle">
+                JARVIS CORE ACCESS
+            </div>
+
+
+            <label class="login-label">
+                IDENTIFICATION
+            </label>
+
+            <input
+                id="loginName"
+                class="login-input"
+                type="text"
+                placeholder="Enter identification"
+                autocomplete="off"
+            >
+
+
+            <label class="login-label">
+                ACCESS ID
+            </label>
+
+            <input
+                id="loginAccess"
+                class="login-input"
+                type="text"
+                placeholder="Enter access ID"
+                autocomplete="off"
+            >
+
+
+            <label class="login-label">
+                PASSWORD
+            </label>
+
+            <input
+                id="loginPassword"
+                class="login-input"
+                type="password"
+                placeholder="Enter password"
+                autocomplete="current-password"
+            >
+
+
+            <button
+                class="login-button"
+                id="initializeLogin"
+                type="button"
+            >
+                INITIALIZE
+            </button>
+
+
+            <div id="error">
+                ACCESS DENIED
+            </div>
+
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     STAGE 4 — DASHBOARD
+========================================================= -->
+
+<section
+    id="dashboardStage"
+    class="stage"
+>
+
+
+<div id="dashboard">
+
+
+    <div id="dashboardStars"></div>
+
+    <div class="dashboard-nebula nebula-one"></div>
+    <div class="dashboard-nebula nebula-two"></div>
+    <div class="dashboard-nebula nebula-three"></div>
+
+    <div class="grid"></div>
+
+    <div class="scanline"></div>
+
+
+    <!-- =====================================================
+         TOP BAR
+    ====================================================== -->
+
+    <div class="topbar">
+
+        <div class="dashboard-logo">
+
+            J.A.R.V.I.S.
+
+            <span>
+                // CORE
+            </span>
+
+        </div>
+
+
+        <div class="system">
+
+            <span class="system-dot"></span>
+
+            SYSTEM ONLINE
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         THREE DOT MENU
+    ====================================================== -->
+
+    <button
+        id="jarvisMenuButton"
+        class="jarvis-menu-button"
+        aria-label="Open JARVIS menu"
+        type="button"
+    >
+
+        <span></span>
+        <span></span>
+        <span></span>
+
+    </button>
+
+
+    <!-- =====================================================
+         MENU
+    ====================================================== -->
+
+    <div
+        id="jarvisMenu"
+        class="jarvis-menu"
+    >
+
+
+        <div class="menu-header">
+
+            <span>
+                J.A.R.V.I.S.
+            </span>
+
+            <button
+                id="closeJarvisMenu"
+                type="button"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="menu-line"></div>
+
+
+        <button
+            class="menu-item"
+            data-panel="helpPanel"
+            type="button"
+        >
+
+            <span class="menu-icon">
+                ?
+            </span>
+
+            <span>
+
+                <strong>
+                    HELP
+                </strong>
+
+                <small>
+                    Learn how to use JARVIS
+                </small>
+
+            </span>
+
+            <b>›</b>
+
+        </button>
+
+
+        <button
+            class="menu-item"
+            data-panel="trainPanel"
+            type="button"
+        >
+
+            <span class="menu-icon">
+                AI
+            </span>
+
+            <span>
+
+                <strong>
+                    TRAIN YOUR AI
+                </strong>
+
+                <small>
+                    Teach JARVIS your preferences
+                </small>
+
+            </span>
+
+            <b>›</b>
+
+        </button>
+
+
+        <button
+            class="menu-item"
+            data-panel="aboutPanel"
+            type="button"
+        >
+
+            <span class="menu-icon">
+                ◇
+            </span>
+
+            <span>
+
+                <strong>
+                    ABOUT JARVIS
+                </strong>
+
+                <small>
+                    Core architecture
+                </small>
+
+            </span>
+
+            <b>›</b>
+
+        </button>
+
+
+        <button
+            class="menu-item"
+            data-panel="statusPanel"
+            type="button"
+        >
+
+            <span class="menu-icon">
+                ◉
+            </span>
+
+            <span>
+
+                <strong>
+                    SYSTEM STATUS
+                </strong>
+
+                <small>
+                    Live system information
+                </small>
+
+            </span>
+
+            <b>›</b>
+
+        </button>
+
+
+        <button
+            class="menu-item"
+            data-panel="settingsPanel"
+            type="button"
+        >
+
+            <span class="menu-icon">
+                ⚙
+            </span>
+
+            <span>
+
+                <strong>
+                    SETTINGS
+                </strong>
+
+                <small>
+                    Interface controls
+                </small>
+
+            </span>
+
+            <b>›</b>
+
+        </button>
+
+
+    </div>
+
+
+    <!-- =====================================================
+         GREETING
+    ====================================================== -->
+
+    <div class="jarvis-title">
+        Hi, how can I help you today?
+    </div>
+
+    <div class="title-line"></div>
+
+
+    <!-- =====================================================
+         LEFT HUD
+    ====================================================== -->
+
+    <div class="panel panel-left">
+
+        <div class="panel-corner"></div>
+
+        <div class="panel-title">
+            JARVIS CORE
+        </div>
+
+
+        <div class="panel-row">
+
+            <span>
+                AI ENGINE
+            </span>
+
+            <span class="panel-value green">
+                ONLINE
+            </span>
+
+        </div>
+
+
+        <div class="panel-row">
+
+            <span>
+                GEMINI
+            </span>
+
+            <span class="panel-value blue">
+                READY
+            </span>
+
+        </div>
+
+
+        <div class="panel-row">
+
+            <span>
+                VOICE
+            </span>
+
+            <span class="panel-value purple">
+                ACTIVE
+            </span>
+
+        </div>
+
+
+        <div class="panel-row">
+
+            <span>
+                MIC
+            </span>
+
+            <span class="panel-value green">
+                READY
+            </span>
+
+        </div>
+
+
+        <div class="panel-divider"></div>
+
+
+        <div class="panel-mini">
+            NEURAL PROCESSOR
+        </div>
+
+
+        <div class="panel-bars">
+
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         RIGHT HUD
+    ====================================================== -->
+
+    <div class="panel panel-right">
+
+        <div class="panel-corner"></div>
+
+        <div class="panel-title">
+            SYSTEM STATUS
+        </div>
+
+
+        <div class="panel-row">
+
+            <span>
+                CORE
+            </span>
+
+            <span class="panel-value blue">
+                100%
+            </span>
+
+        </div>
+
+
+        <div class="panel-row">
+
+            <span>
+                NETWORK
+            </span>
+
+            <span class="panel-value green">
+                STABLE
+            </span>
+
+        </div>
+
+
+        <div class="panel-row">
+
+            <span>
+                WAKE
+            </span>
+
+            <span class="panel-value purple">
+                ACTIVE
+            </span>
+
+        </div>
+
+
+        <div class="panel-row">
+
+            <span>
+                PC LINK
+            </span>
+
+            <span class="panel-value green">
+                READY
+            </span>
+
+        </div>
+
+
+        <div class="panel-divider"></div>
+
+
+        <div class="panel-mini">
+            CORE SYNCHRONIZATION
+        </div>
+
+
+        <div class="sync-bar">
+            <span></span>
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         CENTRAL CORE
+    ====================================================== -->
+
+    <div class="core-area">
+
+
+        <div class="hud-ring ring-outer">
+
+            <div class="ring-notch notch-one"></div>
+            <div class="ring-notch notch-two"></div>
+            <div class="ring-notch notch-three"></div>
+            <div class="ring-notch notch-four"></div>
+
+        </div>
+
+
+        <div class="rgb-ring">
+
+            <div class="rgb-ring-inner"></div>
+
+        </div>
+
+
+        <div class="hud-ring ring-four"></div>
+        <div class="hud-ring ring-three"></div>
+        <div class="hud-ring ring-two"></div>
+        <div class="hud-ring ring-one"></div>
+
+
+        <div class="orbit-marker marker-top"></div>
+        <div class="orbit-marker marker-right"></div>
+        <div class="orbit-marker marker-bottom"></div>
+        <div class="orbit-marker marker-left"></div>
+
+
+        <div class="core-connections">
+
+            <div class="connection connection-left"></div>
+            <div class="connection connection-right"></div>
+            <div class="connection connection-top"></div>
+            <div class="connection connection-bottom"></div>
+
+        </div>
+
+
+        <!-- BALL IS HERE -->
+        <!-- JARVIS CORE TEXT IS LAYERED ABOVE IT -->
+
+        <div class="core-video-wrap">
+
+            <div class="ball-energy"></div>
+
+            <video
+                id="ballVideo"
+                autoplay
+                loop
+                muted
+                playsinline
+                preload="auto"
+            >
+
+                <source
+                    src="ball.mp4"
+                    type="video/mp4"
+                >
+
+            </video>
+
+        </div>
+
+
+        <div class="core-crosshair">
+
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =====================================================
+         CORE TEXT
+    ====================================================== -->
+
+    <div class="core-label">
+
+        <div
+            id="coreMain"
+            class="core-main"
+        >
+            JARVIS CORE // ONLINE
+        </div>
+
+
+        <div class="core-sub">
+            ARTIFICIAL INTELLIGENCE SYSTEM
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         STATUS
+    ====================================================== -->
+
+    <div
+        id="status"
+        class="status"
+    >
+
+        <span class="status-dot"></span>
+
+        READY // SAY "HEY JARVIS"
+
+    </div>
+
+
+    <!-- =====================================================
+         BOTTOM
+    ====================================================== -->
+
+    <div class="bottom">
+
+        <span>
+            JARVIS CORE // CONNECTED
+        </span>
+
+        <span class="bottom-center">
+            SECURE NEURAL LINK
+        </span>
+
+        <span>
+            AI // READY
+        </span>
+
+    </div>
+
+
+    <!-- =====================================================
+         INFORMATION OVERLAY
+    ====================================================== -->
+
+    <div
+        id="jarvisInfoOverlay"
+        class="jarvis-info-overlay"
+    >
+
+        <div
+            id="jarvisInfoBox"
+            class="jarvis-info-box"
+        >
+
+
+            <button
+                id="closeInfoPanel"
+                class="info-close"
+                type="button"
+            >
+                ×
+            </button>
+
+
+            <!-- HELP -->
+
+            <div
+                class="info-content"
+                id="helpPanel"
+            >
+
+                <div class="info-kicker">
+                    J.A.R.V.I.S. // HELP
+                </div>
+
+                <h2>
+                    How to use JARVIS
+                </h2>
+
+                <p class="info-intro">
+                    Your voice-controlled AI interface is ready
+                    to listen, process and respond.
+                </p>
+
+
+                <div class="info-points">
+
+
+                    <div>
+
+                        <span>
+                            01
+                        </span>
+
+                        <p>
+                            Say <b>HEY JARVIS</b> to activate
+                            the voice interface.
+                        </p>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            02
+                        </span>
+
+                        <p>
+                            Speak your command after JARVIS
+                            enters listening mode.
+                        </p>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            03
+                        </span>
+
+                        <p>
+                            JARVIS can communicate with your
+                            connected AI engine.
+                        </p>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            04
+                        </span>
+
+                        <p>
+                            The central core changes state
+                            while JARVIS listens or responds.
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+
+            <!-- TRAIN -->
+
+            <div
+                class="info-content"
+                id="trainPanel"
+            >
+
+                <div class="info-kicker">
+                    J.A.R.V.I.S. // LEARNING
+                </div>
+
+                <h2>
+                    Train Your AI
+                </h2>
+
+                <p class="info-intro">
+                    Build a more personalized JARVIS by
+                    teaching it how you want your system to work.
+                </p>
+
+
+                <div class="info-points">
+
+
+                    <div>
+
+                        <span>
+                            01
+                        </span>
+
+                        <p>
+                            Teach JARVIS your preferred commands
+                            and workflows.
+                        </p>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            02
+                        </span>
+
+                        <p>
+                            Add custom responses and command
+                            shortcuts.
+                        </p>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            03
+                        </span>
+
+                        <p>
+                            Connect new PC functions through
+                            your Python control layer.
+                        </p>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            04
+                        </span>
+
+                        <p>
+                            Expand JARVIS gradually as your
+                            system grows.
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="training-memory">
+
+                    <div class="training-memory-title">
+
+                        <span>
+                            NEURAL MEMORY INPUT
+                        </span>
+
+                        <small>
+                            TYPE WHAT YOU WANT JARVIS TO REMEMBER
+                        </small>
+
+                    </div>
+
+
+                    <textarea
+                        id="trainingMemoryInput"
+                        placeholder="Type here... JARVIS will remember this."
+                        autocomplete="off"
+                        spellcheck="false"
+                    ></textarea>
+
+
+                    <div class="training-memory-actions">
+
+                        <button
+                            id="saveTrainingMemory"
+                            type="button"
+                        >
+                            SAVE TO MEMORY
+                        </button>
+
+                        <button
+                            id="clearTrainingMemory"
+                            type="button"
+                        >
+                            CLEAR MEMORY
+                        </button>
+
+                    </div>
+
+
+                    <div
+                        id="trainingMemoryStatus"
+                        class="training-memory-status"
+                    >
+                        MEMORY // READY
+                    </div>
+
+
+                    <div
+                        id="savedMemoryList"
+                        class="saved-memory-list"
+                    ></div>
+
+
+                </div>
+
+            </div>
+
+
+            <!-- ABOUT -->
+
+            <div
+                class="info-content"
+                id="aboutPanel"
+            >
+
+                <div class="info-kicker">
+                    J.A.R.V.I.S. // CORE
+                </div>
+
+                <h2>
+                    About JARVIS
+                </h2>
+
+                <p class="info-intro">
+                    JARVIS is a futuristic personal AI interface
+                    designed to connect voice, intelligence and
+                    computer control.
+                </p>
+
+
+                <div class="info-points">
+
+
+                    <div>
+
+                        <span>
+                            01
+                        </span>
+
+                        <p>
+                            <b>AI CORE</b> — handles reasoning,
+                            responses and intelligent interaction.
+                        </p>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            02
+                        </span>
+
+                        <p>
+                            <b>VOICE CORE</b> — detects the
+                            wake word and processes speech.
+                        </p>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            03
+                        </span>
+
+                        <p>
+                            <b>WEB CORE</b> — provides this
+                            futuristic visual interface.
+                        </p>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            04
+                        </span>
+
+                        <p>
+                            <b>PYTHON BRIDGE</b> — connects
+                            JARVIS with supported computer actions.
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+
+            <!-- STATUS -->
+
+            <div
+                class="info-content"
+                id="statusPanel"
+            >
+
+                <div class="info-kicker">
+                    J.A.R.V.I.S. // DIAGNOSTICS
+                </div>
+
+                <h2>
+                    System Status
+                </h2>
+
+
+                <div class="status-grid">
+
+
+                    <div class="status-card">
+
+                        <span>
+                            AI ENGINE
+                        </span>
+
+                        <b class="status-online">
+                            ONLINE
+                        </b>
+
+                    </div>
+
+
+                    <div class="status-card">
+
+                        <span>
+                            VOICE ENGINE
+                        </span>
+
+                        <b class="status-online">
+                            READY
+                        </b>
+
+                    </div>
+
+
+                    <div class="status-card">
+
+                        <span>
+                            MICROPHONE
+                        </span>
+
+                        <b class="status-online">
+                            ACTIVE
+                        </b>
+
+                    </div>
+
+
+                    <div class="status-card">
+
+                        <span>
+                            PYTHON BRIDGE
+                        </span>
+
+                        <b
+                            id="bridgeStatus"
+                            class="status-online"
+                        >
+                            CONNECTING
+                        </b>
+
+                    </div>
+
+
+                    <div class="status-card">
+
+                        <span>
+                            WAKE WORD
+                        </span>
+
+                        <b class="status-online">
+                            ACTIVE
+                        </b>
+
+                    </div>
+
+
+                    <div class="status-card">
+
+                        <span>
+                            CORE
+                        </span>
+
+                        <b class="status-online">
+                            100%
+                        </b>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+
+            <!-- SETTINGS -->
+
+            <div
+                class="info-content"
+                id="settingsPanel"
+            >
+
+                <div class="info-kicker">
+                    J.A.R.V.I.S. // CONFIGURATION
+                </div>
+
+                <h2>
+                    Settings
+                </h2>
+
+                <p class="info-intro">
+                    Interface configuration for the JARVIS
+                    dashboard.
+                </p>
+
+
+                <div class="settings-list">
+
+
+                    <div class="setting-row">
+
+                        <span>
+                            RGB CORE
+                        </span>
+
+                        <b>
+                            ACTIVE
+                        </b>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <span>
+                            VOICE WAKE
+                        </span>
+
+                        <b>
+                            HEY JARVIS
+                        </b>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <span>
+                            VISUAL EFFECTS
+                        </span>
+
+                        <b>
+                            HIGH
+                        </b>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <span>
+                            NEURAL LINK
+                        </span>
+
+                        <b>
+                            SECURE
+                        </b>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+</div>
+
+</section>
+
 
 <script>
 
 /* =========================================================
-   DASHBOARD STARS
+   J.A.R.V.I.S. CORE CONTROLLER
 ========================================================= */
 
-function createDashboardStars(){
 
-    const container =
-        document.getElementById(
-            "dashboardStars"
+/* =========================================================
+   STORAGE
+========================================================= */
+
+const JARVIS_CREDENTIAL_KEY =
+    "jarvisCredentials";
+
+const JARVIS_MEMORY_KEY =
+    "jarvisTrainingMemory";
+
+
+function getCredentials(){
+
+    try{
+
+        const raw =
+            localStorage.getItem(
+                JARVIS_CREDENTIAL_KEY
+            );
+
+        if(!raw){
+            return null;
+        }
+
+        const data =
+            JSON.parse(raw);
+
+        if(
+            !data ||
+            typeof data !== "object"
+        ){
+            return null;
+        }
+
+        return data;
+
+    }
+    catch(error){
+
+        console.error(
+            "JARVIS CREDENTIAL ERROR:",
+            error
         );
 
-    if(!container) return;
+        return null;
+    }
 
-    container.innerHTML = "";
+}
 
-    for(let i=0;i<180;i++){
 
-        const star =
-            document.createElement("div");
+function saveCredentials(
+    name,
+    access,
+    password
+){
 
-        star.className = "star";
+    const credentials = {
 
-        star.style.left =
-            Math.random()*100 + "%";
+        name:name.trim(),
 
-        star.style.top =
-            Math.random()*100 + "%";
+        access:access.trim(),
 
-        const size =
-            .5 + Math.random()*1.8;
+        password:password
 
-        star.style.width =
-            size + "px";
+    };
 
-        star.style.height =
-            size + "px";
+    localStorage.setItem(
+        JARVIS_CREDENTIAL_KEY,
+        JSON.stringify(credentials)
+    );
 
-        star.style.opacity =
-            .2 + Math.random()*.7;
+    return credentials;
 
-        star.style.animationDelay =
-            Math.random()*3 + "s";
+}
 
-        container.appendChild(star);
+
+/* =========================================================
+   STAGE CONTROLLER
+========================================================= */
+
+const stages = {
+
+    setup:
+        document.getElementById(
+            "setupStage"
+        ),
+
+    info:
+        document.getElementById(
+            "infoStage"
+        ),
+
+    login:
+        document.getElementById(
+            "loginStage"
+        ),
+
+    dashboard:
+        document.getElementById(
+            "dashboardStage"
+        )
+
+};
+
+
+function showStage(
+    stageName
+){
+
+    Object.values(stages)
+        .forEach(
+            function(stage){
+
+                if(stage){
+                    stage.classList.remove(
+                        "active"
+                    );
+                }
+
+            }
+        );
+
+
+    if(
+        stages[stageName]
+    ){
+
+        stages[stageName]
+            .classList.add(
+                "active"
+            );
+
+    }
+
+
+    window.scrollTo(
+        0,
+        0
+    );
+
+
+    if(
+        stageName === "dashboard"
+    ){
+
+        initializeDashboard();
 
     }
 
@@ -5826,83 +6611,536 @@ function createDashboardStars(){
 
 
 /* =========================================================
-   BALL VIDEO
+   FIRST PAGE LOGIN
 ========================================================= */
 
-function startBall(){
+function setupLogin(){
 
-    const ball =
-        document.getElementById(
-            "ballVideo"
+    const credentials =
+        getCredentials();
+
+
+    if(!credentials){
+
+        alert(
+            "No J.A.R.V.I.S. identity found. Create an ID first."
         );
 
-    if(!ball) return;
+        return;
 
-    ball.muted = true;
+    }
 
-    const play = () => {
 
-        const promise =
-            ball.play();
+    showStage("login");
 
-        if(
-            promise &&
-            promise.catch
-        ){
+}
 
-            promise.catch(
-                ()=>{}
-            );
 
-        }
-
-    };
-
-    play();
-
-    document.addEventListener(
+document
+    .getElementById(
+        "setupLoginBtn"
+    )
+    .addEventListener(
         "click",
-        play,
-        {once:true}
+        setupLogin
+    );
+
+
+/* =========================================================
+   CREATE NEW ID
+========================================================= */
+
+function createNewId(){
+
+    const setupName =
+        document.getElementById(
+            "setupName"
+        );
+
+    const setupAccess =
+        document.getElementById(
+            "setupAccess"
+        );
+
+    const setupPass =
+        document.getElementById(
+            "setupPass"
+        );
+
+
+    if(setupName){
+        setupName.value = "";
+    }
+
+    if(setupAccess){
+        setupAccess.value = "";
+    }
+
+    if(setupPass){
+        setupPass.value = "";
+    }
+
+
+    showStage("setup");
+
+
+    setTimeout(
+        function(){
+
+            if(setupName){
+                setupName.focus();
+            }
+
+        },
+        100
     );
 
 }
 
 
+document
+    .getElementById(
+        "createNewIdBtn"
+    )
+    .addEventListener(
+        "click",
+        createNewId
+    );
+
+
 /* =========================================================
-   JARVIS MENU
+   SAVE / INITIALIZE SETUP
 ========================================================= */
 
-(function(){
+function initializeSetup(){
 
-    const menuButton =
+    const name =
+        document
+            .getElementById(
+                "setupName"
+            )
+            .value
+            .trim();
+
+
+    const access =
+        document
+            .getElementById(
+                "setupAccess"
+            )
+            .value
+            .trim();
+
+
+    const password =
+        document
+            .getElementById(
+                "setupPass"
+            )
+            .value;
+
+
+    const button =
         document.getElementById(
-            "jarvisMenuButton"
+            "saveSetup"
         );
 
-    const menu =
-        document.getElementById(
-            "jarvisMenu"
+
+    if(!name){
+
+        alert(
+            "Please enter your name."
         );
 
-    const closeMenu =
-        document.getElementById(
-            "closeJarvisMenu"
+        document
+            .getElementById(
+                "setupName"
+            )
+            .focus();
+
+        return;
+
+    }
+
+
+    if(!access){
+
+        alert(
+            "Please create an access ID."
         );
+
+        document
+            .getElementById(
+                "setupAccess"
+            )
+            .focus();
+
+        return;
+
+    }
+
+
+    if(!password){
+
+        alert(
+            "Please create a password."
+        );
+
+        document
+            .getElementById(
+                "setupPass"
+            )
+            .focus();
+
+        return;
+
+    }
+
+
+    saveCredentials(
+        name,
+        access,
+        password
+    );
+
+
+    button.classList.add(
+        "saved"
+    );
+
+    button.textContent =
+        "IDENTITY SAVED ✓";
+
 
     const overlay =
         document.getElementById(
-            "jarvisInfoOverlay"
+            "authorizationOverlay"
         );
 
-    const closeInfo =
+
+    overlay.classList.add(
+        "show"
+    );
+
+
+    setTimeout(
+        function(){
+
+            overlay.classList.remove(
+                "show"
+            );
+
+            document
+                .getElementById(
+                    "welcomeName"
+                )
+                .textContent =
+                    "WELCOME " + name.toUpperCase();
+
+
+            showStage("info");
+
+
+            button.classList.remove(
+                "saved"
+            );
+
+            button.textContent =
+                "INITIALIZE J.A.R.V.I.S. →";
+
+        },
+        1600
+    );
+
+}
+
+
+document
+    .getElementById(
+        "saveSetup"
+    )
+    .addEventListener(
+        "click",
+        initializeSetup
+    );
+
+
+/* =========================================================
+   ENTER KEY ON SETUP
+========================================================= */
+
+[
+    "setupName",
+    "setupAccess",
+    "setupPass"
+]
+.forEach(
+    function(id){
+
+        const input =
+            document.getElementById(
+                id
+            );
+
+        if(!input){
+            return;
+        }
+
+
+        input.addEventListener(
+            "keydown",
+            function(event){
+
+                if(
+                    event.key === "Enter"
+                ){
+
+                    event.preventDefault();
+
+                    initializeSetup();
+
+                }
+
+            }
+        );
+
+    }
+);
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+function initializeJarvis(){
+
+    const credentials =
+        getCredentials();
+
+
+    const name =
+        document
+            .getElementById(
+                "loginName"
+            )
+            .value
+            .trim();
+
+
+    const access =
+        document
+            .getElementById(
+                "loginAccess"
+            )
+            .value
+            .trim();
+
+
+    const password =
+        document
+            .getElementById(
+                "loginPassword"
+            )
+            .value;
+
+
+    const error =
         document.getElementById(
-            "closeInfoPanel"
+            "error"
         );
 
 
-    if(!menuButton || !menu) return;
+    if(!credentials){
 
+        error.textContent =
+            "NO IDENTITY FOUND";
+
+        error.classList.add(
+            "show"
+        );
+
+        return;
+
+    }
+
+
+    const valid =
+        name === credentials.name &&
+        access === credentials.access &&
+        password === credentials.password;
+
+
+    if(!valid){
+
+        error.textContent =
+            "ACCESS DENIED";
+
+        error.classList.remove(
+            "show"
+        );
+
+        void error.offsetWidth;
+
+        error.classList.add(
+            "show"
+        );
+
+        return;
+
+    }
+
+
+    error.classList.remove(
+        "show"
+    );
+
+
+    document
+        .getElementById(
+            "welcomeName"
+        )
+        .textContent =
+            "WELCOME " + credentials.name.toUpperCase();
+
+
+    showStage("info");
+
+}
+
+
+document
+    .getElementById(
+        "initializeLogin"
+    )
+    .addEventListener(
+        "click",
+        initializeJarvis
+    );
+
+
+[
+    "loginName",
+    "loginAccess",
+    "loginPassword"
+]
+.forEach(
+    function(id){
+
+        const input =
+            document.getElementById(
+                id
+            );
+
+        if(!input){
+            return;
+        }
+
+
+        input.addEventListener(
+            "keydown",
+            function(event){
+
+                if(
+                    event.key === "Enter"
+                ){
+
+                    event.preventDefault();
+
+                    initializeJarvis();
+
+                }
+
+            }
+        );
+
+    }
+);
+
+
+/* =========================================================
+   ENTER CORE
+========================================================= */
+
+document
+    .getElementById(
+        "enterCore"
+    )
+    .addEventListener(
+        "click",
+        function(){
+
+            const credentials =
+                getCredentials();
+
+
+            if(credentials){
+
+                document
+                    .getElementById(
+                        "welcomeName"
+                    )
+                    .textContent =
+                        "WELCOME " + credentials.name.toUpperCase();
+
+            }
+
+
+            showStage(
+                "dashboard"
+            );
+
+        }
+    );
+
+
+/* =========================================================
+   MENU SYSTEM
+========================================================= */
+
+const menuButton =
+    document.getElementById(
+        "jarvisMenuButton"
+    );
+
+const menu =
+    document.getElementById(
+        "jarvisMenu"
+    );
+
+const closeMenu =
+    document.getElementById(
+        "closeJarvisMenu"
+    );
+
+const infoOverlay =
+    document.getElementById(
+        "jarvisInfoOverlay"
+    );
+
+const closeInfo =
+    document.getElementById(
+        "closeInfoPanel"
+    );
+
+
+function closeAllOverlays(){
+
+    if(menu){
+        menu.classList.remove(
+            "open"
+        );
+    }
+
+    if(infoOverlay){
+        infoOverlay.classList.remove(
+            "open"
+        );
+    }
+
+}
+
+
+if(menuButton){
 
     menuButton.addEventListener(
         "click",
@@ -5917,171 +7155,195 @@ function startBall(){
         }
     );
 
+}
 
-    if(closeMenu){
 
-        closeMenu.addEventListener(
-            "click",
-            function(){
+if(closeMenu){
 
-                menu.classList.remove(
-                    "open"
-                );
+    closeMenu.addEventListener(
+        "click",
+        function(){
 
-            }
-        );
+            menu.classList.remove(
+                "open"
+            );
 
+        }
+    );
+
+}
+
+
+document
+    .querySelectorAll(
+        ".menu-item"
+    )
+    .forEach(
+        function(item){
+
+            item.addEventListener(
+                "click",
+                function(){
+
+                    const panelId =
+                        item.dataset.panel;
+
+
+                    menu.classList.remove(
+                        "open"
+                    );
+
+
+                    openInfoPanel(
+                        panelId
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+function openInfoPanel(
+    panelId
+){
+
+    if(!infoOverlay){
+        return;
     }
 
 
     document
         .querySelectorAll(
-            ".menu-item"
+            ".info-content"
         )
         .forEach(
-            function(item){
+            function(panel){
 
-                item.addEventListener(
-                    "click",
-                    function(){
-
-                        const panelId =
-                            item.dataset.panel;
-
-                        menu.classList.remove(
-                            "open"
-                        );
-
-                        openInfoPanel(
-                            panelId
-                        );
-
-                    }
+                panel.classList.remove(
+                    "active"
                 );
 
             }
         );
 
 
-    function openInfoPanel(
-        panelId
+    const selected =
+        document.getElementById(
+            panelId
+        );
+
+
+    if(!selected){
+        return;
+    }
+
+
+    selected.classList.add(
+        "active"
+    );
+
+
+    infoOverlay.classList.add(
+        "open"
+    );
+
+
+    if(
+        panelId === "trainPanel"
     ){
 
-        if(!overlay) return;
+        renderTrainingMemories();
 
-        document
-            .querySelectorAll(
-                ".info-content"
-            )
-            .forEach(
-                function(panel){
+    }
 
-                    panel.classList.remove(
-                        "active"
-                    );
+}
 
-                }
+
+if(closeInfo){
+
+    closeInfo.addEventListener(
+        "click",
+        function(){
+
+            infoOverlay.classList.remove(
+                "open"
             );
-
-
-        const selected =
-            document.getElementById(
-                panelId
-            );
-
-        if(!selected) return;
-
-        selected.classList.add(
-            "active"
-        );
-
-        overlay.classList.add(
-            "open"
-        );
-
-
-        if(panelId === "trainPanel"){
-
-            renderTrainingMemories();
 
         }
+    );
 
-    }
-
-
-    if(closeInfo){
-
-        closeInfo.addEventListener(
-            "click",
-            function(){
-
-                overlay.classList.remove(
-                    "open"
-                );
-
-            }
-        );
-
-    }
+}
 
 
-    if(overlay){
+if(infoOverlay){
 
-        overlay.addEventListener(
-            "click",
-            function(event){
-
-                if(
-                    event.target === overlay
-                ){
-
-                    overlay.classList.remove(
-                        "open"
-                    );
-
-                }
-
-            }
-        );
-
-    }
-
-
-    document.addEventListener(
-        "keydown",
+    infoOverlay.addEventListener(
+        "click",
         function(event){
 
             if(
-                event.key === "Escape"
+                event.target ===
+                infoOverlay
             ){
 
-                menu.classList.remove(
+                infoOverlay.classList.remove(
                     "open"
                 );
-
-                if(overlay){
-
-                    overlay.classList.remove(
-                        "open"
-                    );
-
-                }
 
             }
 
         }
     );
 
-})();
+}
+
+
+document.addEventListener(
+    "click",
+    function(event){
+
+        if(
+            menu &&
+            menuButton &&
+            !menu.contains(event.target) &&
+            !menuButton.contains(event.target)
+        ){
+
+            menu.classList.remove(
+                "open"
+            );
+
+        }
+
+    }
+);
 
 
 /* =========================================================
-   TRAIN YOUR AI — MEMORY SYSTEM
+   ESCAPE
 ========================================================= */
 
-const JARVIS_MEMORY_KEY =
-    "jarvisTrainingMemory";
+document.addEventListener(
+    "keydown",
+    function(event){
 
+        if(
+            event.key === "Escape"
+        ){
+
+            closeAllOverlays();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   TRAINING MEMORY
+========================================================= */
 
 function getTrainingMemories(){
 
@@ -6092,14 +7354,15 @@ function getTrainingMemories(){
                 JARVIS_MEMORY_KEY
             );
 
+
         if(!raw){
-
             return [];
-
         }
+
 
         const parsed =
             JSON.parse(raw);
+
 
         return Array.isArray(parsed)
             ? parsed
@@ -6123,7 +7386,9 @@ function saveTrainingMemories(
 
         localStorage.setItem(
             JARVIS_MEMORY_KEY,
-            JSON.stringify(memories)
+            JSON.stringify(
+                memories
+            )
         );
 
     }
@@ -6146,10 +7411,15 @@ function renderTrainingMemories(){
             "savedMemoryList"
         );
 
-    if(!list) return;
+
+    if(!list){
+        return;
+    }
+
 
     const memories =
         getTrainingMemories();
+
 
     list.innerHTML = "";
 
@@ -6181,11 +7451,14 @@ function renderTrainingMemories(){
                         "div"
                     );
 
+
                 item.className =
                     "saved-memory";
 
+
                 item.textContent =
                     memory;
+
 
                 list.appendChild(
                     item
@@ -6232,7 +7505,8 @@ function setupTrainingMemory(){
 
 
     if(
-        input.dataset.memoryReady === "1"
+        input.dataset.memoryReady ===
+        "1"
     ){
 
         renderTrainingMemories();
@@ -6242,7 +7516,9 @@ function setupTrainingMemory(){
     }
 
 
-    input.dataset.memoryReady = "1";
+    input.dataset.memoryReady =
+        "1";
+
 
     renderTrainingMemories();
 
@@ -6307,6 +7583,7 @@ function setupTrainingMemory(){
 
             renderTrainingMemories();
 
+
             input.value = "";
 
 
@@ -6331,6 +7608,7 @@ function setupTrainingMemory(){
             localStorage.removeItem(
                 JARVIS_MEMORY_KEY
             );
+
 
             renderTrainingMemories();
 
@@ -6376,39 +7654,24 @@ function setupTrainingMemory(){
 
 function setListening(){
 
-    const core =
-        document.querySelector(
-            ".core-video-wrap"
-        );
-
     const coreArea =
         document.querySelector(
-            ".core-area"
+            "#dashboard .core-area"
         );
 
-    if(!core) return;
+
+    if(!coreArea){
+        return;
+    }
 
 
-    core.classList.remove(
+    coreArea.classList.remove(
         "responding"
     );
 
-    core.classList.add(
+    coreArea.classList.add(
         "listening"
     );
-
-
-    if(coreArea){
-
-        coreArea.classList.remove(
-            "responding"
-        );
-
-        coreArea.classList.add(
-            "listening"
-        );
-
-    }
 
 
     const status =
@@ -6430,39 +7693,24 @@ function setListening(){
 
 function setResponding(){
 
-    const core =
-        document.querySelector(
-            ".core-video-wrap"
-        );
-
     const coreArea =
         document.querySelector(
-            ".core-area"
+            "#dashboard .core-area"
         );
 
-    if(!core) return;
+
+    if(!coreArea){
+        return;
+    }
 
 
-    core.classList.remove(
+    coreArea.classList.remove(
         "listening"
     );
 
-    core.classList.add(
+    coreArea.classList.add(
         "responding"
     );
-
-
-    if(coreArea){
-
-        coreArea.classList.remove(
-            "listening"
-        );
-
-        coreArea.classList.add(
-            "responding"
-        );
-
-    }
 
 
     const status =
@@ -6484,33 +7732,21 @@ function setResponding(){
 
 function setReady(){
 
-    const core =
-        document.querySelector(
-            ".core-video-wrap"
-        );
-
     const coreArea =
         document.querySelector(
-            ".core-area"
+            "#dashboard .core-area"
         );
 
-    if(!core) return;
+
+    if(!coreArea){
+        return;
+    }
 
 
-    core.classList.remove(
+    coreArea.classList.remove(
         "listening",
         "responding"
     );
-
-
-    if(coreArea){
-
-        coreArea.classList.remove(
-            "listening",
-            "responding"
-        );
-
-    }
 
 
     const status =
@@ -6531,12 +7767,30 @@ function setReady(){
 
 
 /* =========================================================
-   J KEY ACTIVATION
+   J KEY TEST
 ========================================================= */
 
 document.addEventListener(
     "keydown",
     function(event){
+
+        const dashboard =
+            document.getElementById(
+                "dashboardStage"
+            );
+
+
+        if(
+            !dashboard ||
+            !dashboard.classList.contains(
+                "active"
+            )
+        ){
+
+            return;
+
+        }
+
 
         const tag =
             event.target &&
@@ -6544,11 +7798,6 @@ document.addEventListener(
                 ? event.target.tagName
                 : "";
 
-
-        /*
-           Don't trigger JARVIS while typing
-           inside the training memory box.
-        */
 
         if(
             tag === "INPUT" ||
@@ -6575,56 +7824,187 @@ document.addEventListener(
 
 
 /* =========================================================
-   PYTHON WEB BRIDGE
+   DASHBOARD STARS
 ========================================================= */
 
-/*
-   Python bridge:
-   http://127.0.0.1:8765/state
+function createDashboardStars(){
 
-   The dashboard polls Python continuously.
+    const container =
+        document.getElementById(
+            "dashboardStars"
+        );
 
-   RED:
-      listening
-      thinking
-      processing
-      wake
-      command
 
-   GREEN:
-      speaking
-      responding
-      tts
+    if(!container){
+        return;
+    }
 
-   READY:
-      ready
-      idle
-      sleeping
-*/
+
+    container.innerHTML = "";
+
+
+    const fragment =
+        document.createDocumentFragment();
+
+
+    for(
+        let i = 0;
+        i < 180;
+        i++
+    ){
+
+        const star =
+            document.createElement(
+                "div"
+            );
+
+
+        star.className =
+            "star";
+
+
+        star.style.left =
+            Math.random()*100 +
+            "%";
+
+
+        star.style.top =
+            Math.random()*100 +
+            "%";
+
+
+        const size =
+            .5 +
+            Math.random()*1.8;
+
+
+        star.style.width =
+            size + "px";
+
+
+        star.style.height =
+            size + "px";
+
+
+        star.style.opacity =
+            .2 +
+            Math.random()*.7;
+
+
+        star.style.animationDelay =
+            Math.random()*3 +
+            "s";
+
+
+        fragment.appendChild(
+            star
+        );
+
+    }
+
+
+    container.appendChild(
+        fragment
+    );
+
+}
+
+
+/* =========================================================
+   BALL
+========================================================= */
+
+function startBall(){
+
+    const ball =
+        document.getElementById(
+            "ballVideo"
+        );
+
+
+    if(!ball){
+        return;
+    }
+
+
+    ball.muted = true;
+
+
+    function playBall(){
+
+        const promise =
+            ball.play();
+
+
+        if(
+            promise &&
+            typeof promise.catch ===
+                "function"
+        ){
+
+            promise.catch(
+                function(){
+
+                    /*
+                        Browser autoplay can block
+                        video before the first user gesture.
+                        The next click will retry it.
+                    */
+
+                }
+            );
+
+        }
+
+    }
+
+
+    playBall();
+
+
+    document.addEventListener(
+        "click",
+        playBall,
+        {
+            once:true
+        }
+    );
+
+}
+
+
+/* =========================================================
+   PYTHON BRIDGE
+========================================================= */
 
 const EDITH_BRIDGE_URL =
     "http://127.0.0.1:8765/state";
 
 
-let pythonBridgeOnline = false;
+let pythonBridgeOnline =
+    false;
 
-let lastPythonState = "";
+
+let lastPythonState =
+    "";
 
 
-/* =========================================================
-   EXTRACT PYTHON STATE
-========================================================= */
+let pythonBridgeStarted =
+    false;
 
-function extractPythonState(data){
 
-    if(!data) return "";
+function extractPythonState(
+    data
+){
 
-    /*
-       Your existing bridge returns edith_state.
-    */
+    if(!data){
+        return "";
+    }
+
 
     if(
-        typeof data.edith_state === "string"
+        typeof data.edith_state ===
+        "string"
     ){
 
         return data.edith_state
@@ -6634,13 +8014,9 @@ function extractPythonState(data){
     }
 
 
-    /*
-       Some versions may return:
-       {state:"listening"}
-    */
-
     if(
-        typeof data.state === "string"
+        typeof data.state ===
+        "string"
     ){
 
         return data.state
@@ -6650,13 +8026,9 @@ function extractPythonState(data){
     }
 
 
-    /*
-       Some versions may return:
-       {status:"speaking"}
-    */
-
     if(
-        typeof data.status === "string"
+        typeof data.status ===
+        "string"
     ){
 
         return data.status
@@ -6666,18 +8038,15 @@ function extractPythonState(data){
     }
 
 
-    /*
-       Some versions may return:
-       {edith_state:{state:"speaking"}}
-    */
-
     if(
         data.edith_state &&
-        typeof data.edith_state === "object"
+        typeof data.edith_state ===
+            "object"
     ){
 
         if(
-            typeof data.edith_state.state === "string"
+            typeof data.edith_state.state ===
+            "string"
         ){
 
             return data.edith_state.state
@@ -6686,8 +8055,10 @@ function extractPythonState(data){
 
         }
 
+
         if(
-            typeof data.edith_state.status === "string"
+            typeof data.edith_state.status ===
+            "string"
         ){
 
             return data.edith_state.status
@@ -6712,19 +8083,46 @@ function applyPythonState(
     rawState
 ){
 
-    if(!rawState) return;
+    if(!rawState){
+        return;
+    }
 
 
     const state =
         rawState
             .toLowerCase()
-            .replace(/[_-]/g," ")
+            .replace(
+                /[_-]/g,
+                " "
+            )
             .trim();
 
 
     /*
-       LISTENING + GEMINI THINKING
-       BOTH STAY RED.
+        SPEAKING FIRST.
+
+        This prevents a future state such as
+        "responding/process" from accidentally
+        being shown red.
+    */
+
+    if(
+        state.includes("speak") ||
+        state.includes("respond") ||
+        state.includes("tts") ||
+        state.includes("talk")
+    ){
+
+        setResponding();
+
+        return;
+
+    }
+
+
+    /*
+        LISTENING / THINKING / PROCESSING
+        = RED
     */
 
     if(
@@ -6745,26 +8143,8 @@ function applyPythonState(
 
 
     /*
-       PYTHON TTS / SPEAKING
-       GREEN FOR THE ENTIRE SPEECH PERIOD.
-    */
-
-    if(
-        state.includes("speak") ||
-        state.includes("respond") ||
-        state.includes("tts") ||
-        state.includes("talk")
-    ){
-
-        setResponding();
-
-        return;
-
-    }
-
-
-    /*
-       BACK TO NORMAL.
+        READY / IDLE
+        = NORMAL
     */
 
     if(
@@ -6789,6 +8169,28 @@ function applyPythonState(
 ========================================================= */
 
 async function pollPythonBridge(){
+
+    /*
+        Only poll while dashboard is visible.
+    */
+
+    const dashboard =
+        document.getElementById(
+            "dashboardStage"
+        );
+
+
+    if(
+        !dashboard ||
+        !dashboard.classList.contains(
+            "active"
+        )
+    ){
+
+        return;
+
+    }
+
 
     try{
 
@@ -6818,7 +8220,22 @@ async function pollPythonBridge(){
             await response.json();
 
 
-        pythonBridgeOnline = true;
+        pythonBridgeOnline =
+            true;
+
+
+        const bridgeStatus =
+            document.getElementById(
+                "bridgeStatus"
+            );
+
+
+        if(bridgeStatus){
+
+            bridgeStatus.textContent =
+                "CONNECTED";
+
+        }
 
 
         const state =
@@ -6829,27 +8246,46 @@ async function pollPythonBridge(){
 
         if(state){
 
-            lastPythonState =
-                state;
+            /*
+                Avoid repeatedly applying
+                the exact same state.
+            */
 
-            applyPythonState(
-                state
-            );
+            if(
+                state !==
+                lastPythonState
+            ){
+
+                lastPythonState =
+                    state;
+
+                applyPythonState(
+                    state
+                );
+
+            }
 
         }
 
     }
     catch(error){
 
-        /*
-           Do NOT turn the core off just because
-           one request failed.
+        pythonBridgeOnline =
+            false;
 
-           This prevents flickering if Python takes
-           a moment to answer.
-        */
 
-        pythonBridgeOnline = false;
+        const bridgeStatus =
+            document.getElementById(
+                "bridgeStatus"
+            );
+
+
+        if(bridgeStatus){
+
+            bridgeStatus.textContent =
+                "OFFLINE";
+
+        }
 
     }
 
@@ -6857,17 +8293,26 @@ async function pollPythonBridge(){
 
 
 /* =========================================================
-   START PYTHON SYNCHRONIZATION
+   START PYTHON BRIDGE
 ========================================================= */
 
 function startPythonBridge(){
 
-    /*
-       Poll frequently enough to make the core
-       visually follow Python almost immediately.
-    */
+    if(
+        pythonBridgeStarted
+    ){
+
+        return;
+
+    }
+
+
+    pythonBridgeStarted =
+        true;
+
 
     pollPythonBridge();
+
 
     setInterval(
         pollPythonBridge,
@@ -6878,53 +8323,363 @@ function startPythonBridge(){
 
 
 /* =========================================================
-   INITIAL DASHBOARD START
+   DASHBOARD INITIALIZATION
 ========================================================= */
 
-function initializeDashboardVisuals(){
+let dashboardInitialized =
+    false;
 
-    createDashboardStars();
 
-    startBall();
+function initializeDashboard(){
+
+    if(
+        !dashboardInitialized
+    ){
+
+        dashboardInitialized =
+            true;
+
+
+        createDashboardStars();
+
+        startBall();
+
+        setupTrainingMemory();
+
+        startPythonBridge();
+
+    }
+
 
     setReady();
-
-    setupTrainingMemory();
-
-    /*
-       START LIVE PYTHON ↔ WEB CORE LINK
-    */
-
-    startPythonBridge();
 
 }
 
 
-/*
-   If your existing showDashboard()
-   already exists, add only:
+/* =========================================================
+   SPACE BACKGROUND
+========================================================= */
 
-   initializeDashboardVisuals();
+const spaceCanvas =
+    document.getElementById(
+        "spaceCanvas"
+    );
 
-   inside it.
-*/
+const spaceCtx =
+    spaceCanvas
+        ? spaceCanvas.getContext("2d")
+        : null;
+
+
+let spaceStars =
+    [];
+
+
+function resizeSpaceCanvas(){
+
+    if(
+        !spaceCanvas ||
+        !spaceCtx
+    ){
+
+        return;
+
+    }
+
+
+    const dpr =
+        Math.min(
+            window.devicePixelRatio ||
+            1,
+            2
+        );
+
+
+    spaceCanvas.width =
+        window.innerWidth *
+        dpr;
+
+
+    spaceCanvas.height =
+        window.innerHeight *
+        dpr;
+
+
+    spaceCanvas.style.width =
+        window.innerWidth +
+        "px";
+
+
+    spaceCanvas.style.height =
+        window.innerHeight +
+        "px";
+
+
+    spaceCtx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+    );
+
+
+    createSpaceStars();
+
+}
+
+
+function createSpaceStars(){
+
+    spaceStars = [];
+
+
+    const count =
+        Math.min(
+            170,
+            Math.max(
+                90,
+                Math.floor(
+                    window.innerWidth *
+                    window.innerHeight /
+                    9000
+                )
+            )
+        );
+
+
+    for(
+        let i=0;
+        i<count;
+        i++
+    ){
+
+        spaceStars.push({
+
+            x:
+                Math.random() *
+                window.innerWidth,
+
+            y:
+                Math.random() *
+                window.innerHeight,
+
+            size:
+                Math.random() *
+                1.5 +
+                .25,
+
+            alpha:
+                Math.random() *
+                .65 +
+                .15,
+
+            speed:
+                Math.random() *
+                .012 +
+                .002,
+
+            phase:
+                Math.random() *
+                Math.PI *
+                2
+
+        });
+
+    }
+
+}
+
+
+function drawSpace(){
+
+    if(
+        !spaceCanvas ||
+        !spaceCtx
+    ){
+
+        return;
+
+    }
+
+
+    const width =
+        window.innerWidth;
+
+    const height =
+        window.innerHeight;
+
+
+    spaceCtx.clearRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    const time =
+        performance.now() *
+        .001;
+
+
+    for(
+        const star of spaceStars
+    ){
+
+        const pulse =
+            .5 +
+            .5 *
+            Math.sin(
+                time *
+                star.speed *
+                1000 +
+                star.phase
+            );
+
+
+        const alpha =
+            star.alpha *
+            (.55 + pulse*.45);
+
+
+        spaceCtx.beginPath();
+
+
+        spaceCtx.arc(
+            star.x,
+            star.y,
+            star.size,
+            0,
+            Math.PI*2
+        );
+
+
+        spaceCtx.fillStyle =
+            `rgba(255,255,255,${alpha})`;
+
+
+        spaceCtx.fill();
+
+    }
+
+
+    requestAnimationFrame(
+        drawSpace
+    );
+
+}
+
+
+/* =========================================================
+   WINDOW RESIZE
+========================================================= */
+
+window.addEventListener(
+    "resize",
+    resizeSpaceCanvas
+);
+
+
+/* =========================================================
+   INITIAL PAGE STATE
+   IMPORTANT:
+   EVERY REFRESH STARTS AT PAGE 1
+========================================================= */
+
+function boot(){
+
+    /*
+        Never restore dashboard/info/login
+        automatically after refresh.
+
+        Credentials remain stored,
+        but the visible page always starts
+        from setup.
+    */
+
+    showStage("setup");
+
+
+    resizeSpaceCanvas();
+
+
+    requestAnimationFrame(
+        drawSpace
+    );
+
+
+    /*
+        If credentials already exist,
+        keep the setup fields blank.
+
+        This prevents the password from
+        being visually exposed after refresh.
+    */
+
+}
+
 
 if(
-    document.readyState === "loading"
+    document.readyState ===
+    "loading"
 ){
 
     document.addEventListener(
         "DOMContentLoaded",
-        initializeDashboardVisuals
+        boot
     );
 
 }
 else{
 
-    initializeDashboardVisuals();
+    boot();
 
 }
 
+
+/* =========================================================
+   DEBUG HELPER
+========================================================= */
+
+window.JARVIS = {
+
+    showSetup:
+        function(){
+            showStage("setup");
+        },
+
+    showLogin:
+        function(){
+            showStage("login");
+        },
+
+    showInfo:
+        function(){
+            showStage("info");
+        },
+
+    showDashboard:
+        function(){
+            showStage("dashboard");
+        },
+
+    listening:
+        setListening,
+
+    responding:
+        setResponding,
+
+    ready:
+        setReady,
+
+    credentials:
+        getCredentials
+
+};
+
 </script>
+
 </body>
 </html>
