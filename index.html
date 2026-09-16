@@ -1880,10 +1880,10 @@ body::after{
 .jarvis-menu-button{
     position:absolute;
 
-    top:29px;
-    left:38px;
+    top:84px;
+    left:28px;
 
-    z-index:100;
+    z-index:600;
 
     width:38px;
     height:38px;
@@ -1939,12 +1939,12 @@ body::after{
 .jarvis-menu{
     position:absolute;
 
-    top:78px;
-    left:38px;
+    top:132px;
+    left:28px;
 
     width:310px;
 
-    z-index:120;
+    z-index:620;
 
     padding:16px;
 
@@ -4236,7 +4236,7 @@ body::after{
     }
 
     .jarvis-menu{
-        top:60px;
+        top:116px;
         left:15px;
 
         width:
@@ -5036,7 +5036,12 @@ body::after{
                     <b>LOCAL CONTROL</b>
 
                     <p>
-                        J.A.R.V.I.S. processes dashboard actions, voice commands, memory data, and connected device operations locally whenever possible. Core interface functions remain under user control and are designed to operate without unnecessary external data sharing.
+                        J.A.R.V.I.S. processes dashboard actions,
+                        voice commands, memory data, and connected
+                        device operations locally whenever possible.
+                        Core interface functions remain under user
+                        control and are designed to operate without
+                        unnecessary external data sharing.
                     </p>
 
                 </div>
@@ -5047,7 +5052,13 @@ body::after{
                     <b>CREDENTIAL STORAGE</b>
 
                     <p>
-                        Access IDs, passwords, user preferences, and training memories are stored securely within the browser using local storage technology. Personal information is not transmitted externally unless a connected service or future cloud feature is intentionally enabled by the user.
+                        Access IDs, passwords, user preferences,
+                        and training memories are stored securely
+                        within the browser using local storage
+                        technology. Personal information is not
+                        transmitted externally unless a connected
+                        service or future cloud feature is
+                        intentionally enabled by the user.
                     </p>
 
                 </div>
@@ -5058,7 +5069,12 @@ body::after{
                     <b>PERMISSIONS</b>
 
                     <p>
-                        J.A.R.V.I.S. may request permission to access the camera for gesture and hand tracking, the microphone for voice commands, and PC controls for authorized computer actions. Each permission should be clearly requested and remain under user control.
+                        J.A.R.V.I.S. may request permission to access
+                        the camera for gesture and hand tracking,
+                        the microphone for voice commands, and
+                        PC controls for authorized computer actions.
+                        Each permission should be clearly requested
+                        and remain under user control.
                     </p>
 
                 </div>
@@ -6995,7 +7011,7 @@ function initializeJarvis(){
             "WELCOME " + credentials.name.toUpperCase();
 
 
-    showStage("info");
+    showStage("dashboard");
 
 }
 
@@ -7078,7 +7094,7 @@ document
 
 
             showStage(
-                "dashboard"
+                "login"
             );
 
         }
