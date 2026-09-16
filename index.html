@@ -1880,10 +1880,10 @@ body::after{
 .jarvis-menu-button{
     position:absolute;
 
-    top:92px;
+    top:29px;
     left:38px;
 
-    z-index:600;
+    z-index:100;
 
     width:38px;
     height:38px;
@@ -1939,12 +1939,12 @@ body::after{
 .jarvis-menu{
     position:absolute;
 
-    top:140px;
+    top:78px;
     left:38px;
 
     width:310px;
 
-    z-index:620;
+    z-index:120;
 
     padding:16px;
 
@@ -4228,7 +4228,7 @@ body::after{
     }
 
     .jarvis-menu-button{
-        top:88px;
+        top:18px;
         left:18px;
 
         width:32px;
@@ -4236,7 +4236,7 @@ body::after{
     }
 
     .jarvis-menu{
-        top:130px;
+        top:60px;
         left:15px;
 
         width:
@@ -5036,9 +5036,14 @@ body::after{
                     <b>LOCAL CONTROL</b>
 
                     <p>
-                        Computer actions should remain on
-                        systems you own or are explicitly
-                        authorized to control.
+                        J.A.R.V.I.S. is designed to keep computer
+                        actions under the user's direct control.
+                        Commands should be performed only on
+                        systems and devices that you own or are
+                        explicitly authorized to operate. Local
+                        controls are intended to reduce unnecessary
+                        external access and keep system actions
+                        transparent to the user.
                     </p>
 
                 </div>
@@ -5051,6 +5056,12 @@ body::after{
                     <p>
                         This demo stores access values locally
                         in your browser using localStorage.
+                        Credentials and saved identity information
+                        remain within the browser storage used by
+                        this prototype unless an external service
+                        is intentionally connected. Users should
+                        still avoid entering sensitive credentials
+                        into experimental or untrusted systems.
                     </p>
 
                 </div>
@@ -5061,12 +5072,9 @@ body::after{
                     <b>PERMISSIONS</b>
 
                     <p>
-                        <b>CAMERA</b> — Camera access for supported
-                        visual features.<br>
-                        <b>MIC</b> — Microphone access for voice
-                        input and wake-word detection.<br>
-                        <b>PC CONTROL</b> — Permission for supported
-                        computer actions through the control bridge.
+                        Future integrations should request
+                        clear permission before accessing
+                        devices or services.
                     </p>
 
                 </div>
