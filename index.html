@@ -3683,6 +3683,159 @@ body::after{
         0 0 15px rgba(0,220,255,.2);
 }
 
+/* =========================================================
+   PERMISSIONS / CAMERA
+========================================================= */
+
+.camera-permission-grid{
+    display:grid;
+    gap:12px;
+    margin-top:24px;
+}
+
+.camera-permission-card{
+    padding:16px;
+    border:1px solid rgba(100,180,255,.12);
+    background:rgba(255,255,255,.02);
+}
+
+.camera-permission-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:15px;
+}
+
+.camera-permission-name{
+    color:#fff;
+    font-size:10px;
+    letter-spacing:2px;
+}
+
+.camera-permission-state{
+    color:#65728d;
+    font-size:8px;
+    letter-spacing:2px;
+}
+
+.camera-permission-state.online{
+    color:#64ffb1;
+    text-shadow:0 0 8px rgba(57,255,136,.45);
+}
+
+.camera-permission-state.blocked{
+    color:#ff5a7d;
+}
+
+.camera-permission-card p{
+    margin-top:8px;
+    color:#78859f;
+    font-size:10px;
+    line-height:1.7;
+}
+
+.camera-actions{
+    display:flex;
+    gap:9px;
+    flex-wrap:wrap;
+    margin-top:14px;
+}
+
+.camera-action{
+    padding:10px 13px;
+    border:1px solid rgba(34,211,238,.35);
+    background:rgba(5,10,25,.75);
+    color:#22d3ee;
+    font-size:8px;
+    letter-spacing:2px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.camera-action:hover{
+    color:#fff;
+    border-color:#22d3ee;
+    box-shadow:0 0 18px rgba(34,211,238,.2);
+}
+
+.camera-action.danger{
+    color:#ff6b8a;
+    border-color:rgba(255,23,68,.35);
+}
+
+.camera-action.danger:hover{
+    border-color:#ff1744;
+    box-shadow:0 0 18px rgba(255,23,68,.18);
+}
+
+.camera-preview{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/9;
+    margin-top:15px;
+    overflow:hidden;
+    border:1px solid rgba(34,211,238,.2);
+    background:#01030a;
+    box-shadow:inset 0 0 30px rgba(0,0,0,.65);
+}
+
+.camera-preview::before,
+.camera-preview::after{
+    content:"";
+    position:absolute;
+    pointer-events:none;
+    z-index:2;
+}
+
+.camera-preview::before{
+    inset:9px;
+    border:1px solid rgba(34,211,238,.12);
+}
+
+.camera-preview::after{
+    left:0;
+    right:0;
+    top:50%;
+    height:1px;
+    background:linear-gradient(90deg,transparent,rgba(34,211,238,.35),transparent);
+}
+
+#jarvisCameraFeed{
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    background:#01030a;
+    transform:scaleX(-1);
+}
+
+.camera-overlay-label{
+    position:absolute;
+    left:14px;
+    top:12px;
+    z-index:3;
+    color:#22d3ee;
+    font-size:7px;
+    letter-spacing:2px;
+    text-shadow:0 0 8px rgba(34,211,238,.65);
+}
+
+.camera-status-text{
+    margin-top:12px;
+    color:#65728d;
+    font-size:8px;
+    letter-spacing:1.5px;
+    line-height:1.7;
+}
+
+@media(max-width:700px){
+    .camera-permission-head{
+        align-items:flex-start;
+        flex-direction:column;
+        gap:6px;
+    }
+}
+
 .info-content{
     display:none;
 }
@@ -4438,7 +4591,25 @@ body::after{
     }
 }
 
+
+/* =========================================================
+   HAND TRACKING OVERLAY
+========================================================= */
+#jarvisHandCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;transform:scaleX(-1)}
+.hand-tracking-overlay{position:absolute;left:12px;right:12px;bottom:12px;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 9px;border:1px solid rgba(34,211,238,.16);background:rgba(2,5,14,.72);backdrop-filter:blur(8px);color:#70819e;font-size:6px;letter-spacing:1.5px}
+.hand-tracking-overlay .tracking-state{color:#65728d}
+.hand-tracking-overlay .tracking-state.online{color:#61ffb1;text-shadow:0 0 8px rgba(57,255,136,.5)}
+.hand-tracking-overlay .tracking-state.blocked{color:#ff5a7d}
+.hand-tracking-button{padding:10px 13px;border:1px solid rgba(168,85,247,.35);background:rgba(10,5,25,.75);color:#c084fc;font-size:8px;letter-spacing:2px;cursor:pointer;transition:.2s}
+.hand-tracking-button:hover{color:#fff;border-color:#c084fc;box-shadow:0 0 18px rgba(168,85,247,.2)}
+.hand-tracking-button.active{color:#61ffb1;border-color:rgba(57,255,136,.4)}
+.hand-tracking-meta{display:flex;gap:14px;margin-top:10px;color:#65728d;font-size:7px;letter-spacing:1.5px}
+@media(max-width:600px){.hand-tracking-overlay{left:7px;right:7px;bottom:7px;font-size:5px}.hand-tracking-button{font-size:6px;padding:8px 9px}.hand-tracking-meta{font-size:6px}}
 </style>
+
+<script type="module">
+window.jarvisMediaPipeReady=import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/+esm");
+</script>
 </head>
 
 
@@ -5573,6 +5744,33 @@ body::after{
 
         <button
             class="menu-item"
+            data-panel="permissionsPanel"
+            type="button"
+        >
+
+            <span class="menu-icon">
+                ◉
+            </span>
+
+            <span>
+
+                <strong>
+                    PERMISSIONS
+                </strong>
+
+                <small>
+                    Camera, microphone &amp; PC control
+                </small>
+
+            </span>
+
+            <b>›</b>
+
+        </button>
+
+
+        <button
+            class="menu-item"
             data-panel="settingsPanel"
             type="button"
         >
@@ -6368,6 +6566,156 @@ body::after{
             </div>
 
 
+            <!-- PERMISSIONS -->
+
+            <div
+                class="info-content"
+                id="permissionsPanel"
+            >
+
+                <div class="info-kicker">
+                    J.A.R.V.I.S. // PERMISSION CONTROL
+                </div>
+
+                <h2>
+                    Permissions
+                </h2>
+
+                <p class="info-intro">
+                    Hardware access is disabled until you explicitly
+                    enable a feature. Camera access uses the browser
+                    permission system and can be stopped at any time.
+                </p>
+
+                <div class="camera-permission-grid">
+
+                    <div class="camera-permission-card">
+
+                        <div class="camera-permission-head">
+                            <span class="camera-permission-name">
+                                CAMERA
+                            </span>
+
+                            <span
+                                id="cameraPermissionState"
+                                class="camera-permission-state"
+                            >
+                                OFFLINE
+                            </span>
+                        </div>
+
+                        <p>
+                            Camera access is used only after you press
+                            ENABLE CAMERA and approve the browser request.
+                        </p>
+
+                        <div class="camera-actions">
+                            <button
+                                id="enableCameraButton"
+                                class="camera-action"
+                                type="button"
+                            >
+                                ENABLE CAMERA
+                            </button>
+
+                            <button
+                                id="disableCameraButton"
+                                class="camera-action danger"
+                                type="button"
+                            >
+                                DISABLE CAMERA
+                            </button>
+                        
+                            <button
+                                id="handTrackingButton"
+                                class="hand-tracking-button"
+                                type="button"
+                            >
+                                ENABLE HAND TRACKING
+                            </button>
+</div>
+
+                        <div class="camera-preview">
+                            <video
+                                id="jarvisCameraFeed"
+                                autoplay
+                                muted
+                                playsinline
+                            ></video>
+
+                            <canvas id="jarvisHandCanvas"></canvas>
+
+                            <div class="camera-overlay-label">
+                                J.A.R.V.I.S. // VISION FEED
+                            </div>
+
+                            <div class="hand-tracking-overlay">
+                                <span>HAND // <span id="handTrackingCount">00</span></span>
+                                <span id="handTrackingState" class="tracking-state">OFFLINE</span>
+                            </div></div>
+                        </div>
+
+                        <div
+                            id="cameraStatusText"
+                            class="camera-status-text"
+                        >
+                            CAMERA // READY FOR USER AUTHORIZATION
+                        </div>
+
+                        <div class="hand-tracking-meta">
+                            <span id="handTrackingGesture">GESTURE // WAITING</span>
+                            <span id="handTrackingEngine">VISION ENGINE // STANDBY</span>
+                        </div>
+
+                    </div>
+
+
+                    <div class="camera-permission-card">
+
+                        <div class="camera-permission-head">
+                            <span class="camera-permission-name">
+                                MICROPHONE
+                            </span>
+
+                            <span class="camera-permission-state online">
+                                VOICE SYSTEM
+                            </span>
+                        </div>
+
+                        <p>
+                            The existing voice system remains unchanged.
+                            Microphone access is handled by your current
+                            J.A.R.V.I.S. voice workflow.
+                        </p>
+
+                    </div>
+
+
+                    <div class="camera-permission-card">
+
+                        <div class="camera-permission-head">
+                            <span class="camera-permission-name">
+                                PC CONTROL
+                            </span>
+
+                            <span class="camera-permission-state online">
+                                AUTHORIZED LAYER
+                            </span>
+                        </div>
+
+                        <p>
+                            PC actions remain connected to the existing
+                            authorized Python bridge. Camera changes do not
+                            modify or replace PC control behavior.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
             <!-- SETTINGS -->
 
             <div
@@ -7145,6 +7493,8 @@ function closeAllOverlays(){
         );
     }
 
+    stopJarvisCamera();
+
 }
 
 
@@ -7279,6 +7629,8 @@ if(closeInfo){
                 "open"
             );
 
+            stopJarvisCamera();
+
         }
     );
 
@@ -7299,6 +7651,8 @@ if(infoOverlay){
                 infoOverlay.classList.remove(
                     "open"
                 );
+
+                stopJarvisCamera();
 
             }
 
@@ -7327,6 +7681,258 @@ document.addEventListener(
 
     }
 );
+
+
+/* =========================================================
+   CAMERA PERMISSION / VISION
+========================================================= */
+
+let jarvisCameraStream = null;
+
+function setCameraStatus(state, message){
+
+    const stateElement =
+        document.getElementById(
+            "cameraPermissionState"
+        );
+
+    const statusElement =
+        document.getElementById(
+            "cameraStatusText"
+        );
+
+    if(stateElement){
+
+        stateElement.textContent = state;
+
+        stateElement.classList.remove(
+            "online",
+            "blocked"
+        );
+
+        if(state === "ONLINE"){
+            stateElement.classList.add("online");
+        }
+
+        if(state === "BLOCKED"){
+            stateElement.classList.add("blocked");
+        }
+
+    }
+
+    if(statusElement){
+        statusElement.textContent = message;
+    }
+
+}
+
+function stopJarvisCamera(){
+
+    if(typeof stopJarvisHandTracking === "function" && jarvisHandTrackingRunning){
+        stopJarvisHandTracking();
+    }
+
+    if(jarvisCameraStream){
+
+        jarvisCameraStream
+            .getTracks()
+            .forEach(
+                function(track){
+                    track.stop();
+                }
+            );
+
+        jarvisCameraStream = null;
+
+    }
+
+    const video =
+        document.getElementById(
+            "jarvisCameraFeed"
+        );
+
+    if(video){
+        video.srcObject = null;
+    }
+
+    setCameraStatus(
+        "OFFLINE",
+        "CAMERA // OFFLINE // DEVICE RELEASED"
+    );
+
+}
+
+async function startJarvisCamera(){
+
+    const video =
+        document.getElementById(
+            "jarvisCameraFeed"
+        );
+
+    if(!video){
+        return;
+    }
+
+    if(!navigator.mediaDevices ||
+       !navigator.mediaDevices.getUserMedia){
+
+        setCameraStatus(
+            "BLOCKED",
+            "CAMERA // BROWSER DOES NOT SUPPORT CAMERA ACCESS"
+        );
+
+        return;
+
+    }
+
+    if(jarvisCameraStream){
+
+        setCameraStatus(
+            "ONLINE",
+            "CAMERA // ONLINE // LIVE VISION FEED ACTIVE"
+        );
+
+        return;
+
+    }
+
+    setCameraStatus(
+        "REQUESTING",
+        "CAMERA // REQUESTING BROWSER PERMISSION..."
+    );
+
+    try{
+
+        jarvisCameraStream =
+            await navigator.mediaDevices.getUserMedia({
+                video:{
+                    facingMode:"user"
+                },
+                audio:false
+            });
+
+        video.srcObject = jarvisCameraStream;
+
+        await video.play();
+
+        setCameraStatus(
+            "ONLINE",
+            "CAMERA // ONLINE // LIVE VISION FEED ACTIVE"
+        );
+
+    }
+    catch(error){
+
+        jarvisCameraStream = null;
+
+        let message =
+            "CAMERA // ACCESS DENIED OR UNAVAILABLE";
+
+        if(error && error.name === "NotAllowedError"){
+            message =
+                "CAMERA // PERMISSION BLOCKED // ALLOW CAMERA IN BROWSER SETTINGS";
+        }
+        else if(error && error.name === "NotFoundError"){
+            message =
+                "CAMERA // NO CAMERA DEVICE DETECTED";
+        }
+        else if(error && error.name === "NotReadableError"){
+            message =
+                "CAMERA // DEVICE IS BUSY OR UNAVAILABLE";
+        }
+        else if(error && error.name === "SecurityError"){
+            message =
+                "CAMERA // SECURE CONTEXT REQUIRED // USE HTTPS OR LOCALHOST";
+        }
+
+        setCameraStatus(
+            "BLOCKED",
+            message
+        );
+
+    }
+
+}
+
+/* =========================================================
+   HAND TRACKING ENGINE
+========================================================= */
+let jarvisHandLandmarker=null;
+let jarvisHandTrackingRunning=false;
+let jarvisHandAnimationFrame=null;
+let jarvisHandLastVideoTime=-1;
+let jarvisHandEnginePromise=null;
+const JARVIS_HAND_MODEL_URL="https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
+const JARVIS_HAND_WASM_URL="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm";
+const JARVIS_HAND_CONNECTIONS=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+function getJarvisHandElements(){return{video:document.getElementById("jarvisCameraFeed"),canvas:document.getElementById("jarvisHandCanvas"),button:document.getElementById("handTrackingButton"),state:document.getElementById("handTrackingState"),count:document.getElementById("handTrackingCount"),gesture:document.getElementById("handTrackingGesture"),engine:document.getElementById("handTrackingEngine")};}
+function setHandTrackingUI(state,gesture){const e=getJarvisHandElements();if(e.state){e.state.textContent=state;e.state.classList.remove("online","blocked");if(state==="TRACKING")e.state.classList.add("online");if(state==="ERROR"||state==="BLOCKED")e.state.classList.add("blocked");}if(e.gesture&&gesture)e.gesture.textContent=gesture;}
+function resizeJarvisHandCanvas(){const e=getJarvisHandElements();if(!e.video||!e.canvas)return;const r=e.video.getBoundingClientRect(),d=Math.min(window.devicePixelRatio||1,2);e.canvas.width=Math.max(1,Math.floor(r.width*d));e.canvas.height=Math.max(1,Math.floor(r.height*d));e.canvas.style.width=r.width+"px";e.canvas.style.height=r.height+"px";e.canvas.getContext("2d").setTransform(d,0,0,d,0,0);}
+async function initializeJarvisHandLandmarker(){if(jarvisHandLandmarker)return jarvisHandLandmarker;if(!jarvisHandEnginePromise){jarvisHandEnginePromise=(async()=>{if(!window.jarvisMediaPipeReady)throw new Error("MediaPipe loader unavailable");const m=await window.jarvisMediaPipeReady;const v=await m.FilesetResolver.forVisionTasks(JARVIS_HAND_WASM_URL);return await m.HandLandmarker.createFromOptions(v,{baseOptions:{modelAssetPath:JARVIS_HAND_MODEL_URL},runningMode:"VIDEO",numHands:2,minHandDetectionConfidence:.5,minHandPresenceConfidence:.5,minTrackingConfidence:.5});})();}try{jarvisHandLandmarker=await jarvisHandEnginePromise;return jarvisHandLandmarker}catch(e){jarvisHandEnginePromise=null;throw e;}}
+function drawJarvisHand(l,w,h,c){c.save();c.lineWidth=1.25;c.strokeStyle="rgba(34,211,238,.95)";c.shadowBlur=8;c.shadowColor="rgba(34,211,238,.7)";JARVIS_HAND_CONNECTIONS.forEach(q=>{const a=l[q[0]],b=l[q[1]];if(!a||!b)return;c.beginPath();c.moveTo(a.x*w,a.y*h);c.lineTo(b.x*w,b.y*h);c.stroke();});c.shadowBlur=12;c.fillStyle="#61f6ff";l.forEach(p=>{c.beginPath();c.arc(p.x*w,p.y*h,2.35,0,Math.PI*2);c.fill();});c.restore();}
+function detectJarvisHands(){if(!jarvisHandTrackingRunning)return;const e=getJarvisHandElements();if(!e.video||!e.canvas||!jarvisHandLandmarker){jarvisHandAnimationFrame=requestAnimationFrame(detectJarvisHands);return;}if(e.video.readyState>=2&&e.video.currentTime!==jarvisHandLastVideoTime){jarvisHandLastVideoTime=e.video.currentTime;resizeJarvisHandCanvas();const r=e.video.getBoundingClientRect(),c=e.canvas.getContext("2d");c.clearRect(0,0,r.width,r.height);try{const result=jarvisHandLandmarker.detectForVideo(e.video,performance.now()),hands=result.landmarks||[];if(e.count)e.count.textContent=String(hands.length).padStart(2,"0");hands.forEach(l=>drawJarvisHand(l,r.width,r.height,c));setHandTrackingUI("TRACKING",hands.length?"GESTURE // HAND DETECTED":"GESTURE // SEARCHING");}catch(err){console.error("JARVIS HAND DETECTION ERROR:",err);setHandTrackingUI("ERROR","GESTURE // DETECTION ERROR");}}jarvisHandAnimationFrame=requestAnimationFrame(detectJarvisHands);}
+async function startJarvisHandTracking(){const e=getJarvisHandElements();if(jarvisHandTrackingRunning)return;if(!jarvisCameraStream)await startJarvisCamera();if(!jarvisCameraStream||!e.video){setHandTrackingUI("BLOCKED","GESTURE // CAMERA OFFLINE");if(e.engine)e.engine.textContent="VISION ENGINE // CAMERA REQUIRED";return;}setHandTrackingUI("LOADING","GESTURE // INITIALIZING");if(e.engine)e.engine.textContent="VISION ENGINE // LOADING";try{await initializeJarvisHandLandmarker();resizeJarvisHandCanvas();jarvisHandTrackingRunning=true;jarvisHandLastVideoTime=-1;if(e.button){e.button.textContent="DISABLE HAND TRACKING";e.button.classList.add("active");}if(e.engine)e.engine.textContent="VISION ENGINE // ONLINE";setHandTrackingUI("TRACKING","GESTURE // SEARCHING");detectJarvisHands();}catch(err){console.error("JARVIS HAND TRACKING INITIALIZATION ERROR:",err);jarvisHandTrackingRunning=false;setHandTrackingUI("ERROR","GESTURE // ENGINE UNAVAILABLE");if(e.engine)e.engine.textContent="VISION ENGINE // ERROR";if(e.button){e.button.textContent="ENABLE HAND TRACKING";e.button.classList.remove("active");}}}
+function stopJarvisHandTracking(){const e=getJarvisHandElements();jarvisHandTrackingRunning=false;if(jarvisHandAnimationFrame){cancelAnimationFrame(jarvisHandAnimationFrame);jarvisHandAnimationFrame=null;}if(e.canvas)e.canvas.getContext("2d").clearRect(0,0,e.canvas.width,e.canvas.height);if(e.count)e.count.textContent="00";if(e.button){e.button.textContent="ENABLE HAND TRACKING";e.button.classList.remove("active");}if(e.engine)e.engine.textContent="VISION ENGINE // STANDBY";setHandTrackingUI("OFFLINE","GESTURE // WAITING");}
+
+function setupCameraControls(){
+
+    const enableButton =
+        document.getElementById(
+            "enableCameraButton"
+        );
+
+    const disableButton =
+        document.getElementById(
+            "disableCameraButton"
+        );
+
+    if(enableButton &&
+       enableButton.dataset.cameraReady !== "1"){
+
+        enableButton.dataset.cameraReady = "1";
+
+        enableButton.addEventListener(
+            "click",
+            function(event){
+                event.stopPropagation();
+                startJarvisCamera();
+            }
+        );
+
+    }
+
+    if(disableButton &&
+       disableButton.dataset.cameraReady !== "1"){
+
+        disableButton.dataset.cameraReady = "1";
+
+        disableButton.addEventListener(
+            "click",
+            function(event){
+                event.stopPropagation();
+                stopJarvisCamera();
+            }
+        );
+
+    }
+
+    const handButton = document.getElementById("handTrackingButton");
+
+    if(handButton && handButton.dataset.handReady !== "1"){
+        handButton.dataset.handReady="1";
+        handButton.addEventListener("click",async function(event){
+            event.stopPropagation();
+            if(jarvisHandTrackingRunning) stopJarvisHandTracking();
+            else await startJarvisHandTracking();
+        });
+    }
+
+}
+
+setupCameraControls();
+
+window.addEventListener("resize",function(){if(jarvisHandTrackingRunning)resizeJarvisHandCanvas();});
+window.addEventListener("beforeunload",function(){stopJarvisCamera();});
 
 
 /* =========================================================
