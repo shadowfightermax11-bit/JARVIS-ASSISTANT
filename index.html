@@ -3807,7 +3807,9 @@ body::after{
     object-fit:cover;
     background:#01030a;
     transform:scaleX(-1);
+    transform-origin:center center;
 }
+
 
 .camera-overlay-label{
     position:absolute;
@@ -4595,7 +4597,7 @@ body::after{
 /* =========================================================
    HAND TRACKING OVERLAY
 ========================================================= */
-#jarvisHandCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;transform:scaleX(-1)}
+#jarvisHandCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;transform:scaleX(-1) scale(var(--jarvis-vision-zoom,1));transform-origin:center center;transition:transform .08s linear}
 .hand-tracking-overlay{position:absolute;left:12px;right:12px;bottom:12px;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 9px;border:1px solid rgba(34,211,238,.16);background:rgba(2,5,14,.72);backdrop-filter:blur(8px);color:#70819e;font-size:6px;letter-spacing:1.5px}
 .hand-tracking-overlay .tracking-state{color:#65728d}
 .hand-tracking-overlay .tracking-state.online{color:#61ffb1;text-shadow:0 0 8px rgba(57,255,136,.5)}
@@ -6652,7 +6654,7 @@ window.jarvisMediaPipeReady=import("https://cdn.jsdelivr.net/npm/@mediapipe/task
                             <div class="hand-tracking-overlay">
                                 <span>HAND // <span id="handTrackingCount">00</span></span>
                                 <span id="handTrackingState" class="tracking-state">OFFLINE</span>
-                            </div></div>
+                            </div>
                         </div>
 
                         <div
@@ -6664,6 +6666,7 @@ window.jarvisMediaPipeReady=import("https://cdn.jsdelivr.net/npm/@mediapipe/task
 
                         <div class="hand-tracking-meta">
                             <span id="handTrackingGesture">GESTURE // WAITING</span>
+                            <span id="handTrackingZoom">ZOOM // 100%</span>
                             <span id="handTrackingEngine">VISION ENGINE // STANDBY</span>
                         </div>
 
@@ -7862,17 +7865,119 @@ let jarvisHandTrackingRunning=false;
 let jarvisHandAnimationFrame=null;
 let jarvisHandLastVideoTime=-1;
 let jarvisHandEnginePromise=null;
+
+// TWO-HAND WEBPAGE ZOOM
+// Hands farther apart = zoom in. Hands closer together = zoom out.
+let jarvisPageZoom=1;
+let jarvisPageZoomTarget=1;
+let jarvisTwoHandZoomActive=false;
+let jarvisTwoHandZoomBaseline=0;
+let jarvisTwoHandZoomBasePageZoom=1;
+let jarvisTwoHandZoomLastDistance=0;
+
+// GLOBAL MEDIA GESTURES
+let jarvisMediaGestureState="NONE";
+let jarvisMediaGestureCandidate="NONE";
+let jarvisMediaGestureFrames=0;
+let jarvisLastMediaCommandTime=0;
+const JARVIS_MEDIA_COMMAND_COOLDOWN=900;
+
 const JARVIS_HAND_MODEL_URL="https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
 const JARVIS_HAND_WASM_URL="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm";
 const JARVIS_HAND_CONNECTIONS=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
-function getJarvisHandElements(){return{video:document.getElementById("jarvisCameraFeed"),canvas:document.getElementById("jarvisHandCanvas"),button:document.getElementById("handTrackingButton"),state:document.getElementById("handTrackingState"),count:document.getElementById("handTrackingCount"),gesture:document.getElementById("handTrackingGesture"),engine:document.getElementById("handTrackingEngine")};}
+
+function getJarvisHandElements(){return{video:document.getElementById("jarvisCameraFeed"),canvas:document.getElementById("jarvisHandCanvas"),preview:document.querySelector(".camera-preview"),button:document.getElementById("handTrackingButton"),state:document.getElementById("handTrackingState"),count:document.getElementById("handTrackingCount"),gesture:document.getElementById("handTrackingGesture"),zoom:document.getElementById("handTrackingZoom"),engine:document.getElementById("handTrackingEngine")};}
 function setHandTrackingUI(state,gesture){const e=getJarvisHandElements();if(e.state){e.state.textContent=state;e.state.classList.remove("online","blocked");if(state==="TRACKING")e.state.classList.add("online");if(state==="ERROR"||state==="BLOCKED")e.state.classList.add("blocked");}if(e.gesture&&gesture)e.gesture.textContent=gesture;}
-function resizeJarvisHandCanvas(){const e=getJarvisHandElements();if(!e.video||!e.canvas)return;const r=e.video.getBoundingClientRect(),d=Math.min(window.devicePixelRatio||1,2);e.canvas.width=Math.max(1,Math.floor(r.width*d));e.canvas.height=Math.max(1,Math.floor(r.height*d));e.canvas.style.width=r.width+"px";e.canvas.style.height=r.height+"px";e.canvas.getContext("2d").setTransform(d,0,0,d,0,0);}
+function resizeJarvisHandCanvas(){const e=getJarvisHandElements();if(!e.video||!e.canvas)return;const base=e.preview||e.video.parentElement;const r=base?base.getBoundingClientRect():e.video.getBoundingClientRect(),d=Math.min(window.devicePixelRatio||1,2);e.canvas.width=Math.max(1,Math.floor(r.width*d));e.canvas.height=Math.max(1,Math.floor(r.height*d));e.canvas.style.width=r.width+"px";e.canvas.style.height=r.height+"px";e.canvas.getContext("2d").setTransform(d,0,0,d,0,0);}
 async function initializeJarvisHandLandmarker(){if(jarvisHandLandmarker)return jarvisHandLandmarker;if(!jarvisHandEnginePromise){jarvisHandEnginePromise=(async()=>{if(!window.jarvisMediaPipeReady)throw new Error("MediaPipe loader unavailable");const m=await window.jarvisMediaPipeReady;const v=await m.FilesetResolver.forVisionTasks(JARVIS_HAND_WASM_URL);return await m.HandLandmarker.createFromOptions(v,{baseOptions:{modelAssetPath:JARVIS_HAND_MODEL_URL},runningMode:"VIDEO",numHands:2,minHandDetectionConfidence:.5,minHandPresenceConfidence:.5,minTrackingConfidence:.5});})();}try{jarvisHandLandmarker=await jarvisHandEnginePromise;return jarvisHandLandmarker}catch(e){jarvisHandEnginePromise=null;throw e;}}
 function drawJarvisHand(l,w,h,c){c.save();c.lineWidth=1.25;c.strokeStyle="rgba(34,211,238,.95)";c.shadowBlur=8;c.shadowColor="rgba(34,211,238,.7)";JARVIS_HAND_CONNECTIONS.forEach(q=>{const a=l[q[0]],b=l[q[1]];if(!a||!b)return;c.beginPath();c.moveTo(a.x*w,a.y*h);c.lineTo(b.x*w,b.y*h);c.stroke();});c.shadowBlur=12;c.fillStyle="#61f6ff";l.forEach(p=>{c.beginPath();c.arc(p.x*w,p.y*h,2.35,0,Math.PI*2);c.fill();});c.restore();}
-function detectJarvisHands(){if(!jarvisHandTrackingRunning)return;const e=getJarvisHandElements();if(!e.video||!e.canvas||!jarvisHandLandmarker){jarvisHandAnimationFrame=requestAnimationFrame(detectJarvisHands);return;}if(e.video.readyState>=2&&e.video.currentTime!==jarvisHandLastVideoTime){jarvisHandLastVideoTime=e.video.currentTime;resizeJarvisHandCanvas();const r=e.video.getBoundingClientRect(),c=e.canvas.getContext("2d");c.clearRect(0,0,r.width,r.height);try{const result=jarvisHandLandmarker.detectForVideo(e.video,performance.now()),hands=result.landmarks||[];if(e.count)e.count.textContent=String(hands.length).padStart(2,"0");hands.forEach(l=>drawJarvisHand(l,r.width,r.height,c));setHandTrackingUI("TRACKING",hands.length?"GESTURE // HAND DETECTED":"GESTURE // SEARCHING");}catch(err){console.error("JARVIS HAND DETECTION ERROR:",err);setHandTrackingUI("ERROR","GESTURE // DETECTION ERROR");}}jarvisHandAnimationFrame=requestAnimationFrame(detectJarvisHands);}
+
+function getJarvisHandCenter(landmarks){
+    const wrist=landmarks[0],indexMcp=landmarks[5],middleMcp=landmarks[9],ringMcp=landmarks[13],pinkyMcp=landmarks[17];
+    return {x:(wrist.x+indexMcp.x+middleMcp.x+ringMcp.x+pinkyMcp.x)/5,y:(wrist.y+indexMcp.y+middleMcp.y+ringMcp.y+pinkyMcp.y)/5};
+}
+
+function getJarvisTwoHandDistance(left,right){
+    const a=getJarvisHandCenter(left),b=getJarvisHandCenter(right);
+    const dx=a.x-b.x,dy=a.y-b.y;
+    return Math.sqrt(dx*dx+dy*dy);
+}
+
+function applyJarvisPageZoom(){
+    const e=getJarvisHandElements();
+    jarvisPageZoom += (jarvisPageZoomTarget-jarvisPageZoom)*0.20;
+    if(Math.abs(jarvisPageZoom-jarvisPageZoomTarget)<0.002)jarvisPageZoom=jarvisPageZoomTarget;
+    document.documentElement.style.zoom=jarvisPageZoom.toFixed(3);
+    if(e.zoom)e.zoom.textContent="WEB ZOOM // "+Math.round(jarvisPageZoom*100)+"%";
+}
+
+function resetJarvisTwoHandZoom(){
+    jarvisTwoHandZoomActive=false;
+    jarvisTwoHandZoomBaseline=0;
+    jarvisTwoHandZoomBasePageZoom=jarvisPageZoom;
+    jarvisTwoHandZoomLastDistance=0;
+}
+
+function updateJarvisTwoHandZoom(hands){
+    const e=getJarvisHandElements();
+    if(!hands||hands.length<2){
+        resetJarvisTwoHandZoom();
+        applyJarvisPageZoom();
+        return false;
+    }
+
+    const distance=getJarvisTwoHandDistance(hands[0],hands[1]);
+
+    // Capture the starting hand separation only when two hands first appear.
+    if(!jarvisTwoHandZoomActive){
+        jarvisTwoHandZoomActive=true;
+        jarvisTwoHandZoomBaseline=distance;
+        jarvisTwoHandZoomBasePageZoom=jarvisPageZoomTarget;
+        jarvisTwoHandZoomLastDistance=distance;
+        if(e.gesture)e.gesture.textContent="GESTURE // TWO HANDS // ZOOM READY";
+    }
+
+    // Small dead-zone removes natural tracking jitter.
+    const delta=distance-jarvisTwoHandZoomBaseline;
+    const DEAD_ZONE=.018;
+    const effectiveDelta=Math.abs(delta)<DEAD_ZONE?0:delta-(delta>0?DEAD_ZONE:-DEAD_ZONE);
+
+    // Separation controls page zoom, not the camera preview.
+    // 0.20 normalized movement is roughly a 50% zoom change.
+    jarvisPageZoomTarget=Math.max(.60,Math.min(1.80,jarvisTwoHandZoomBasePageZoom+(effectiveDelta*2.5)));
+
+    if(e.gesture){
+        if(effectiveDelta>.015)e.gesture.textContent="GESTURE // HANDS APART // WEB ZOOM IN";
+        else if(effectiveDelta<-.015)e.gesture.textContent="GESTURE // HANDS CLOSER // WEB ZOOM OUT";
+        else e.gesture.textContent="GESTURE // TWO HANDS // ZOOM HOLD";
+    }
+
+    jarvisTwoHandZoomLastDistance=distance;
+    applyJarvisPageZoom();
+    return true;
+}
+
+async function sendJarvisMediaCommand(action){const now=performance.now();if(now-jarvisLastMediaCommandTime<JARVIS_MEDIA_COMMAND_COOLDOWN)return;jarvisLastMediaCommandTime=now;try{const response=await fetch("http://127.0.0.1:8765/media?action="+encodeURIComponent(action)+"&t="+Date.now(),{method:"GET",cache:"no-store"});if(!response.ok)throw new Error("HTTP "+response.status);}catch(error){console.warn("JARVIS MEDIA BRIDGE:",error);}}
+function getJarvisFingerExtension(landmarks,tip,pip,mcp,wrist){const distance=function(a,b){const dx=a.x-b.x,dy=a.y-b.y;return Math.sqrt(dx*dx+dy*dy);};return distance(landmarks[tip],landmarks[wrist])>distance(landmarks[pip],landmarks[wrist])*1.08&&distance(landmarks[tip],landmarks[wrist])>distance(landmarks[mcp],landmarks[wrist])*1.12;}
+function detectJarvisMediaGesture(landmarks){const e=getJarvisHandElements();if(!landmarks||landmarks.length<21)return;const indexOpen=getJarvisFingerExtension(landmarks,8,6,5,0);const middleOpen=getJarvisFingerExtension(landmarks,12,10,9,0);const ringOpen=getJarvisFingerExtension(landmarks,16,14,13,0);const pinkyOpen=getJarvisFingerExtension(landmarks,20,18,17,0);const openCount=[indexOpen,middleOpen,ringOpen,pinkyOpen].filter(Boolean).length;let gesture="NONE";if(openCount>=3)gesture="OPEN_HAND";else if(openCount<=1)gesture="CLOSED_FIST";if(gesture!==jarvisMediaGestureCandidate){jarvisMediaGestureCandidate=gesture;jarvisMediaGestureFrames=1;}else if(gesture!=="NONE"){jarvisMediaGestureFrames++;}if(gesture!=="NONE"&&jarvisMediaGestureFrames>=4&&gesture!==jarvisMediaGestureState){jarvisMediaGestureState=gesture;if(gesture==="OPEN_HAND"){if(e.gesture)e.gesture.textContent="GESTURE // OPEN HAND // PAUSE MEDIA";sendJarvisMediaCommand("pause");}else if(gesture==="CLOSED_FIST"){if(e.gesture)e.gesture.textContent="GESTURE // CLOSED FIST // RESUME MEDIA";sendJarvisMediaCommand("play");}}}
+function resetJarvisMediaGesture(){jarvisMediaGestureState="NONE";jarvisMediaGestureCandidate="NONE";jarvisMediaGestureFrames=0;}
+
+function detectJarvisHands(){if(!jarvisHandTrackingRunning)return;const e=getJarvisHandElements();if(!e.video||!e.canvas||!jarvisHandLandmarker){jarvisHandAnimationFrame=requestAnimationFrame(detectJarvisHands);return;}if(e.video.readyState>=2&&e.video.currentTime!==jarvisHandLastVideoTime){jarvisHandLastVideoTime=e.video.currentTime;resizeJarvisHandCanvas();const r=e.video.getBoundingClientRect(),c=e.canvas.getContext("2d");c.clearRect(0,0,r.width,r.height);try{const result=jarvisHandLandmarker.detectForVideo(e.video,performance.now()),hands=result.landmarks||[];if(e.count)e.count.textContent=String(hands.length).padStart(2,"0");hands.forEach(l=>drawJarvisHand(l,r.width,r.height,c));
+if(hands.length>=2){
+    updateJarvisTwoHandZoom(hands);
+    resetJarvisMediaGesture();
+}else if(hands.length===1){
+    resetJarvisTwoHandZoom();
+    applyJarvisPageZoom();
+    detectJarvisMediaGesture(hands[0]);
+}else{
+    resetJarvisTwoHandZoom();
+    applyJarvisPageZoom();
+    resetJarvisMediaGesture();
+    setHandTrackingUI("TRACKING","GESTURE // SEARCHING");
+}}catch(err){console.error("JARVIS HAND DETECTION ERROR:",err);setHandTrackingUI("ERROR","GESTURE // DETECTION ERROR");}}jarvisHandAnimationFrame=requestAnimationFrame(detectJarvisHands);}
 async function startJarvisHandTracking(){const e=getJarvisHandElements();if(jarvisHandTrackingRunning)return;if(!jarvisCameraStream)await startJarvisCamera();if(!jarvisCameraStream||!e.video){setHandTrackingUI("BLOCKED","GESTURE // CAMERA OFFLINE");if(e.engine)e.engine.textContent="VISION ENGINE // CAMERA REQUIRED";return;}setHandTrackingUI("LOADING","GESTURE // INITIALIZING");if(e.engine)e.engine.textContent="VISION ENGINE // LOADING";try{await initializeJarvisHandLandmarker();resizeJarvisHandCanvas();jarvisHandTrackingRunning=true;jarvisHandLastVideoTime=-1;if(e.button){e.button.textContent="DISABLE HAND TRACKING";e.button.classList.add("active");}if(e.engine)e.engine.textContent="VISION ENGINE // ONLINE";setHandTrackingUI("TRACKING","GESTURE // SEARCHING");detectJarvisHands();}catch(err){console.error("JARVIS HAND TRACKING INITIALIZATION ERROR:",err);jarvisHandTrackingRunning=false;setHandTrackingUI("ERROR","GESTURE // ENGINE UNAVAILABLE");if(e.engine)e.engine.textContent="VISION ENGINE // ERROR";if(e.button){e.button.textContent="ENABLE HAND TRACKING";e.button.classList.remove("active");}}}
-function stopJarvisHandTracking(){const e=getJarvisHandElements();jarvisHandTrackingRunning=false;if(jarvisHandAnimationFrame){cancelAnimationFrame(jarvisHandAnimationFrame);jarvisHandAnimationFrame=null;}if(e.canvas)e.canvas.getContext("2d").clearRect(0,0,e.canvas.width,e.canvas.height);if(e.count)e.count.textContent="00";if(e.button){e.button.textContent="ENABLE HAND TRACKING";e.button.classList.remove("active");}if(e.engine)e.engine.textContent="VISION ENGINE // STANDBY";setHandTrackingUI("OFFLINE","GESTURE // WAITING");}
+function stopJarvisHandTracking(){const e=getJarvisHandElements();jarvisHandTrackingRunning=false;if(jarvisHandAnimationFrame){cancelAnimationFrame(jarvisHandAnimationFrame);jarvisHandAnimationFrame=null;}jarvisPageZoom=1;jarvisPageZoomTarget=1;resetJarvisTwoHandZoom();document.documentElement.style.zoom="1";resetJarvisMediaGesture();if(e.zoom)e.zoom.textContent="WEB ZOOM // 100%";if(e.canvas)e.canvas.getContext("2d").clearRect(0,0,e.canvas.width,e.canvas.height);if(e.count)e.count.textContent="00";if(e.button){e.button.textContent="ENABLE HAND TRACKING";e.button.classList.remove("active");}if(e.engine)e.engine.textContent="VISION ENGINE // STANDBY";setHandTrackingUI("OFFLINE","GESTURE // WAITING");}
 
 function setupCameraControls(){
 
