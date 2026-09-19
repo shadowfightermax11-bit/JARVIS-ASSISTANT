@@ -7995,7 +7995,11 @@ function setCameraStatus(state, message){
 
         stateElement.textContent = state;
 
-        stateElement.classList.remove("online","blocked");
+        stateElement.classList.remove(
+            "online",
+            "blocked",
+            "requesting"
+        );
 
         if(state === "ONLINE"){
             stateElement.classList.add("online");
@@ -8005,6 +8009,10 @@ function setCameraStatus(state, message){
             stateElement.classList.add("blocked");
         }
 
+        if(state === "REQUESTING"){
+            stateElement.classList.add("requesting");
+        }
+
     }
 
     if(statusElement){
@@ -8012,6 +8020,7 @@ function setCameraStatus(state, message){
     }
 
 }
+
 
 function stopJarvisCamera(){
 
@@ -8027,7 +8036,12 @@ function stopJarvisCamera(){
         jarvisCameraStream
             .getTracks()
             .forEach(function(track){
-                track.stop();
+
+                try{
+                    track.stop();
+                }
+                catch(error){}
+
             });
 
         jarvisCameraStream = null;
@@ -8038,7 +8052,14 @@ function stopJarvisCamera(){
         document.getElementById("jarvisCameraFeed");
 
     if(video){
+
+        try{
+            video.pause();
+        }
+        catch(error){}
+
         video.srcObject = null;
+
     }
 
     setCameraStatus(
@@ -8048,13 +8069,14 @@ function stopJarvisCamera(){
 
 }
 
+
 async function startJarvisCamera(){
 
     const video =
         document.getElementById("jarvisCameraFeed");
 
     if(!video){
-        return;
+        return false;
     }
 
     if(
@@ -8067,44 +8089,93 @@ async function startJarvisCamera(){
             "CAMERA // BROWSER DOES NOT SUPPORT CAMERA ACCESS"
         );
 
-        return;
+        return false;
 
     }
+
+
+    /*
+        Camera already active.
+    */
 
     if(jarvisCameraStream){
 
-        setCameraStatus(
-            "ONLINE",
-            "CAMERA // ONLINE // LIVE VISION FEED ACTIVE"
-        );
+        const liveTrack =
+            jarvisCameraStream
+                .getVideoTracks()
+                .some(function(track){
 
-        return;
+                    return track.readyState === "live";
+
+                });
+
+        if(liveTrack){
+
+            setCameraStatus(
+                "ONLINE",
+                "CAMERA // ONLINE // LIVE VISION FEED ACTIVE"
+            );
+
+            return true;
+
+        }
+
+        jarvisCameraStream = null;
 
     }
+
 
     setCameraStatus(
         "REQUESTING",
         "CAMERA // REQUESTING BROWSER PERMISSION..."
     );
 
+
     try{
 
         jarvisCameraStream =
             await navigator.mediaDevices.getUserMedia({
+
                 video:{
-                    facingMode:"user"
+                    facingMode:"user",
+
+                    width:{
+                        ideal:1280
+                    },
+
+                    height:{
+                        ideal:720
+                    },
+
+                    frameRate:{
+                        ideal:30,
+                        max:60
+                    }
                 },
+
                 audio:false
+
             });
 
-        video.srcObject = jarvisCameraStream;
+
+        video.srcObject =
+            jarvisCameraStream;
+
+        video.muted = true;
+        video.autoplay = true;
+        video.playsInline = true;
+
 
         await video.play();
+
 
         setCameraStatus(
             "ONLINE",
             "CAMERA // ONLINE // LIVE VISION FEED ACTIVE"
         );
+
+
+        return true;
 
     }
     catch(error){
@@ -8114,35 +8185,52 @@ async function startJarvisCamera(){
         let message =
             "CAMERA // ACCESS DENIED OR UNAVAILABLE";
 
-        if(error && error.name === "NotAllowedError"){
+
+        if(
+            error &&
+            error.name === "NotAllowedError"
+        ){
 
             message =
                 "CAMERA // PERMISSION BLOCKED // ALLOW CAMERA IN BROWSER SETTINGS";
 
         }
-        else if(error && error.name === "NotFoundError"){
+        else if(
+            error &&
+            error.name === "NotFoundError"
+        ){
 
             message =
                 "CAMERA // NO CAMERA DEVICE DETECTED";
 
         }
-        else if(error && error.name === "NotReadableError"){
+        else if(
+            error &&
+            error.name === "NotReadableError"
+        ){
 
             message =
                 "CAMERA // DEVICE IS BUSY OR UNAVAILABLE";
 
         }
-        else if(error && error.name === "SecurityError"){
+        else if(
+            error &&
+            error.name === "SecurityError"
+        ){
 
             message =
                 "CAMERA // SECURE CONTEXT REQUIRED // USE HTTPS OR LOCALHOST";
 
         }
 
+
         setCameraStatus(
             "BLOCKED",
             message
         );
+
+
+        return false;
 
     }
 
@@ -8165,38 +8253,83 @@ let jarvisHandCanvasWidth = 0;
 let jarvisHandCanvasHeight = 0;
 let jarvisHandLastDetectTime = 0;
 
-const JARVIS_HAND_SMOOTHING = .42;
-const JARVIS_HAND_DETECT_MIN_INTERVAL = 0;
-const JARVIS_GESTURE_CONFIRM_FRAMES = 3;
+
+/*
+    16ms = maximum approximately 60 detections/sec.
+
+    requestAnimationFrame still runs normally,
+    but MediaPipe inference is not unnecessarily
+    executed multiple times between useful frames.
+*/
+
+const JARVIS_HAND_SMOOTHING = .38;
+const JARVIS_HAND_DETECT_MIN_INTERVAL = 16;
+
+
+/*
+    Media gestures need more confirmation so
+    temporary landmark noise cannot trigger them.
+*/
+
+const JARVIS_GESTURE_CONFIRM_FRAMES = 4;
 const JARVIS_GESTURE_RELEASE_FRAMES = 3;
+
+
+/*
+    Separate pointer smoothing from gesture
+    classification.
+*/
 
 let jarvisSmoothedHands = [];
 
 
 /* =========================================================
-   AIR MOUSE / LASER POINTER
+   AIR MOUSE / CURSOR
 ========================================================= */
-
-let jarvisLaserActive = false;
-let jarvisLaserX = 0;
-let jarvisLaserY = 0;
-let jarvisLaserTargetX = 0;
-let jarvisLaserTargetY = 0;
-
-const JARVIS_LASER_SMOOTHING = .36;
 
 let jarvisAirCursor = null;
 let jarvisAirCursorVisible = false;
+
 let jarvisAirCursorX = 0;
 let jarvisAirCursorY = 0;
+
 let jarvisAirCursorTargetX = 0;
 let jarvisAirCursorTargetY = 0;
 
-const JARVIS_AIR_CURSOR_SMOOTHING = .70;
-const JARVIS_AIR_CURSOR_PREDICTION = .10;
+let jarvisAirCursorVelocityX = 0;
+let jarvisAirCursorVelocityY = 0;
 
-let jarvisAirPreviewRect = null;
-let jarvisAirPreviewRectTime = 0;
+
+/*
+    Higher = smoother response.
+*/
+
+const JARVIS_AIR_CURSOR_SMOOTHING = .55;
+
+
+/*
+    Small prediction helps reduce the feeling
+    that the cursor is following the hand late.
+*/
+
+const JARVIS_AIR_CURSOR_PREDICTION = .055;
+
+
+/*
+    Keep cursor slightly away from viewport edges.
+*/
+
+const JARVIS_AIR_CURSOR_MARGIN = 12;
+
+
+/*
+    Pinch freezes the cursor so the click
+    does not drift while fingers close.
+*/
+
+let jarvisPinchClickX = 0;
+let jarvisPinchClickY = 0;
+let jarvisPinchWasActive = false;
 
 
 /* =========================================================
@@ -8224,13 +8357,29 @@ let jarvisMediaGestureReleaseFrames = 0;
 
 let jarvisLastMediaCommandTime = 0;
 
-const JARVIS_MEDIA_COMMAND_COOLDOWN = 700;
+
+/*
+    Prevent commands from being fired repeatedly.
+*/
+
+const JARVIS_MEDIA_COMMAND_COOLDOWN = 900;
 
 
 /*
-    Prevents a one-hand gesture from firing
-    immediately after two-hand zoom.
+    After any command, the hand must return
+    to neutral before another command can fire.
+
+    This is what prevents:
+
+        OPEN PALM
+        -> PAUSE
+        -> slight detection change
+        -> FIST
+        -> PLAY
+
+    while the user is still holding the same hand.
 */
+
 let jarvisGestureNeedsNeutral = false;
 
 
@@ -8241,7 +8390,7 @@ let jarvisGestureNeedsNeutral = false;
 let jarvisPinchActive = false;
 
 const JARVIS_PINCH_START = .34;
-const JARVIS_PINCH_RELEASE = .44;
+const JARVIS_PINCH_RELEASE = .46;
 
 
 /* =========================================================
@@ -8254,13 +8403,21 @@ const JARVIS_HAND_MODEL_URL =
 const JARVIS_HAND_WASM_URL =
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm";
 
+
 const JARVIS_HAND_CONNECTIONS = [
+
     [0,1],[1,2],[2,3],[3,4],
+
     [0,5],[5,6],[6,7],[7,8],
+
     [5,9],[9,10],[10,11],[11,12],
+
     [9,13],[13,14],[14,15],[15,16],
+
     [13,17],[17,18],[18,19],[19,20],
+
     [0,17]
+
 ];
 
 
@@ -8274,36 +8431,56 @@ function getJarvisHandElements(){
         return jarvisHandElementsCache;
     }
 
+
     jarvisHandElementsCache = {
 
         video:
-            document.getElementById("jarvisCameraFeed"),
+            document.getElementById(
+                "jarvisCameraFeed"
+            ),
 
         canvas:
-            document.getElementById("jarvisHandCanvas"),
+            document.getElementById(
+                "jarvisHandCanvas"
+            ),
 
         preview:
-            document.querySelector(".camera-preview"),
+            document.querySelector(
+                ".camera-preview"
+            ),
 
         button:
-            document.getElementById("handTrackingButton"),
+            document.getElementById(
+                "handTrackingButton"
+            ),
 
         state:
-            document.getElementById("handTrackingState"),
+            document.getElementById(
+                "handTrackingState"
+            ),
 
         count:
-            document.getElementById("handTrackingCount"),
+            document.getElementById(
+                "handTrackingCount"
+            ),
 
         gesture:
-            document.getElementById("handTrackingGesture"),
+            document.getElementById(
+                "handTrackingGesture"
+            ),
 
         zoom:
-            document.getElementById("handTrackingZoom"),
+            document.getElementById(
+                "handTrackingZoom"
+            ),
 
         engine:
-            document.getElementById("handTrackingEngine")
+            document.getElementById(
+                "handTrackingEngine"
+            )
 
     };
+
 
     return jarvisHandElementsCache;
 
@@ -8316,32 +8493,52 @@ function getJarvisHandElements(){
 
 function setHandTrackingUI(state, gesture){
 
-    const e = getJarvisHandElements();
+    const e =
+        getJarvisHandElements();
+
 
     if(e.state){
 
-        e.state.textContent = state;
+        e.state.textContent =
+            state;
 
         e.state.classList.remove(
             "online",
             "blocked"
         );
 
+
         if(state === "TRACKING"){
-            e.state.classList.add("online");
+
+            e.state.classList.add(
+                "online"
+            );
+
         }
+
 
         if(
             state === "ERROR" ||
             state === "BLOCKED"
         ){
-            e.state.classList.add("blocked");
+
+            e.state.classList.add(
+                "blocked"
+            );
+
         }
 
     }
 
-    if(e.gesture && gesture){
-        e.gesture.textContent = gesture;
+
+    if(
+        e.gesture &&
+        gesture
+    ){
+
+        e.gesture.textContent =
+            gesture;
+
     }
 
 }
@@ -8353,20 +8550,28 @@ function setHandTrackingUI(state, gesture){
 
 function resizeJarvisHandCanvas(){
 
-    const e = getJarvisHandElements();
+    const e =
+        getJarvisHandElements();
 
-    if(!e.video || !e.canvas){
+
+    if(
+        !e.video ||
+        !e.canvas
+    ){
         return;
     }
+
 
     const base =
         e.preview ||
         e.video.parentElement;
 
+
     const r =
         base
             ? base.getBoundingClientRect()
             : e.video.getBoundingClientRect();
+
 
     const d =
         Math.min(
@@ -8374,17 +8579,20 @@ function resizeJarvisHandCanvas(){
             2
         );
 
+
     const width =
         Math.max(
             1,
             Math.floor(r.width)
         );
 
+
     const height =
         Math.max(
             1,
             Math.floor(r.height)
         );
+
 
     if(
         width === jarvisHandCanvasWidth &&
@@ -8394,29 +8602,39 @@ function resizeJarvisHandCanvas(){
         return;
     }
 
-    jarvisHandCanvasWidth = width;
-    jarvisHandCanvasHeight = height;
+
+    jarvisHandCanvasWidth =
+        width;
+
+    jarvisHandCanvasHeight =
+        height;
+
 
     e.canvas.width =
         Math.max(
             1,
-            Math.floor(width * d)
+            Math.floor(width*d)
         );
+
 
     e.canvas.height =
         Math.max(
             1,
-            Math.floor(height * d)
+            Math.floor(height*d)
         );
+
 
     e.canvas.style.width =
         width + "px";
 
+
     e.canvas.style.height =
         height + "px";
 
+
     jarvisHandCanvasContext =
         e.canvas.getContext("2d");
+
 
     jarvisHandCanvasContext.setTransform(
         d,
@@ -8436,23 +8654,45 @@ function resizeJarvisHandCanvas(){
 
 function getJarvisLandmarkCenter(landmarks){
 
-    if(!landmarks || !landmarks.length){
-        return {x:0,y:0};
+    if(
+        !landmarks ||
+        !landmarks.length
+    ){
+
+        return {
+            x:0,
+            y:0
+        };
+
     }
+
 
     let x = 0;
     let y = 0;
 
-    for(let i=0;i<landmarks.length;i++){
+
+    for(
+        let i=0;
+        i<landmarks.length;
+        i++
+    ){
 
         x += landmarks[i].x;
         y += landmarks[i].y;
 
     }
 
+
     return {
-        x:x / landmarks.length,
-        y:y / landmarks.length
+
+        x:
+            x /
+            landmarks.length,
+
+        y:
+            y /
+            landmarks.length
+
     };
 
 }
@@ -8462,8 +8702,6 @@ function resetJarvisHandSmoothing(){
 
     jarvisSmoothedHands = [];
 
-    resetJarvisLaser();
-
     resetJarvisAirCursor();
 
 }
@@ -8471,7 +8709,10 @@ function resetJarvisHandSmoothing(){
 
 function smoothJarvisHands(hands){
 
-    if(!hands || !hands.length){
+    if(
+        !hands ||
+        !hands.length
+    ){
 
         resetJarvisHandSmoothing();
 
@@ -8479,112 +8720,206 @@ function smoothJarvisHands(hands){
 
     }
 
-    const used = new Set();
+
+    const used =
+        new Set();
+
     const next = [];
+
 
     hands.forEach(function(hand){
 
         const center =
-            getJarvisLandmarkCenter(hand);
+            getJarvisLandmarkCenter(
+                hand
+            );
+
 
         let best = -1;
-        let bestDistance = Infinity;
+        let bestDistance =
+            Infinity;
+
 
         jarvisSmoothedHands.forEach(
             function(previous,index){
 
-                if(used.has(index)){
+                if(
+                    used.has(index)
+                ){
                     return;
                 }
+
 
                 const dx =
                     center.x -
                     previous.center.x;
 
+
                 const dy =
                     center.y -
                     previous.center.y;
 
+
                 const distance =
-                    dx*dx + dy*dy;
+                    dx*dx +
+                    dy*dy;
 
-                if(distance < bestDistance){
 
-                    bestDistance = distance;
-                    best = index;
+                if(
+                    distance <
+                    bestDistance
+                ){
+
+                    bestDistance =
+                        distance;
+
+                    best =
+                        index;
 
                 }
 
             }
         );
 
+
+        /*
+            Prevent a hand from suddenly
+            jumping to another tracked hand.
+        */
+
+        const MAX_MATCH_DISTANCE =
+            .16;
+
+        if(
+            best >= 0 &&
+            bestDistance >
+            MAX_MATCH_DISTANCE *
+            MAX_MATCH_DISTANCE
+        ){
+
+            best = -1;
+
+        }
+
+
         const previous =
             best >= 0
                 ? jarvisSmoothedHands[best]
                 : null;
 
+
         if(best >= 0){
             used.add(best);
         }
 
-        const landmarks =
-            hand.map(function(point,index){
 
-                if(
-                    !previous ||
-                    !previous.landmarks[index]
-                ){
+        const landmarks =
+            hand.map(
+                function(point,index){
+
+                    if(
+                        !previous ||
+                        !previous.landmarks[index]
+                    ){
+
+                        return {
+
+                            x:point.x,
+                            y:point.y,
+                            z:point.z || 0
+
+                        };
+
+                    }
+
+
+                    const alpha =
+                        JARVIS_HAND_SMOOTHING;
+
 
                     return {
-                        x:point.x,
-                        y:point.y,
-                        z:point.z || 0
+
+                        x:
+                            previous
+                                .landmarks[index]
+                                .x +
+
+                            (
+                                point.x -
+                                previous
+                                    .landmarks[index]
+                                    .x
+                            ) *
+                            alpha,
+
+
+                        y:
+                            previous
+                                .landmarks[index]
+                                .y +
+
+                            (
+                                point.y -
+                                previous
+                                    .landmarks[index]
+                                    .y
+                            ) *
+                            alpha,
+
+
+                        z:
+                            (
+                                previous
+                                    .landmarks[index]
+                                    .z ||
+                                0
+                            ) +
+
+                            (
+                                (
+                                    point.z ||
+                                    0
+                                ) -
+
+                                (
+                                    previous
+                                        .landmarks[index]
+                                        .z ||
+                                    0
+                                )
+                            ) *
+                            alpha
+
                     };
 
                 }
+            );
 
-                const alpha =
-                    JARVIS_HAND_SMOOTHING;
-
-                return {
-
-                    x:
-                        previous.landmarks[index].x +
-                        (
-                            point.x -
-                            previous.landmarks[index].x
-                        ) * alpha,
-
-                    y:
-                        previous.landmarks[index].y +
-                        (
-                            point.y -
-                            previous.landmarks[index].y
-                        ) * alpha,
-
-                    z:
-                        (previous.landmarks[index].z || 0) +
-                        (
-                            (point.z || 0) -
-                            (previous.landmarks[index].z || 0)
-                        ) * alpha
-
-                };
-
-            });
 
         next.push({
-            landmarks:landmarks,
-            center:getJarvisLandmarkCenter(landmarks)
+
+            landmarks:
+                landmarks,
+
+            center:
+                getJarvisLandmarkCenter(
+                    landmarks
+                )
+
         });
 
     });
 
-    jarvisSmoothedHands = next;
 
-    return next.map(function(item){
-        return item.landmarks;
-    });
+    jarvisSmoothedHands =
+        next;
+
+
+    return next.map(
+        function(item){
+            return item.landmarks;
+        }
+    );
 
 }
 
@@ -8593,69 +8928,104 @@ function smoothJarvisHands(hands){
    DRAW HAND
 ========================================================= */
 
-function drawJarvisHand(l,w,h,c){
+function drawJarvisHand(
+    l,
+    w,
+    h,
+    c
+){
 
     if(!c){
         return;
     }
 
+
     c.save();
 
-    c.lineWidth = 1.25;
-    c.strokeStyle =
-        "rgba(34,211,238,.95)";
 
-    c.shadowBlur = 8;
+    c.lineWidth =
+        1.15;
+
+
+    c.strokeStyle =
+        "rgba(34,211,238,.90)";
+
+
+    c.shadowBlur =
+        7;
+
+
     c.shadowColor =
-        "rgba(34,211,238,.7)";
+        "rgba(34,211,238,.65)";
+
 
     JARVIS_HAND_CONNECTIONS.forEach(
         function(q){
 
-            const a = l[q[0]];
-            const b = l[q[1]];
+            const a =
+                l[q[0]];
 
-            if(!a || !b){
+            const b =
+                l[q[1]];
+
+
+            if(
+                !a ||
+                !b
+            ){
                 return;
             }
 
+
             c.beginPath();
+
 
             c.moveTo(
                 a.x*w,
                 a.y*h
             );
 
+
             c.lineTo(
                 b.x*w,
                 b.y*h
             );
+
 
             c.stroke();
 
         }
     );
 
-    c.shadowBlur = 12;
+
+    c.shadowBlur =
+        9;
+
 
     c.fillStyle =
         "#61f6ff";
 
-    l.forEach(function(p){
 
-        c.beginPath();
+    l.forEach(
+        function(p){
 
-        c.arc(
-            p.x*w,
-            p.y*h,
-            2.35,
-            0,
-            Math.PI*2
-        );
+            c.beginPath();
 
-        c.fill();
 
-    });
+            c.arc(
+                p.x*w,
+                p.y*h,
+                2.1,
+                0,
+                Math.PI*2
+            );
+
+
+            c.fill();
+
+        }
+    );
+
 
     c.restore();
 
@@ -8674,36 +9044,55 @@ function getJarvisFingerExtension(
     wrist
 ){
 
-    const distance = function(a,b){
+    const distance =
+        function(a,b){
 
-        const dx = a.x-b.x;
-        const dy = a.y-b.y;
+            const dx =
+                a.x-b.x;
 
-        return Math.sqrt(
-            dx*dx + dy*dy
-        );
+            const dy =
+                a.y-b.y;
 
-    };
 
-    return (
+            return Math.sqrt(
+                dx*dx +
+                dy*dy
+            );
+
+        };
+
+
+    const tipDistance =
         distance(
             landmarks[tip],
             landmarks[wrist]
-        ) >
+        );
+
+
+    const pipDistance =
         distance(
             landmarks[pip],
             landmarks[wrist]
-        ) * 1.07
-    ) &&
-    (
-        distance(
-            landmarks[tip],
-            landmarks[wrist]
-        ) >
+        );
+
+
+    const mcpDistance =
         distance(
             landmarks[mcp],
             landmarks[wrist]
-        ) * 1.10
+        );
+
+
+    return (
+
+        tipDistance >
+        pipDistance * 1.06
+
+    ) && (
+
+        tipDistance >
+        mcpDistance * 1.08
+
     );
 
 }
@@ -8711,31 +9100,44 @@ function getJarvisFingerExtension(
 
 function getJarvisFingerState(landmarks){
 
-    const indexOpen =
-        getJarvisFingerExtension(
-            landmarks,8,6,5,0
-        );
-
-    const middleOpen =
-        getJarvisFingerExtension(
-            landmarks,12,10,9,0
-        );
-
-    const ringOpen =
-        getJarvisFingerExtension(
-            landmarks,16,14,13,0
-        );
-
-    const pinkyOpen =
-        getJarvisFingerExtension(
-            landmarks,20,18,17,0
-        );
-
     return {
-        index:indexOpen,
-        middle:middleOpen,
-        ring:ringOpen,
-        pinky:pinkyOpen
+
+        index:
+            getJarvisFingerExtension(
+                landmarks,
+                8,
+                6,
+                5,
+                0
+            ),
+
+        middle:
+            getJarvisFingerExtension(
+                landmarks,
+                12,
+                10,
+                9,
+                0
+            ),
+
+        ring:
+            getJarvisFingerExtension(
+                landmarks,
+                16,
+                14,
+                13,
+                0
+            ),
+
+        pinky:
+            getJarvisFingerExtension(
+                landmarks,
+                20,
+                18,
+                17,
+                0
+            )
+
     };
 
 }
@@ -8747,16 +9149,23 @@ function getJarvisFingerState(landmarks){
 
 function getJarvisThumbOpen(landmarks){
 
-    const distance = function(a,b){
+    const distance =
+        function(a,b){
 
-        const dx = a.x-b.x;
-        const dy = a.y-b.y;
+            const dx =
+                a.x-b.x;
 
-        return Math.sqrt(
-            dx*dx + dy*dy
-        );
+            const dy =
+                a.y-b.y;
 
-    };
+
+            return Math.sqrt(
+                dx*dx +
+                dy*dy
+            );
+
+        };
+
 
     const tip =
         landmarks[4];
@@ -8770,22 +9179,38 @@ function getJarvisThumbOpen(landmarks){
     const wrist =
         landmarks[0];
 
+
     const tipDistance =
-        distance(tip,wrist);
+        distance(
+            tip,
+            wrist
+        );
+
 
     const ipDistance =
-        distance(ip,wrist);
+        distance(
+            ip,
+            wrist
+        );
+
 
     const mcpDistance =
-        distance(mcp,wrist);
+        distance(
+            mcp,
+            wrist
+        );
+
 
     return (
+
         tipDistance >
-        ipDistance * 1.08
-    ) &&
-    (
+        ipDistance * 1.06
+
+    ) && (
+
         tipDistance >
-        mcpDistance * 1.12
+        mcpDistance * 1.08
+
     );
 
 }
@@ -8801,29 +9226,40 @@ function getJarvisPinchDistance(landmarks){
         landmarks[4].x -
         landmarks[8].x;
 
+
     const dy =
         landmarks[4].y -
         landmarks[8].y;
 
+
     const distance =
         Math.sqrt(
-            dx*dx + dy*dy
+            dx*dx +
+            dy*dy
         );
+
 
     const wx =
         landmarks[0].x -
         landmarks[9].x;
 
+
     const wy =
         landmarks[0].y -
         landmarks[9].y;
 
+
     const palmScale =
         Math.sqrt(
-            wx*wx + wy*wy
+            wx*wx +
+            wy*wy
         ) || .1;
 
-    return distance / palmScale;
+
+    return (
+        distance /
+        palmScale
+    );
 
 }
 
@@ -8831,7 +9267,10 @@ function getJarvisPinchDistance(landmarks){
 function isJarvisPinching(landmarks){
 
     const distance =
-        getJarvisPinchDistance(landmarks);
+        getJarvisPinchDistance(
+            landmarks
+        );
+
 
     if(jarvisPinchActive){
 
@@ -8839,25 +9278,34 @@ function isJarvisPinching(landmarks){
             distance <=
             JARVIS_PINCH_RELEASE
         ){
+
             return true;
+
         }
 
-        jarvisPinchActive = false;
+
+        jarvisPinchActive =
+            false;
+
 
         return false;
 
     }
+
 
     if(
         distance <=
         JARVIS_PINCH_START
     ){
 
-        jarvisPinchActive = true;
+        jarvisPinchActive =
+            true;
+
 
         return true;
 
     }
+
 
     return false;
 
@@ -8870,15 +9318,27 @@ function isJarvisPinching(landmarks){
 
 function detectJarvisGesture(landmarks){
 
-    if(!landmarks || landmarks.length < 21){
+    if(
+        !landmarks ||
+        landmarks.length < 21
+    ){
+
         return "NONE";
+
     }
 
+
     const fingers =
-        getJarvisFingerState(landmarks);
+        getJarvisFingerState(
+            landmarks
+        );
+
 
     const thumbOpen =
-        getJarvisThumbOpen(landmarks);
+        getJarvisThumbOpen(
+            landmarks
+        );
+
 
     const openCount =
         [
@@ -8890,13 +9350,16 @@ function detectJarvisGesture(landmarks){
 
 
     /*
+        =====================================================
         PINCH
-        Highest priority.
-        Used only as SELECT / CLICK.
+        ONLY SELECT / CLICK
+        =====================================================
     */
 
     if(
-        isJarvisPinching(landmarks) &&
+        isJarvisPinching(
+            landmarks
+        ) &&
         fingers.index
     ){
 
@@ -8906,16 +9369,24 @@ function detectJarvisGesture(landmarks){
 
 
     /*
-        POINTING
-        Index only.
+        =====================================================
+        POINT
+        ONLY AIR MOUSE
+        =====================================================
     */
 
     if(
+
         fingers.index &&
+
         !fingers.middle &&
+
         !fingers.ring &&
+
         !fingers.pinky &&
+
         !thumbOpen
+
     ){
 
         return "POINT";
@@ -8924,44 +9395,73 @@ function detectJarvisGesture(landmarks){
 
 
     /*
-        THUMB UP / DOWN
-        Thumb extended while all four
-        other fingers are closed.
+        =====================================================
+        THUMB
+        ONLY VOLUME
+        =====================================================
     */
 
     if(
+
         thumbOpen &&
+
         !fingers.index &&
+
         !fingers.middle &&
+
         !fingers.ring &&
+
         !fingers.pinky
+
     ){
 
-        const wrist = landmarks[0];
-        const thumb = landmarks[4];
+        const wrist =
+            landmarks[0];
+
+        const thumb =
+            landmarks[4];
+
 
         const vertical =
-            wrist.y - thumb.y;
+            wrist.y -
+            thumb.y;
 
-        if(vertical > .045){
+
+        if(
+            vertical >
+            .045
+        ){
+
             return "THUMB_UP";
+
         }
 
-        if(vertical < -.045){
+
+        if(
+            vertical <
+            -.045
+        ){
+
             return "THUMB_DOWN";
+
         }
 
     }
 
 
     /*
+        =====================================================
         OPEN PALM
-        Strictly four fingers + thumb.
+        ONLY PAUSE
+        =====================================================
     */
 
     if(
+
         openCount === 4 &&
+
         thumbOpen
+
     ){
 
         return "OPEN_PALM";
@@ -8970,13 +9470,18 @@ function detectJarvisGesture(landmarks){
 
 
     /*
+        =====================================================
         CLOSED FIST
-        All four fingers closed and thumb closed.
+        ONLY PLAY
+        =====================================================
     */
 
     if(
+
         openCount === 0 &&
+
         !thumbOpen
+
     ){
 
         return "CLOSED_FIST";
@@ -8985,227 +9490,6 @@ function detectJarvisGesture(landmarks){
 
 
     return "NONE";
-
-}
-
-
-/* =========================================================
-   LASER POINTER
-========================================================= */
-
-function resetJarvisLaser(){
-
-    jarvisLaserActive = false;
-
-    jarvisLaserX = 0;
-    jarvisLaserY = 0;
-
-    jarvisLaserTargetX = 0;
-    jarvisLaserTargetY = 0;
-
-}
-
-
-function isJarvisPointingGesture(landmarks){
-
-    return detectJarvisGesture(landmarks) === "POINT";
-
-}
-
-
-function updateJarvisLaserPointer(
-    landmarks,
-    w,
-    h,
-    c
-){
-
-    if(
-        detectJarvisGesture(landmarks) !==
-        "POINT"
-    ){
-
-        resetJarvisLaser();
-
-        return false;
-
-    }
-
-    const tip =
-        landmarks[8];
-
-    const mcp =
-        landmarks[5];
-
-    jarvisLaserTargetX =
-        tip.x*w;
-
-    jarvisLaserTargetY =
-        tip.y*h;
-
-    if(!jarvisLaserActive){
-
-        jarvisLaserX =
-            jarvisLaserTargetX;
-
-        jarvisLaserY =
-            jarvisLaserTargetY;
-
-        jarvisLaserActive = true;
-
-    }
-    else{
-
-        jarvisLaserX +=
-            (
-                jarvisLaserTargetX -
-                jarvisLaserX
-            ) *
-            JARVIS_LASER_SMOOTHING;
-
-        jarvisLaserY +=
-            (
-                jarvisLaserTargetY -
-                jarvisLaserY
-            ) *
-            JARVIS_LASER_SMOOTHING;
-
-    }
-
-    let dx =
-        tip.x -
-        mcp.x;
-
-    let dy =
-        tip.y -
-        mcp.y;
-
-    const len =
-        Math.sqrt(dx*dx + dy*dy) || 1;
-
-    dx /= len;
-    dy /= len;
-
-    const sx = jarvisLaserX;
-    const sy = jarvisLaserY;
-
-    const candidates = [];
-
-    if(dx > 0){
-        candidates.push((w-sx)/dx);
-    }
-
-    if(dx < 0){
-        candidates.push((0-sx)/dx);
-    }
-
-    if(dy > 0){
-        candidates.push((h-sy)/dy);
-    }
-
-    if(dy < 0){
-        candidates.push((0-sy)/dy);
-    }
-
-    const positive =
-        candidates.filter(function(v){
-            return (
-                v > 0 &&
-                Number.isFinite(v)
-            );
-        });
-
-    const reach =
-        positive.length
-            ? Math.min.apply(null,positive)
-            : Math.max(w,h);
-
-    const ex =
-        sx + dx*reach;
-
-    const ey =
-        sy + dy*reach;
-
-
-    c.save();
-
-    c.lineCap = "round";
-    c.globalCompositeOperation = "lighter";
-
-    c.beginPath();
-
-    c.moveTo(sx,sy);
-    c.lineTo(ex,ey);
-
-    c.lineWidth = 7;
-
-    c.strokeStyle =
-        "rgba(34,211,238,.12)";
-
-    c.shadowBlur = 22;
-
-    c.shadowColor =
-        "rgba(34,211,238,.95)";
-
-    c.stroke();
-
-
-    c.beginPath();
-
-    c.moveTo(sx,sy);
-    c.lineTo(ex,ey);
-
-    c.lineWidth = 1.15;
-
-    c.strokeStyle =
-        "rgba(255,255,255,.96)";
-
-    c.shadowBlur = 10;
-
-    c.stroke();
-
-
-    c.beginPath();
-
-    c.arc(
-        sx,
-        sy,
-        7,
-        0,
-        Math.PI*2
-    );
-
-    c.fillStyle =
-        "rgba(34,211,238,.16)";
-
-    c.shadowBlur = 18;
-
-    c.shadowColor =
-        "rgba(34,211,238,1)";
-
-    c.fill();
-
-
-    c.beginPath();
-
-    c.arc(
-        sx,
-        sy,
-        2.5,
-        0,
-        Math.PI*2
-    );
-
-    c.fillStyle =
-        "#ffffff";
-
-    c.shadowBlur = 10;
-
-    c.fill();
-
-    c.restore();
-
-    return true;
 
 }
 
@@ -9220,86 +9504,76 @@ function ensureJarvisAirCursor(){
         return jarvisAirCursor;
     }
 
+
     const cursor =
         document.createElement("div");
+
 
     cursor.id =
         "jarvisAirCursor";
 
+
     cursor.style.position =
         "fixed";
+
 
     cursor.style.left =
         "0px";
 
+
     cursor.style.top =
         "0px";
 
+
     cursor.style.width =
-        "22px";
+        "20px";
+
 
     cursor.style.height =
-        "22px";
+        "20px";
 
-    cursor.style.border =
-        "1px solid rgba(34,211,238,.95)";
-
-    cursor.style.borderRadius =
-        "50%";
-
-    cursor.style.background =
-        "rgba(34,211,238,.10)";
-
-    cursor.style.boxShadow =
-        "0 0 12px rgba(34,211,238,.9), inset 0 0 7px rgba(255,255,255,.4)";
 
     cursor.style.pointerEvents =
         "none";
 
+
     cursor.style.zIndex =
         "2147483647";
 
-    cursor.style.transform =
-        "translate(-50%,-50%)";
 
     cursor.style.display =
         "none";
 
-    const dot =
-        document.createElement("div");
 
-    dot.style.position =
-        "absolute";
+    cursor.style.transform =
+        "translate(-2px,-2px) rotate(-8deg)";
 
-    dot.style.left =
-        "50%";
 
-    dot.style.top =
-        "50%";
+    /*
+        Futuristic cursor arrow.
+    */
 
-    dot.style.width =
-        "4px";
+    cursor.style.clipPath =
+        "polygon(0 0, 0 100%, 28% 72%, 48% 100%, 61% 94%, 42% 66%, 78% 66%)";
 
-    dot.style.height =
-        "4px";
 
-    dot.style.transform =
-        "translate(-50%,-50%)";
+    cursor.style.background =
+        "#61f6ff";
 
-    dot.style.borderRadius =
-        "50%";
 
-    dot.style.background =
-        "#ffffff";
+    cursor.style.filter =
+        "drop-shadow(0 0 5px rgba(34,211,238,.95)) " +
+        "drop-shadow(0 0 12px rgba(34,211,238,.65))";
 
-    dot.style.boxShadow =
-        "0 0 8px rgba(255,255,255,.95)";
 
-    cursor.appendChild(dot);
+    document.body.appendChild(
+        cursor
+    );
 
-    document.body.appendChild(cursor);
 
-    jarvisAirCursor = cursor;
+    jarvisAirCursor =
+        cursor;
+
 
     return cursor;
 
@@ -9308,22 +9582,55 @@ function ensureJarvisAirCursor(){
 
 function resetJarvisAirCursor(){
 
-    jarvisAirCursorVisible = false;
+    jarvisAirCursorVisible =
+        false;
 
-    jarvisAirCursorX = 0;
-    jarvisAirCursorY = 0;
 
-    jarvisAirCursorTargetX = 0;
-    jarvisAirCursorTargetY = 0;
+    jarvisAirCursorX =
+        0;
+
+    jarvisAirCursorY =
+        0;
+
+
+    jarvisAirCursorTargetX =
+        0;
+
+    jarvisAirCursorTargetY =
+        0;
+
+
+    jarvisAirCursorVelocityX =
+        0;
+
+    jarvisAirCursorVelocityY =
+        0;
+
+
+    jarvisPinchWasActive =
+        false;
+
+
+    jarvisPinchClickX =
+        0;
+
+    jarvisPinchClickY =
+        0;
+
 
     if(jarvisAirCursor){
-        jarvisAirCursor.style.display = "none";
-    }
 
-    jarvisAirPreviewRect = null;
+        jarvisAirCursor.style.display =
+            "none";
+
+    }
 
 }
 
+
+/* =========================================================
+   AIR CURSOR POSITION
+========================================================= */
 
 function updateJarvisAirCursor(
     landmarks,
@@ -9335,128 +9642,237 @@ function updateJarvisAirCursor(
         gesture !== "PINCH"
     ){
 
-        if(
-            gesture !== "PINCH"
-        ){
-            resetJarvisAirCursor();
-        }
+        resetJarvisAirCursor();
 
         return;
 
-    }
-
-    const e =
-        getJarvisHandElements();
-
-    if(!e.video){
-        return;
-    }
-
-    const now =
-        performance.now();
-
-    if(
-        !jarvisAirPreviewRect ||
-        now - jarvisAirPreviewRectTime > 250
-    ){
-
-        jarvisAirPreviewRect =
-            e.video.getBoundingClientRect();
-
-        jarvisAirPreviewRectTime =
-            now;
-
-    }
-
-    const rect =
-        jarvisAirPreviewRect;
-
-    if(
-        !rect ||
-        rect.width <= 0 ||
-        rect.height <= 0
-    ){
-        return;
     }
 
 
     const tip =
         landmarks[8];
 
+
+    if(
+        !tip ||
+        !Number.isFinite(tip.x) ||
+        !Number.isFinite(tip.y)
+    ){
+
+        return;
+
+    }
+
+
+    const width =
+        window.innerWidth;
+
+
+    const height =
+        window.innerHeight;
+
+
     /*
-        Mirror X because the camera is
-        displayed as a user-facing mirror.
+        Camera mirror compensation.
+
+        Left hand movement on camera
+        corresponds naturally to left/right
+        screen movement.
     */
 
-    const normalizedX =
+    let normalizedX =
         1 - tip.x;
 
+
+    let normalizedY =
+        tip.y;
+
+
+    normalizedX =
+        Math.max(
+            0,
+            Math.min(
+                1,
+                normalizedX
+            )
+        );
+
+
+    normalizedY =
+        Math.max(
+            0,
+            Math.min(
+                1,
+                normalizedY
+            )
+        );
+
+
     const targetX =
-        rect.left +
-        normalizedX * rect.width;
+        JARVIS_AIR_CURSOR_MARGIN +
+        normalizedX *
+        (
+            width -
+            JARVIS_AIR_CURSOR_MARGIN*2
+        );
+
 
     const targetY =
-        rect.top +
-        tip.y * rect.height;
+        JARVIS_AIR_CURSOR_MARGIN +
+        normalizedY *
+        (
+            height -
+            JARVIS_AIR_CURSOR_MARGIN*2
+        );
 
 
-    jarvisAirCursorTargetX =
-        targetX;
+    /*
+        =====================================================
+        PINCH START
+        Freeze the cursor position.
+        =====================================================
+    */
 
-    jarvisAirCursorTargetY =
-        targetY;
+    if(
+        gesture === "PINCH" &&
+        !jarvisPinchWasActive
+    ){
+
+        jarvisPinchClickX =
+            jarvisAirCursorVisible
+                ? jarvisAirCursorX
+                : targetX;
 
 
-    if(!jarvisAirCursorVisible){
+        jarvisPinchClickY =
+            jarvisAirCursorVisible
+                ? jarvisAirCursorY
+                : targetY;
 
-        jarvisAirCursorX =
-            targetX;
 
-        jarvisAirCursorY =
-            targetY;
+        jarvisPinchWasActive =
+            true;
 
-        jarvisAirCursorVisible = true;
+    }
+
+
+    /*
+        During pinch the cursor does NOT
+        move around.
+    */
+
+    if(
+        gesture === "PINCH" &&
+        jarvisPinchWasActive
+    ){
+
+        jarvisAirCursorTargetX =
+            jarvisPinchClickX;
+
+        jarvisAirCursorTargetY =
+            jarvisPinchClickY;
 
     }
     else{
 
-        const vx =
-            targetX -
+        jarvisAirCursorTargetX =
+            targetX;
+
+        jarvisAirCursorTargetY =
+            targetY;
+
+    }
+
+
+    /*
+        First frame.
+    */
+
+    if(!jarvisAirCursorVisible){
+
+        jarvisAirCursorX =
             jarvisAirCursorTargetX;
 
-        const vy =
-            targetY -
+        jarvisAirCursorY =
             jarvisAirCursorTargetY;
+
+        jarvisAirCursorVisible =
+            true;
+
+    }
+    else{
+
+        const dx =
+            jarvisAirCursorTargetX -
+            jarvisAirCursorX;
+
+
+        const dy =
+            jarvisAirCursorTargetY -
+            jarvisAirCursorY;
+
+
+        jarvisAirCursorVelocityX =
+            jarvisAirCursorVelocityX*.65 +
+            dx*.35;
+
+
+        jarvisAirCursorVelocityY =
+            jarvisAirCursorVelocityY*.65 +
+            dy*.35;
+
+
+        /*
+            Prediction is intentionally small
+            to avoid overshooting buttons.
+        */
+
+        const predictedX =
+            jarvisAirCursorTargetX +
+            jarvisAirCursorVelocityX *
+            JARVIS_AIR_CURSOR_PREDICTION;
+
+
+        const predictedY =
+            jarvisAirCursorTargetY +
+            jarvisAirCursorVelocityY *
+            JARVIS_AIR_CURSOR_PREDICTION;
+
 
         jarvisAirCursorX +=
             (
-                targetX +
-                vx*JARVIS_AIR_CURSOR_PREDICTION -
+                predictedX -
                 jarvisAirCursorX
             ) *
             JARVIS_AIR_CURSOR_SMOOTHING;
 
+
         jarvisAirCursorY +=
             (
-                targetY +
-                vy*JARVIS_AIR_CURSOR_PREDICTION -
+                predictedY -
                 jarvisAirCursorY
             ) *
             JARVIS_AIR_CURSOR_SMOOTHING;
 
     }
 
+
     const cursor =
         ensureJarvisAirCursor();
+
 
     cursor.style.display =
         "block";
 
+
     cursor.style.left =
-        jarvisAirCursorX + "px";
+        jarvisAirCursorX +
+        "px";
+
 
     cursor.style.top =
-        jarvisAirCursorY + "px";
+        jarvisAirCursorY +
+        "px";
 
 }
 
@@ -9468,18 +9884,34 @@ function updateJarvisAirCursor(
 function jarvisAirClick(){
 
     if(
-        !jarvisAirCursorVisible ||
-        !jarvisAirCursorX ||
-        !jarvisAirCursorY
+        !jarvisAirCursorVisible
     ){
+
         return;
+
     }
 
+
     const x =
-        jarvisAirCursorX;
+        jarvisPinchWasActive
+            ? jarvisPinchClickX
+            : jarvisAirCursorX;
+
 
     const y =
-        jarvisAirCursorY;
+        jarvisPinchWasActive
+            ? jarvisPinchClickY
+            : jarvisAirCursorY;
+
+
+    if(
+        !Number.isFinite(x) ||
+        !Number.isFinite(y)
+    ){
+
+        return;
+
+    }
 
 
     const elements =
@@ -9498,9 +9930,11 @@ function jarvisAirClick(){
         const element =
             elements[i];
 
+
         if(!element){
             continue;
         }
+
 
         if(
             element === jarvisAirCursor ||
@@ -9508,13 +9942,16 @@ function jarvisAirClick(){
             element.id === "jarvisHandCanvas" ||
             element.id === "jarvisCameraFeed"
         ){
+
             continue;
+
         }
 
 
         const target =
             element.closest(
-                "button,a,input,select,textarea,[role='button'],[tabindex]"
+                "button,a,input,select,textarea," +
+                "[role='button'],[tabindex]"
             );
 
 
@@ -9525,9 +9962,13 @@ function jarvisAirClick(){
 
         if(
             target.disabled ||
-            target.getAttribute("aria-disabled") === "true"
+            target.getAttribute(
+                "aria-disabled"
+            ) === "true"
         ){
+
             return;
+
         }
 
 
@@ -9541,7 +9982,7 @@ function jarvisAirClick(){
 
 
 /* =========================================================
-   PAGE ZOOM
+   TWO-HAND ZOOM
 ========================================================= */
 
 function getJarvisHandCenter(landmarks){
@@ -9561,6 +10002,7 @@ function getJarvisHandCenter(landmarks){
     const pinkyMcp =
         landmarks[17];
 
+
     return {
 
         x:
@@ -9571,6 +10013,7 @@ function getJarvisHandCenter(landmarks){
                 ringMcp.x +
                 pinkyMcp.x
             ) / 5,
+
 
         y:
             (
@@ -9586,22 +10029,34 @@ function getJarvisHandCenter(landmarks){
 }
 
 
-function getJarvisTwoHandDistance(left,right){
+function getJarvisTwoHandDistance(
+    left,
+    right
+){
 
     const a =
-        getJarvisHandCenter(left);
+        getJarvisHandCenter(
+            left
+        );
+
 
     const b =
-        getJarvisHandCenter(right);
+        getJarvisHandCenter(
+            right
+        );
+
 
     const dx =
         a.x-b.x;
 
+
     const dy =
         a.y-b.y;
 
+
     return Math.sqrt(
-        dx*dx + dy*dy
+        dx*dx +
+        dy*dy
     );
 
 }
@@ -9612,32 +10067,41 @@ function applyJarvisPageZoom(){
     const e =
         getJarvisHandElements();
 
+
     jarvisPageZoom +=
         (
             jarvisPageZoomTarget -
             jarvisPageZoom
-        ) * .32;
+        ) * .28;
+
 
     if(
         Math.abs(
             jarvisPageZoom -
             jarvisPageZoomTarget
-        ) < .0015
+        ) < .001
     ){
+
         jarvisPageZoom =
             jarvisPageZoomTarget;
+
     }
+
 
     const zoomValue =
         jarvisPageZoom.toFixed(3);
+
 
     if(
         document.documentElement.style.zoom !==
         zoomValue
     ){
+
         document.documentElement.style.zoom =
             zoomValue;
+
     }
+
 
     if(e.zoom){
 
@@ -9655,24 +10119,35 @@ function applyJarvisPageZoom(){
 
 function resetJarvisTwoHandZoom(){
 
-    jarvisTwoHandZoomActive = false;
+    jarvisTwoHandZoomActive =
+        false;
 
-    jarvisTwoHandZoomBaseline = 0;
+
+    jarvisTwoHandZoomBaseline =
+        0;
+
 
     jarvisTwoHandZoomBasePageZoom =
         jarvisPageZoom;
 
-    jarvisTwoHandZoomLastDistance = 0;
 
-    jarvisTwoHandZoomSmoothedDistance = 0;
+    jarvisTwoHandZoomLastDistance =
+        0;
+
+
+    jarvisTwoHandZoomSmoothedDistance =
+        0;
 
 }
 
 
-function updateJarvisTwoHandZoom(hands){
+function updateJarvisTwoHandZoom(
+    hands
+){
 
     const e =
         getJarvisHandElements();
+
 
     if(
         !hands ||
@@ -9703,13 +10178,15 @@ function updateJarvisTwoHandZoom(hands){
             rawDistance;
 
     }
+    else{
 
+        jarvisTwoHandZoomSmoothedDistance +=
+            (
+                rawDistance -
+                jarvisTwoHandZoomSmoothedDistance
+            ) * .40;
 
-    jarvisTwoHandZoomSmoothedDistance +=
-        (
-            rawDistance -
-            jarvisTwoHandZoomSmoothedDistance
-        ) * .50;
+    }
 
 
     const distance =
@@ -9718,16 +10195,21 @@ function updateJarvisTwoHandZoom(hands){
 
     if(!jarvisTwoHandZoomActive){
 
-        jarvisTwoHandZoomActive = true;
+        jarvisTwoHandZoomActive =
+            true;
+
 
         jarvisTwoHandZoomBaseline =
             distance;
 
+
         jarvisTwoHandZoomBasePageZoom =
             jarvisPageZoomTarget;
 
+
         jarvisTwoHandZoomLastDistance =
             distance;
+
 
         if(e.gesture){
 
@@ -9743,18 +10225,29 @@ function updateJarvisTwoHandZoom(hands){
         distance -
         jarvisTwoHandZoomBaseline;
 
-    const DEAD_ZONE =
-        .012;
 
-    const effectiveDelta =
-        Math.abs(delta) < DEAD_ZONE
-            ? 0
-            : delta -
-              (
-                  delta > 0
-                      ? DEAD_ZONE
-                      : -DEAD_ZONE
-              );
+    const DEAD_ZONE =
+        .014;
+
+
+    let effectiveDelta =
+        0;
+
+
+    if(
+        Math.abs(delta) >
+        DEAD_ZONE
+    ){
+
+        effectiveDelta =
+            delta -
+            (
+                delta > 0
+                    ? DEAD_ZONE
+                    : -DEAD_ZONE
+            );
+
+    }
 
 
     jarvisPageZoomTarget =
@@ -9763,23 +10256,29 @@ function updateJarvisTwoHandZoom(hands){
             Math.min(
                 1.80,
                 jarvisTwoHandZoomBasePageZoom +
-                effectiveDelta * 3.4
+                effectiveDelta*3.4
             )
         );
 
 
     if(e.gesture){
 
-        if(effectiveDelta > .012){
+        if(
+            effectiveDelta >
+            .012
+        ){
 
             e.gesture.textContent =
-                "GESTURE // HANDS APART // WEB ZOOM IN";
+                "GESTURE // TWO HANDS // ZOOM IN";
 
         }
-        else if(effectiveDelta < -.012){
+        else if(
+            effectiveDelta <
+            -.012
+        ){
 
             e.gesture.textContent =
-                "GESTURE // HANDS CLOSER // WEB ZOOM OUT";
+                "GESTURE // TWO HANDS // ZOOM OUT";
 
         }
         else{
@@ -9791,10 +10290,13 @@ function updateJarvisTwoHandZoom(hands){
 
     }
 
+
     jarvisTwoHandZoomLastDistance =
         distance;
 
+
     applyJarvisPageZoom();
+
 
     return true;
 
@@ -9805,35 +10307,49 @@ function updateJarvisTwoHandZoom(hands){
    PYTHON MEDIA BRIDGE
 ========================================================= */
 
-async function sendJarvisMediaCommand(action){
+async function sendJarvisMediaCommand(
+    action
+){
 
     const now =
         performance.now();
+
 
     if(
         now -
         jarvisLastMediaCommandTime <
         JARVIS_MEDIA_COMMAND_COOLDOWN
     ){
+
         return;
+
     }
+
 
     jarvisLastMediaCommandTime =
         now;
+
 
     try{
 
         const response =
             await fetch(
+
                 "http://127.0.0.1:8765/media?action=" +
                 encodeURIComponent(action) +
                 "&t=" +
                 Date.now(),
+
                 {
+
                     method:"GET",
+
                     cache:"no-store"
+
                 }
+
             );
+
 
         if(!response.ok){
 
@@ -9858,16 +10374,27 @@ async function sendJarvisMediaCommand(action){
 
 
 /* =========================================================
-   MEDIA GESTURE ACTION
+   MEDIA GESTURE ACTIONS
 ========================================================= */
 
-function executeJarvisGesture(gesture){
+function executeJarvisGesture(
+    gesture
+){
 
     const e =
         getJarvisHandElements();
 
 
-    if(gesture === "OPEN_PALM"){
+    /*
+        =====================================================
+        OPEN PALM = PAUSE ONLY
+        =====================================================
+    */
+
+    if(
+        gesture ===
+        "OPEN_PALM"
+    ){
 
         if(e.gesture){
 
@@ -9876,14 +10403,37 @@ function executeJarvisGesture(gesture){
 
         }
 
-        sendJarvisMediaCommand("pause");
+
+        sendJarvisMediaCommand(
+            "pause"
+        );
+
+
+        /*
+            IMPORTANT:
+            Do not allow another command
+            until neutral.
+        */
+
+        jarvisGestureNeedsNeutral =
+            true;
+
 
         return;
 
     }
 
 
-    if(gesture === "CLOSED_FIST"){
+    /*
+        =====================================================
+        CLOSED FIST = PLAY ONLY
+        =====================================================
+    */
+
+    if(
+        gesture ===
+        "CLOSED_FIST"
+    ){
 
         if(e.gesture){
 
@@ -9892,14 +10442,31 @@ function executeJarvisGesture(gesture){
 
         }
 
-        sendJarvisMediaCommand("play");
+
+        sendJarvisMediaCommand(
+            "play"
+        );
+
+
+        jarvisGestureNeedsNeutral =
+            true;
+
 
         return;
 
     }
 
 
-    if(gesture === "THUMB_UP"){
+    /*
+        =====================================================
+        THUMB UP = VOLUME UP ONLY
+        =====================================================
+    */
+
+    if(
+        gesture ===
+        "THUMB_UP"
+    ){
 
         if(e.gesture){
 
@@ -9908,14 +10475,31 @@ function executeJarvisGesture(gesture){
 
         }
 
-        sendJarvisMediaCommand("volume_up");
+
+        sendJarvisMediaCommand(
+            "volume_up"
+        );
+
+
+        jarvisGestureNeedsNeutral =
+            true;
+
 
         return;
 
     }
 
 
-    if(gesture === "THUMB_DOWN"){
+    /*
+        =====================================================
+        THUMB DOWN = VOLUME DOWN ONLY
+        =====================================================
+    */
+
+    if(
+        gesture ===
+        "THUMB_DOWN"
+    ){
 
         if(e.gesture){
 
@@ -9924,14 +10508,31 @@ function executeJarvisGesture(gesture){
 
         }
 
-        sendJarvisMediaCommand("volume_down");
+
+        sendJarvisMediaCommand(
+            "volume_down"
+        );
+
+
+        jarvisGestureNeedsNeutral =
+            true;
+
 
         return;
 
     }
 
 
-    if(gesture === "PINCH"){
+    /*
+        =====================================================
+        PINCH = SELECT / CLICK ONLY
+        =====================================================
+    */
+
+    if(
+        gesture ===
+        "PINCH"
+    ){
 
         if(e.gesture){
 
@@ -9940,7 +10541,13 @@ function executeJarvisGesture(gesture){
 
         }
 
+
         jarvisAirClick();
+
+
+        jarvisGestureNeedsNeutral =
+            true;
+
 
         return;
 
@@ -9958,46 +10565,85 @@ function resetJarvisMediaGesture(){
     jarvisMediaGestureState =
         "NONE";
 
+
     jarvisMediaGestureCandidate =
         "NONE";
+
 
     jarvisMediaGestureFrames =
         0;
 
+
     jarvisMediaGestureReleaseFrames =
         0;
 
-    jarvisPinchActive = false;
+
+    jarvisPinchActive =
+        false;
+
+
+    jarvisPinchWasActive =
+        false;
 
 }
 
 
 /*
-    POINT is continuous and never directly
-    sends a media command.
+    Gesture rules:
 
-    NONE releases the gesture lock.
+    POINT
+        -> continuous cursor
+        -> NEVER media
 
-    Other gestures require confirmation.
+    PINCH
+        -> one click
+        -> NEVER media
+
+    OPEN PALM
+        -> one PAUSE
+
+    CLOSED FIST
+        -> one PLAY
+
+    THUMB UP
+        -> one VOLUME UP
+
+    THUMB DOWN
+        -> one VOLUME DOWN
+
+    TWO HANDS
+        -> zoom only
+
+    NONE
+        -> releases the command lock
 */
 
-function updateJarvisGestureState(gesture){
+function updateJarvisGestureState(
+    gesture
+){
 
     const e =
         getJarvisHandElements();
 
 
     /*
-        Neutral state.
+        =====================================================
+        NEUTRAL
+        =====================================================
     */
 
-    if(gesture === "NONE"){
+    if(
+        gesture ===
+        "NONE"
+    ){
 
         jarvisMediaGestureCandidate =
             "NONE";
 
+
         jarvisMediaGestureFrames =
             0;
+
 
         jarvisMediaGestureReleaseFrames++;
 
@@ -10010,13 +10656,29 @@ function updateJarvisGestureState(gesture){
             jarvisMediaGestureState =
                 "NONE";
 
+
             jarvisMediaGestureReleaseFrames =
                 0;
+
+
+            /*
+                Only neutral can unlock
+                the next command.
+            */
 
             jarvisGestureNeedsNeutral =
                 false;
 
+
+            jarvisPinchWasActive =
+                false;
+
+
+            jarvisPinchActive =
+                false;
+
         }
+
 
         if(e.gesture){
 
@@ -10024,6 +10686,7 @@ function updateJarvisGestureState(gesture){
                 "GESTURE // SEARCHING";
 
         }
+
 
         return;
 
@@ -10035,23 +10698,47 @@ function updateJarvisGestureState(gesture){
 
 
     /*
-        Air mouse is continuous.
-        It never fires media commands.
+        =====================================================
+        POINT
+        AIR MOUSE ONLY
+        =====================================================
     */
 
-    if(gesture === "POINT"){
+    if(
+        gesture ===
+        "POINT"
+    ){
 
-        jarvisMediaGestureCandidate =
-            "POINT";
+        if(
+            !jarvisGestureNeedsNeutral
+        ){
 
-        jarvisMediaGestureFrames = 0;
+            jarvisMediaGestureCandidate =
+                "POINT";
 
-        if(e.gesture){
+            jarvisMediaGestureFrames =
+                0;
 
-            e.gesture.textContent =
-                "GESTURE // POINTING // AIR MOUSE";
+
+            if(e.gesture){
+
+                e.gesture.textContent =
+                    "GESTURE // POINTING // AIR MOUSE";
+
+            }
 
         }
+        else{
+
+            if(e.gesture){
+
+                e.gesture.textContent =
+                    "GESTURE // RELEASE TO REARM";
+
+            }
+
+        }
+
 
         return;
 
@@ -10059,24 +10746,30 @@ function updateJarvisGestureState(gesture){
 
 
     /*
-        If two-hand zoom just ended,
-        force a neutral release first.
+        =====================================================
+        COMMAND LOCK
+        =====================================================
     */
 
-    if(jarvisGestureNeedsNeutral){
+    if(
+        jarvisGestureNeedsNeutral
+    ){
 
         jarvisMediaGestureCandidate =
             "NONE";
 
+
         jarvisMediaGestureFrames =
             0;
+
 
         if(e.gesture){
 
             e.gesture.textContent =
-                "GESTURE // RELEASE HANDS TO REARM";
+                "GESTURE // RELEASE HAND TO REARM";
 
         }
+
 
         return;
 
@@ -10084,7 +10777,9 @@ function updateJarvisGestureState(gesture){
 
 
     /*
-        Candidate changed.
+        =====================================================
+        CANDIDATE CHANGED
+        =====================================================
     */
 
     if(
@@ -10095,8 +10790,10 @@ function updateJarvisGestureState(gesture){
         jarvisMediaGestureCandidate =
             gesture;
 
+
         jarvisMediaGestureFrames =
             1;
+
 
         return;
 
@@ -10105,6 +10802,12 @@ function updateJarvisGestureState(gesture){
 
     jarvisMediaGestureFrames++;
 
+
+    /*
+        =====================================================
+        CONFIRMED GESTURE
+        =====================================================
+    */
 
     if(
         jarvisMediaGestureFrames >=
@@ -10118,6 +10821,7 @@ function updateJarvisGestureState(gesture){
 
             jarvisMediaGestureState =
                 gesture;
+
 
             executeJarvisGesture(
                 gesture
@@ -10137,15 +10841,22 @@ function updateJarvisGestureState(gesture){
 async function initializeJarvisHandLandmarker(){
 
     if(jarvisHandLandmarker){
+
         return jarvisHandLandmarker;
+
     }
 
-    if(!jarvisHandEnginePromise){
+
+    if(
+        !jarvisHandEnginePromise
+    ){
 
         jarvisHandEnginePromise =
             (async function(){
 
-                if(!window.jarvisMediaPipeReady){
+                if(
+                    !window.jarvisMediaPipeReady
+                ){
 
                     throw new Error(
                         "MediaPipe loader unavailable"
@@ -10153,53 +10864,73 @@ async function initializeJarvisHandLandmarker(){
 
                 }
 
+
                 const m =
                     await window.jarvisMediaPipeReady;
 
+
                 const v =
-                    await m.FilesetResolver.forVisionTasks(
-                        JARVIS_HAND_WASM_URL
-                    );
+                    await m.FilesetResolver
+                        .forVisionTasks(
+                            JARVIS_HAND_WASM_URL
+                        );
+
 
                 return await
-                    m.HandLandmarker.createFromOptions(
-                        v,
-                        {
-                            baseOptions:{
-                                modelAssetPath:
-                                    JARVIS_HAND_MODEL_URL
-                            },
+                    m.HandLandmarker
+                        .createFromOptions(
+                            v,
+                            {
 
-                            runningMode:"VIDEO",
+                                baseOptions:{
+                                    modelAssetPath:
+                                        JARVIS_HAND_MODEL_URL
+                                },
 
-                            numHands:2,
 
-                            minHandDetectionConfidence:.45,
+                                runningMode:
+                                    "VIDEO",
 
-                            minHandPresenceConfidence:.45,
 
-                            minTrackingConfidence:.45
-                        }
-                    );
+                                numHands:
+                                    2,
+
+
+                                minHandDetectionConfidence:
+                                    .45,
+
+
+                                minHandPresenceConfidence:
+                                    .45,
+
+
+                                minTrackingConfidence:
+                                    .50
+
+                            }
+                        );
 
             })();
 
     }
+
 
     try{
 
         jarvisHandLandmarker =
             await jarvisHandEnginePromise;
 
+
         return jarvisHandLandmarker;
 
     }
-    catch(e){
+    catch(error){
 
         jarvisHandEnginePromise =
             null;
 
-        throw e;
+
+        throw error;
 
     }
 
@@ -10212,9 +10943,14 @@ async function initializeJarvisHandLandmarker(){
 
 function detectJarvisHands(){
 
-    if(!jarvisHandTrackingRunning){
+    if(
+        !jarvisHandTrackingRunning
+    ){
+
         return;
+
     }
+
 
     const e =
         getJarvisHandElements();
@@ -10231,10 +10967,15 @@ function detectJarvisHands(){
                 detectJarvisHands
             );
 
+
         return;
 
     }
 
+
+    /*
+        Only process a new camera frame.
+    */
 
     if(
         e.video.readyState >= 2 &&
@@ -10244,6 +10985,7 @@ function detectJarvisHands(){
 
         jarvisHandLastVideoTime =
             e.video.currentTime;
+
 
         const now =
             performance.now();
@@ -10258,6 +11000,7 @@ function detectJarvisHands(){
             jarvisHandLastDetectTime =
                 now;
 
+
             resizeJarvisHandCanvas();
 
 
@@ -10266,14 +11009,18 @@ function detectJarvisHands(){
                 e.canvas.clientWidth ||
                 1;
 
+
             const h =
                 jarvisHandCanvasHeight ||
                 e.canvas.clientHeight ||
                 1;
 
+
             const c =
                 jarvisHandCanvasContext ||
-                e.canvas.getContext("2d");
+                e.canvas.getContext(
+                    "2d"
+                );
 
 
             c.clearRect(
@@ -10287,14 +11034,16 @@ function detectJarvisHands(){
             try{
 
                 const result =
-                    jarvisHandLandmarker.detectForVideo(
-                        e.video,
-                        now
-                    );
+                    jarvisHandLandmarker
+                        .detectForVideo(
+                            e.video,
+                            now
+                        );
 
 
                 const rawHands =
-                    result.landmarks || [];
+                    result.landmarks ||
+                    [];
 
 
                 const hands =
@@ -10308,10 +11057,17 @@ function detectJarvisHands(){
                     e.count.textContent =
                         String(
                             hands.length
-                        ).padStart(2,"0");
+                        ).padStart(
+                            2,
+                            "0"
+                        );
 
                 }
 
+
+                /*
+                    Draw all tracked hands.
+                */
 
                 hands.forEach(
                     function(landmarks){
@@ -10328,28 +11084,51 @@ function detectJarvisHands(){
 
 
                 /* =================================================
-                   TWO HANDS = ZOOM ONLY
+                   TWO HANDS
+                   ZOOM ONLY
                 ================================================= */
 
-                if(hands.length >= 2){
+                if(
+                    hands.length >= 2
+                ){
 
-                    resetJarvisLaser();
+                    /*
+                        No cursor.
+                        No click.
+                        No media.
+                        No volume.
+                    */
 
                     resetJarvisAirCursor();
 
+
                     /*
-                        Lock one-hand gestures until
-                        neutral release occurs.
+                        Lock all one-hand commands.
                     */
 
                     jarvisGestureNeedsNeutral =
                         true;
 
+
                     jarvisMediaGestureCandidate =
                         "NONE";
 
+
                     jarvisMediaGestureFrames =
                         0;
+
+
+                    jarvisPinchActive =
+                        false;
+
+
+                    jarvisPinchWasActive =
+                        false;
+
+
+                    /*
+                        ONLY zoom.
+                    */
 
                     updateJarvisTwoHandZoom(
                         hands
@@ -10362,22 +11141,34 @@ function detectJarvisHands(){
                    ONE HAND
                 ================================================= */
 
-                else if(hands.length === 1){
+                else if(
+                    hands.length === 1
+                ){
 
                     resetJarvisTwoHandZoom();
 
                     applyJarvisPageZoom();
 
 
+                    const landmarks =
+                        hands[0];
+
+
                     const gesture =
                         detectJarvisGesture(
-                            hands[0]
+                            landmarks
                         );
 
 
                     /*
-                        Point and pinch keep the
-                        cursor alive.
+                        POINT
+                        -> cursor only
+
+                        PINCH
+                        -> cursor + click only
+
+                        No other gesture gets
+                        the cursor.
                     */
 
                     if(
@@ -10386,18 +11177,11 @@ function detectJarvisHands(){
                     ){
 
                         updateJarvisAirCursor(
-                            hands[0],
+                            landmarks,
                             gesture
                         );
 
                     }
-
-
-                    /*
-                        All non-pointer gestures
-                        hide the cursor.
-                    */
-
                     else{
 
                         resetJarvisAirCursor();
@@ -10405,33 +11189,14 @@ function detectJarvisHands(){
                     }
 
 
+                    /*
+                        Gesture state machine
+                        controls actual commands.
+                    */
+
                     updateJarvisGestureState(
                         gesture
                     );
-
-
-                    /*
-                        Update laser separately
-                        for visual feedback.
-                    */
-
-                    if(
-                        gesture === "POINT"
-                    ){
-
-                        updateJarvisLaserPointer(
-                            hands[0],
-                            w,
-                            h,
-                            c
-                        );
-
-                    }
-                    else{
-
-                        resetJarvisLaser();
-
-                    }
 
                 }
 
@@ -10448,7 +11213,12 @@ function detectJarvisHands(){
 
                     resetJarvisAirCursor();
 
-                    resetJarvisLaser();
+
+                    /*
+                        IMPORTANT:
+                        NONE is what releases the
+                        command lock.
+                    */
 
                     updateJarvisGestureState(
                         "NONE"
@@ -10457,12 +11227,13 @@ function detectJarvisHands(){
                 }
 
             }
-            catch(err){
+            catch(error){
 
                 console.error(
                     "JARVIS HAND DETECTION ERROR:",
-                    err
+                    error
                 );
+
 
                 setHandTrackingUI(
                     "ERROR",
@@ -10493,15 +11264,42 @@ async function startJarvisHandTracking(){
     const e =
         getJarvisHandElements();
 
-    if(jarvisHandTrackingRunning){
+
+    if(
+        jarvisHandTrackingRunning
+    ){
+
         return;
-    }
-
-    if(!jarvisCameraStream){
-
-        await startJarvisCamera();
 
     }
+
+
+    /*
+        Camera must be online first.
+    */
+
+    if(
+        !jarvisCameraStream
+    ){
+
+        const cameraStarted =
+            await startJarvisCamera();
+
+
+        if(!cameraStarted){
+
+            setHandTrackingUI(
+                "BLOCKED",
+                "GESTURE // CAMERA OFFLINE"
+            );
+
+
+            return;
+
+        }
+
+    }
+
 
     if(
         !jarvisCameraStream ||
@@ -10513,12 +11311,6 @@ async function startJarvisHandTracking(){
             "GESTURE // CAMERA OFFLINE"
         );
 
-        if(e.engine){
-
-            e.engine.textContent =
-                "VISION ENGINE // CAMERA REQUIRED";
-
-        }
 
         return;
 
@@ -10543,20 +11335,27 @@ async function startJarvisHandTracking(){
 
         await initializeJarvisHandLandmarker();
 
+
         resizeJarvisHandCanvas();
+
 
         resetJarvisHandSmoothing();
 
+
         resetJarvisMediaGesture();
+
 
         jarvisGestureNeedsNeutral =
             false;
 
+
         jarvisHandTrackingRunning =
             true;
 
+
         jarvisHandLastVideoTime =
             -1;
+
 
         jarvisHandLastDetectTime =
             0;
@@ -10566,6 +11365,7 @@ async function startJarvisHandTracking(){
 
             e.button.textContent =
                 "DISABLE HAND TRACKING";
+
 
             e.button.classList.add(
                 "active"
@@ -10591,12 +11391,13 @@ async function startJarvisHandTracking(){
         detectJarvisHands();
 
     }
-    catch(err){
+    catch(error){
 
         console.error(
             "JARVIS HAND TRACKING INITIALIZATION ERROR:",
-            err
+            error
         );
+
 
         jarvisHandTrackingRunning =
             false;
@@ -10621,6 +11422,7 @@ async function startJarvisHandTracking(){
             e.button.textContent =
                 "ENABLE HAND TRACKING";
 
+
             e.button.classList.remove(
                 "active"
             );
@@ -10641,15 +11443,19 @@ function stopJarvisHandTracking(){
     const e =
         getJarvisHandElements();
 
+
     jarvisHandTrackingRunning =
         false;
 
 
-    if(jarvisHandAnimationFrame){
+    if(
+        jarvisHandAnimationFrame
+    ){
 
         cancelAnimationFrame(
             jarvisHandAnimationFrame
         );
+
 
         jarvisHandAnimationFrame =
             null;
@@ -10660,15 +11466,19 @@ function stopJarvisHandTracking(){
     jarvisPageZoom =
         1;
 
+
     jarvisPageZoomTarget =
         1;
 
 
     resetJarvisTwoHandZoom();
 
+
     resetJarvisHandSmoothing();
 
+
     resetJarvisMediaGesture();
+
 
     jarvisGestureNeedsNeutral =
         false;
@@ -10705,7 +11515,10 @@ function stopJarvisHandTracking(){
 
 
     if(e.count){
-        e.count.textContent = "00";
+
+        e.count.textContent =
+            "00";
+
     }
 
 
@@ -10713,6 +11526,7 @@ function stopJarvisHandTracking(){
 
         e.button.textContent =
             "ENABLE HAND TRACKING";
+
 
         e.button.classList.remove(
             "active"
@@ -10748,6 +11562,7 @@ function setupCameraControls(){
             "enableCameraButton"
         );
 
+
     const disableButton =
         document.getElementById(
             "disableCameraButton"
@@ -10761,6 +11576,7 @@ function setupCameraControls(){
 
         enableButton.dataset.cameraReady =
             "1";
+
 
         enableButton.addEventListener(
             "click",
@@ -10783,6 +11599,7 @@ function setupCameraControls(){
 
         disableButton.dataset.cameraReady =
             "1";
+
 
         disableButton.addEventListener(
             "click",
@@ -10812,13 +11629,17 @@ function setupCameraControls(){
         handButton.dataset.handReady =
             "1";
 
+
         handButton.addEventListener(
             "click",
             async function(event){
 
                 event.stopPropagation();
 
-                if(jarvisHandTrackingRunning){
+
+                if(
+                    jarvisHandTrackingRunning
+                ){
 
                     stopJarvisHandTracking();
 
@@ -10844,11 +11665,11 @@ window.addEventListener(
     "resize",
     function(){
 
-        if(jarvisHandTrackingRunning){
+        if(
+            jarvisHandTrackingRunning
+        ){
 
             resizeJarvisHandCanvas();
-
-            jarvisAirPreviewRect = null;
 
         }
 
