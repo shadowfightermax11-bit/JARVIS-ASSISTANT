@@ -10803,25 +10803,24 @@ async function initializeJarvisHandLandmarker(){
                                     "VIDEO",
 
 
+                                /* =================================
+                                   JARVIS HAND TRACKING SETTINGS
+                                   ================================= */
+
                                 numHands:
                                     2,
 
 
-                                /*
-                                    Lower detection threshold
-                                    helps quick reacquisition.
-                                */
-
                                 minHandDetectionConfidence:
-                                    0.55,
+                                    0.50,
 
 
                                 minHandPresenceConfidence:
-                                    0.55,
+                                    0.10,
 
 
                                 minTrackingConfidence:
-                                    0.60
+                                    0.80
 
                             }
                         );
@@ -10844,7 +10843,6 @@ async function initializeJarvisHandLandmarker(){
 
         jarvisHandEnginePromise =
             null;
-
 
         throw error;
 
