@@ -556,6 +556,45 @@ body::after{
     gap:14px;
 }
 
+/* =========================================================
+   SAVED IDENTITIES / ACCOUNT FLOW
+========================================================= */
+.saved-accounts-panel{
+    margin-bottom:18px;
+    padding:15px;
+    border:1px solid rgba(34,211,238,.12);
+    background:rgba(3,7,17,.48);
+}
+.saved-accounts-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.saved-accounts-head span{font-size:8px;letter-spacing:2.5px;color:#71809a}
+.saved-accounts-head b{font-size:7px;letter-spacing:1.5px;color:#39ff88}
+.saved-accounts-list{display:grid;gap:8px;max-height:190px;overflow:auto;padding-right:2px}
+.saved-account-button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 13px;border:1px solid rgba(168,85,247,.16);background:linear-gradient(90deg,rgba(12,8,25,.88),rgba(5,10,20,.82));color:#fff;text-align:left;cursor:pointer;transition:.22s}
+.saved-account-button:hover{border-color:rgba(34,211,238,.6);box-shadow:0 0 18px rgba(34,211,238,.1);transform:translateX(2px)}
+.saved-account-name{font-size:10px;letter-spacing:1.8px;color:#f5f3ff}
+.saved-account-access{display:block;margin-top:4px;font-size:7px;letter-spacing:1.2px;color:#65758f}
+.saved-account-arrow{color:#22d3ee;font-size:15px}
+.saved-account-empty{padding:10px 4px;color:#4e5c72;font-size:7px;letter-spacing:1.5px;text-align:center}
+.setup-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.setup-row.two{grid-template-columns:1fr 1fr}
+.setup-row .setup-field{min-width:0}
+.setup-phone-note{font-size:6px;letter-spacing:1px;color:#4f5c72;margin-top:4px}
+.login-selected-account{display:none;margin:-6px 0 18px;padding:9px 10px;border:1px solid rgba(34,211,238,.14);background:rgba(4,12,22,.55);text-align:center;color:#6f819d;font-size:7px;letter-spacing:1.8px}
+.login-selected-account.show{display:block}
+.google-setup-shell{width:min(700px,94vw);position:relative;padding:42px;border:1px solid rgba(168,85,247,.38);background:linear-gradient(145deg,rgba(8,10,25,.94),rgba(2,5,14,.88));box-shadow:0 0 70px rgba(34,211,238,.07),inset 0 0 40px rgba(168,85,247,.035);backdrop-filter:blur(18px)}
+.google-setup-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:28px}
+.google-setup-grid .profile-field{min-width:0}
+.google-setup-shell .profile-button{margin-top:20px}
+.google-setup-error{display:none;text-align:center;margin-top:12px;color:#ff5a7d;font-size:9px;letter-spacing:1.5px}
+.google-setup-error.show{display:block}
+.profile-summary{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:30px}
+.profile-summary .profile-field{min-width:0}
+.password-wrap{position:relative}
+.password-wrap input{padding-right:48px}
+.password-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:1px solid rgba(34,211,238,.18);background:rgba(7,10,19,.8);color:#22d3ee;cursor:pointer}
+.profile-login-note{margin-top:18px;padding:14px;border:1px solid rgba(34,211,238,.1);background:rgba(3,8,18,.5);color:#65758f;font-size:8px;line-height:1.7;letter-spacing:1px}
+@media(max-width:700px){.setup-row,.google-setup-grid,.profile-summary{grid-template-columns:1fr}.saved-accounts-list{max-height:150px}.google-setup-shell{padding:30px 20px}}
+
 .setup-label{
     display:block;
 
@@ -1417,6 +1456,47 @@ body::after{
 }
 
 
+
+
+/* =========================================================
+   USER PROFILE / AGE + GENDER
+========================================================= */
+#profileStage{min-height:100vh;align-items:center;justify-content:center;padding:70px 20px;position:relative;overflow:hidden}
+.stage.active#profileStage{display:flex}
+.profile-shell{width:min(760px,94vw);position:relative;padding:42px;border:1px solid rgba(168,85,247,.38);background:linear-gradient(145deg,rgba(8,10,25,.94),rgba(2,5,14,.88));box-shadow:0 0 70px rgba(34,211,238,.07),inset 0 0 40px rgba(168,85,247,.035);backdrop-filter:blur(18px)}
+.profile-shell:before,.profile-shell:after{content:"";position:absolute;width:55px;height:55px;pointer-events:none}
+.profile-shell:before{top:-1px;left:-1px;border-top:1px solid #22d3ee;border-left:1px solid #22d3ee}
+.profile-shell:after{right:-1px;bottom:-1px;border-right:1px solid #a855f7;border-bottom:1px solid #a855f7}
+.profile-kicker{font-size:9px;letter-spacing:4px;color:#22d3ee;margin-bottom:12px}
+.profile-title{font-size:clamp(28px,5vw,48px);letter-spacing:6px;font-weight:500;color:#f5f3ff;text-shadow:0 0 24px rgba(168,85,247,.25)}
+.profile-subtitle{margin-top:12px;max-width:650px;color:#72819a;font-size:11px;line-height:1.8;letter-spacing:1.4px}
+.profile-core-line{margin-top:22px;display:flex;align-items:center;gap:9px;font-size:8px;letter-spacing:2px;color:#65758f}
+.profile-core-dot{width:7px;height:7px;border-radius:50%;background:#39ff88;box-shadow:0 0 12px #39ff88;animation:profileDotPulse 1.5s infinite}
+@keyframes profileDotPulse{50%{transform:scale(1.45);opacity:.6}}
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:30px}
+.profile-field{padding:20px;border:1px solid rgba(120,145,190,.14);background:rgba(3,7,17,.58)}
+.profile-field label{display:block;margin-bottom:9px;font-size:9px;letter-spacing:2.5px;color:#9aa8c0}
+.profile-field input,.profile-field select{width:100%;padding:14px;border:1px solid #273653;border-radius:7px;outline:none;background:#080b15;color:#fff;font-size:14px}
+.profile-field input:focus,.profile-field select:focus{border-color:#22d3ee;box-shadow:0 0 14px rgba(34,211,238,.18)}
+.profile-field small{display:block;margin-top:9px;color:#59667e;font-size:8px;line-height:1.6;letter-spacing:.8px}
+.profile-privacy{margin:18px 0;color:#56647c;font-size:7px;letter-spacing:1.8px}
+.profile-button{width:100%;padding:14px;border:1px solid rgba(34,211,238,.45);background:linear-gradient(90deg,rgba(124,58,237,.85),rgba(8,145,178,.85));color:#fff;font-weight:bold;letter-spacing:2.5px;cursor:pointer;box-shadow:0 0 24px rgba(34,211,238,.12);transition:.25s}
+.profile-button:hover{transform:translateY(-2px);box-shadow:0 0 32px rgba(34,211,238,.25)}
+.profile-error{display:none;text-align:center;margin-top:12px;color:#ff5a7d;font-size:9px;letter-spacing:1.5px}
+.profile-error.show{display:block}
+
+/* =========================================================
+   GOOGLE AUTHENTICATION
+========================================================= */
+.auth-divider{display:flex;align-items:center;gap:10px;margin:17px 0 13px;color:#4e5a70;font-size:7px;letter-spacing:1.7px}
+.auth-divider span{height:1px;flex:1;background:linear-gradient(90deg,transparent,rgba(120,145,190,.24),transparent)}
+.auth-divider b{font-weight:400;white-space:nowrap}
+.google-auth-button{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;border:1px solid rgba(255,255,255,.16);border-radius:7px;background:rgba(10,12,21,.82);color:#e9edf7;font-size:9px;font-weight:bold;letter-spacing:1.8px;cursor:pointer;transition:.25s}
+.google-auth-button:hover{border-color:rgba(34,211,238,.5);box-shadow:0 0 20px rgba(34,211,238,.12);transform:translateY(-1px)}
+.google-mark{width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:#fff;color:#4285f4;font-size:13px;font-weight:800;letter-spacing:0}
+.google-auth-button i{font-style:normal;margin-left:auto;color:#22d3ee;font-size:14px}
+.google-auth-note{text-align:center;margin-top:8px;color:#48556c;font-size:6px;letter-spacing:1.5px}
+
 /* =========================================================
    LOGIN
 ========================================================= */
@@ -1487,6 +1567,38 @@ body::after{
 
     color:#9d7cff;
 }
+
+.login-security-strip{display:flex;justify-content:space-between;gap:8px;margin:-12px 0 24px;padding:8px 9px;border-top:1px solid rgba(34,211,238,.12);border-bottom:1px solid rgba(168,85,247,.12);background:rgba(8,10,20,.55);font-size:6px;letter-spacing:1.1px;color:#596780}
+.login-security-strip span{white-space:nowrap}.login-security-strip i{display:inline-block;width:5px;height:5px;margin-right:5px;border-radius:50%;background:#39ff88;box-shadow:0 0 8px #39ff88;animation:loginStatusPulse 1.3s infinite}
+@keyframes loginStatusPulse{50%{opacity:.35;transform:scale(.7)}}
+.login-auth-status{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    margin:9px 0 18px;
+    color:#5e6c84;
+    font-size:7px;
+    letter-spacing:2.4px;
+    text-shadow:0 0 8px rgba(34,211,238,.18);
+}
+
+.login-auth-pulse{
+    width:5px;
+    height:5px;
+    border-radius:50%;
+    background:#22d3ee;
+    box-shadow:0 0 7px #22d3ee,0 0 14px rgba(34,211,238,.45);
+    animation:loginAuthPulse 1.7s ease-in-out infinite;
+}
+
+@keyframes loginAuthPulse{
+    0%,100%{opacity:.35;transform:scale(.75)}
+    50%{opacity:1;transform:scale(1.15)}
+}
+
+.login-scan-line{height:1px;margin:-14px 0 20px;background:linear-gradient(90deg,transparent,#22d3ee,transparent);opacity:.5;box-shadow:0 0 9px rgba(34,211,238,.35);animation:loginScan 2.2s linear infinite}
+@keyframes loginScan{0%{transform:translateX(-35%);opacity:.15}50%{opacity:.7}100%{transform:translateX(35%);opacity:.15}}
 
 .login-label{
     display:block;
@@ -4607,11 +4719,14 @@ body::after{
 .hand-tracking-button.active{color:#61ffb1;border-color:rgba(57,255,136,.4)}
 .hand-tracking-meta{display:flex;gap:14px;margin-top:10px;color:#65728d;font-size:7px;letter-spacing:1.5px}
 @media(max-width:600px){.hand-tracking-overlay{left:7px;right:7px;bottom:7px;font-size:5px}.hand-tracking-button{font-size:6px;padding:8px 9px}.hand-tracking-meta{font-size:6px}}
+
+
 </style>
 
 <script type="module">
 window.jarvisMediaPipeReady=import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/+esm");
 </script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 
@@ -4719,71 +4834,71 @@ window.jarvisMediaPipeReady=import("https://cdn.jsdelivr.net/npm/@mediapipe/task
 
                     <div>
 
-                        <div class="fields">
+                        <div class="saved-accounts-panel">
 
-
-                            <div class="setup-field">
-
-                                <label class="setup-label">
-                                    NAME
-                                </label>
-
-                                <input
-                                    id="setupName"
-                                    class="setup-input"
-                                    type="text"
-                                    placeholder="Enter your name"
-                                    autocomplete="off"
-                                >
-
+                            <div class="saved-accounts-head">
+                                <span>SAVED J.A.R.V.I.S. IDENTITIES</span>
+                                <div style="display:flex;align-items:center;gap:8px">
+                                    <b id="savedAccountsCount">00 SAVED</b>
+                                    <button id="setupCreateNewIdBtn" type="button" style="border:1px solid rgba(168,85,247,.35);background:rgba(12,8,25,.8);color:#c084fc;padding:6px 8px;font-size:6px;letter-spacing:1.2px;cursor:pointer">+ CREATE NEW ID</button>
+                                </div>
                             </div>
 
-
-                            <div class="setup-field">
-
-                                <label class="setup-label">
-                                    CREATE ACCESS ID
-                                </label>
-
-                                <input
-                                    id="setupAccess"
-                                    class="setup-input"
-                                    type="text"
-                                    placeholder="Choose an access ID"
-                                    autocomplete="off"
-                                >
-
-                            </div>
-
-
-                            <div class="setup-field">
-
-                                <label class="setup-label">
-                                    CREATE PASSWORD
-                                </label>
-
-                                <input
-                                    id="setupPass"
-                                    class="setup-input"
-                                    type="password"
-                                    placeholder="Create a secure password"
-                                    autocomplete="new-password"
-                                >
-
-                            </div>
-
-
-                            <button
-                                class="init"
-                                id="saveSetup"
-                                type="button"
-                            >
-                                INITIALIZE J.A.R.V.I.S. →
-                            </button>
-
+                            <div id="savedAccountsList" class="saved-accounts-list"></div>
 
                         </div>
 
+                        <div class="fields">
+
+                            <div class="setup-field">
+                                <label class="setup-label">NAME</label>
+                                <input id="setupName" class="setup-input" type="text" placeholder="Enter your name" autocomplete="name">
+                            </div>
+
+                            <div class="setup-field">
+                                <label class="setup-label">BIRTHDAY</label>
+                                <div class="setup-row">
+                                    <input id="setupBirthMonth" class="setup-input" type="text" placeholder="MONTH" inputmode="text" autocomplete="off" spellcheck="false">
+                                    <input id="setupBirthDay" class="setup-input" type="number" min="1" max="31" placeholder="DAY" inputmode="numeric">
+                                    <input id="setupBirthYear" class="setup-input" type="number" min="1900" max="2100" placeholder="YEAR" inputmode="numeric">
+                                </div>
+                            </div>
+
+                            <div class="setup-field">
+                                <label class="setup-label">GENDER</label>
+                                <select id="setupGender" class="setup-input">
+                                    <option value="">Select gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="non-binary">Non-binary</option>
+                                    <option value="prefer-not-to-say">Prefer not to say</option>
+                                </select>
+                            </div>
+
+                            <div class="setup-field">
+                                <label class="setup-label">PHONE NUMBER / ACCESS ID</label>
+                                <input id="setupAccess" class="setup-input" type="tel" placeholder="Enter your phone number" autocomplete="tel username">
+                                <div class="setup-phone-note">YOUR PHONE NUMBER BECOMES YOUR J.A.R.V.I.S. ACCESS ID</div>
+                            </div>
+
+                            <div class="setup-field">
+                                <label class="setup-label">CREATE PASSWORD</label>
+                                <input id="setupPass" class="setup-input" type="password" placeholder="Create a secure password" autocomplete="new-password">
+                            </div>
+
+                            <button class="init" id="saveSetup" type="button">INITIALIZE J.A.R.V.I.S. →</button>
+
+                            <div class="auth-divider">
+                                <span></span><b>OR AUTHENTICATE WITH</b><span></span>
+                            </div>
+
+                            <button class="google-auth-button" id="googleSignInBtn" type="button">
+                                <span class="google-mark">G</span><span>SIGN IN WITH GOOGLE</span><i>↗</i>
+                            </button>
+
+                            <div class="google-auth-note">SECURE EXTERNAL IDENTITY // GOOGLE</div>
+
+                        </div>
 
                         <div class="small">
 
@@ -5443,6 +5558,86 @@ window.jarvisMediaPipeReady=import("https://cdn.jsdelivr.net/npm/@mediapipe/task
 
 </section>
 
+<!-- =========================================================
+     STAGE 3 — USER PROFILE
+========================================================= -->
+<section id="profileStage" class="stage">
+    <div class="profile-shell">
+        <div class="profile-kicker">J.A.R.V.I.S. // USER PROFILE</div>
+        <div class="profile-title">IDENTITY PROFILE</div>
+        <div class="profile-subtitle">Your J.A.R.V.I.S. account information is ready. Review the access identity before continuing.</div>
+        <div class="profile-core-line"><span class="profile-core-dot"></span>PERSONALIZATION LAYER // READY</div>
+
+        <div class="profile-summary">
+            <div class="profile-field"><label>NAME</label><input id="profileName" type="text" readonly></div>
+            <div class="profile-field"><label>ACCESS ID / PHONE</label><input id="profileAccess" type="text" readonly autocomplete="username"></div>
+            <div class="profile-field" style="grid-column:span 2">
+                <label>PASSWORD</label>
+                <div class="password-wrap">
+                    <input id="profilePassword" type="password" readonly autocomplete="current-password">
+                    <button id="profilePasswordEye" class="password-eye" type="button" aria-label="Show password">◉</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-login-note">
+            <strong>LOGIN INFORMATION</strong><br>
+            These account details are used to securely access your J.A.R.V.I.S. Core. Keep your Access ID and password private.
+        </div>
+
+        <div class="profile-privacy">ACCOUNT DATA // STORED WITH YOUR J.A.R.V.I.S. LOCAL IDENTITY</div>
+        <button id="saveProfile" class="profile-button" type="button">CONTINUE TO J.A.R.V.I.S. CORE →</button>
+        <div id="profileError" class="profile-error"></div>
+    </div>
+</section>
+
+
+
+
+<!-- =========================================================
+     GOOGLE ACCOUNT DETAILS
+========================================================= -->
+<section id="googleSetupStage" class="stage">
+    <div class="google-setup-shell">
+        <div class="profile-kicker">J.A.R.V.I.S. // GOOGLE IDENTITY LINK</div>
+        <div class="profile-title">ACCOUNT DETAILS</div>
+        <div class="profile-subtitle">Complete the local J.A.R.V.I.S. access details for this Google identity.</div>
+
+        <div class="profile-core-line"><span class="profile-core-dot"></span>GOOGLE IDENTITY // VERIFIED</div>
+
+        <div class="google-setup-grid">
+            <div class="profile-field">
+                <label for="googleBirthMonth">BIRTH MONTH</label>
+                <input id="googleBirthMonth" type="text" placeholder="MONTH" inputmode="text" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="profile-field">
+                <label for="googleBirthDay">BIRTH DAY</label>
+                <input id="googleBirthDay" type="number" min="1" max="31" placeholder="Day" inputmode="numeric">
+            </div>
+            <div class="profile-field">
+                <label for="googleBirthYear">BIRTH YEAR</label>
+                <input id="googleBirthYear" type="number" min="1900" max="2100" placeholder="Year" inputmode="numeric">
+            </div>
+            <div class="profile-field">
+                <label for="googlePhone">PHONE NUMBER / ACCESS ID</label>
+                <input id="googlePhone" type="tel" placeholder="Enter phone number" autocomplete="tel username">
+            </div>
+            <div class="profile-field" style="grid-column:span 2">
+                <label for="googlePassword">CREATE PASSWORD</label>
+                <div class="password-wrap">
+                    <input id="googlePassword" type="password" placeholder="Create a secure password" autocomplete="new-password">
+                    <button id="googlePasswordEye" class="password-eye" type="button" aria-label="Show password">◉</button>
+                </div>
+            </div>
+        </div>
+
+        <button id="saveGoogleDetails" class="profile-button" type="button">CONTINUE →</button>
+        <div id="googleSetupError" class="google-setup-error"></div>
+    </div>
+</section>
+
+
+
 
 <!-- =========================================================
      STAGE 3 — LOGIN
@@ -5475,6 +5670,22 @@ window.jarvisMediaPipeReady=import("https://cdn.jsdelivr.net/npm/@mediapipe/task
             <div class="login-subtitle">
                 JARVIS CORE ACCESS
             </div>
+
+
+            <div class="login-security-strip">
+                <span><i></i> IDENTITY CHANNEL</span>
+                <span>LOCAL AUTH</span>
+                <span>ENCRYPTED</span>
+            </div>
+
+            <div class="login-auth-status">
+                <span class="login-auth-pulse"></span>
+                AUTHENTICATION // SECURE CORE
+            </div>
+
+            <div id="loginSelectedAccount" class="login-selected-account"></div>
+
+            <div class="login-scan-line"></div>
 
 
             <label class="login-label">
@@ -6824,75 +7035,157 @@ window.jarvisMediaPipeReady=import("https://cdn.jsdelivr.net/npm/@mediapipe/task
 const JARVIS_CREDENTIAL_KEY =
     "jarvisCredentials";
 
+const JARVIS_ACCOUNTS_KEY =
+    "jarvisAccounts";
+
+const JARVIS_ACTIVE_ACCOUNT_KEY =
+    "jarvisActiveAccount";
+
+const JARVIS_SELECTED_LOGIN_KEY =
+    "jarvisSelectedLogin";
+
 const JARVIS_MEMORY_KEY =
     "jarvisTrainingMemory";
 
+const JARVIS_PROFILE_KEY =
+    "jarvisProfile";
+
+const JARVIS_PENDING_AUTH_KEY =
+    "jarvisPendingAuth";
+
+const JARVIS_GOOGLE_CLIENT_ID =
+    "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+
+function makeJarvisAccountId(){
+    return "jarvis-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);
+}
+
+function getAccounts(){
+    try{
+        const raw=localStorage.getItem(JARVIS_ACCOUNTS_KEY);
+        if(raw){
+            const data=JSON.parse(raw);
+            if(Array.isArray(data))return data;
+        }
+    }catch(error){
+        console.error("JARVIS ACCOUNTS ERROR:",error);
+    }
+
+    /* Migrate the older single-account storage format once. */
+    try{
+        const legacyRaw=localStorage.getItem(JARVIS_CREDENTIAL_KEY);
+        if(legacyRaw){
+            const legacy=JSON.parse(legacyRaw);
+            if(legacy && typeof legacy === "object" && legacy.name && legacy.access){
+                const migrated={
+                    id:makeJarvisAccountId(),
+                    name:String(legacy.name),
+                    access:String(legacy.access),
+                    password:String(legacy.password || ""),
+                    provider:legacy.provider || "local",
+                    email:legacy.email || "",
+                    birthday:legacy.birthday || {month:"",day:"",year:""},
+                    gender:legacy.gender || "",
+                    createdAt:legacy.createdAt || new Date().toISOString()
+                };
+                localStorage.setItem(JARVIS_ACCOUNTS_KEY,JSON.stringify([migrated]));
+                localStorage.setItem(JARVIS_ACTIVE_ACCOUNT_KEY,migrated.id);
+                return [migrated];
+            }
+        }
+    }catch(error){
+        console.error("JARVIS LEGACY MIGRATION ERROR:",error);
+    }
+
+    return [];
+}
+
+function writeAccounts(accounts){
+    localStorage.setItem(JARVIS_ACCOUNTS_KEY,JSON.stringify(accounts));
+}
+
+function getAccountById(id){
+    if(!id)return null;
+    return getAccounts().find(function(account){return account.id===id;}) || null;
+}
+
+function setActiveAccount(account){
+    if(!account)return null;
+    localStorage.setItem(JARVIS_ACTIVE_ACCOUNT_KEY,account.id);
+    localStorage.setItem(JARVIS_CREDENTIAL_KEY,JSON.stringify(account));
+    return account;
+}
 
 function getCredentials(){
-
-    try{
-
-        const raw =
-            localStorage.getItem(
-                JARVIS_CREDENTIAL_KEY
-            );
-
-        if(!raw){
-            return null;
-        }
-
-        const data =
-            JSON.parse(raw);
-
-        if(
-            !data ||
-            typeof data !== "object"
-        ){
-            return null;
-        }
-
-        return data;
-
+    const accounts=getAccounts();
+    const activeId=localStorage.getItem(JARVIS_ACTIVE_ACCOUNT_KEY);
+    const active=accounts.find(function(account){return account.id===activeId;});
+    if(active){
+        localStorage.setItem(JARVIS_CREDENTIAL_KEY,JSON.stringify(active));
+        return active;
     }
-    catch(error){
-
-        console.error(
-            "JARVIS CREDENTIAL ERROR:",
-            error
-        );
-
-        return null;
-    }
-
+    return accounts.length ? accounts[0] : null;
 }
 
-
-function saveCredentials(
-    name,
-    access,
-    password
-){
-
-    const credentials = {
-
+function saveCredentials(name,access,password,metadata){
+    const accounts=getAccounts();
+    const data=metadata || {};
+    const account={
+        id:makeJarvisAccountId(),
         name:name.trim(),
-
         access:access.trim(),
-
-        password:password
-
+        password:password,
+        provider:data.provider || "local",
+        email:data.email || "",
+        googleSub:data.googleSub || "",
+        birthday:data.birthday || {month:"",day:"",year:""},
+        gender:data.gender || "",
+        createdAt:new Date().toISOString()
     };
-
-    localStorage.setItem(
-        JARVIS_CREDENTIAL_KEY,
-        JSON.stringify(credentials)
-    );
-
-    return credentials;
-
+    accounts.push(account);
+    writeAccounts(accounts);
+    setActiveAccount(account);
+    return account;
 }
 
+function updateAccount(accountId,patch){
+    const accounts=getAccounts();
+    const index=accounts.findIndex(function(account){return account.id===accountId;});
+    if(index<0)return null;
+    accounts[index]=Object.assign({},accounts[index],patch);
+    writeAccounts(accounts);
+    setActiveAccount(accounts[index]);
+    return accounts[index];
+}
 
+function getProfile(){
+    try{
+        const raw=localStorage.getItem(JARVIS_PROFILE_KEY);
+        if(!raw)return null;
+        const data=JSON.parse(raw);
+        return data && typeof data === "object" ? data : null;
+    }catch(error){return null;}
+}
+
+function saveProfile(data){
+    localStorage.setItem(JARVIS_PROFILE_KEY,JSON.stringify(data || {}));
+    return data;
+}
+
+function setPendingAuth(provider){
+    localStorage.setItem(JARVIS_PENDING_AUTH_KEY,JSON.stringify({provider:provider,active:true}));
+}
+
+function clearPendingAuth(){
+    localStorage.removeItem(JARVIS_PENDING_AUTH_KEY);
+}
+
+function getPendingAuth(){
+    try{
+        const raw=localStorage.getItem(JARVIS_PENDING_AUTH_KEY);
+        return raw ? JSON.parse(raw) : null;
+    }catch(e){return null;}
+}
 /* =========================================================
    STAGE CONTROLLER
 ========================================================= */
@@ -6907,6 +7200,16 @@ const stages = {
     info:
         document.getElementById(
             "infoStage"
+        ),
+
+    profile:
+        document.getElementById(
+            "profileStage"
+        ),
+
+    googleSetup:
+        document.getElementById(
+            "googleSetupStage"
         ),
 
     login:
@@ -6974,447 +7277,449 @@ function showStage(
 ========================================================= */
 
 function setupLogin(){
-
-    const credentials =
-        getCredentials();
-
-
-    if(!credentials){
-
-        alert(
-            "No J.A.R.V.I.S. identity found. Create an ID first."
-        );
-
+    const accounts=getAccounts();
+    if(!accounts.length){
+        alert("No saved J.A.R.V.I.S. identity found. Create an ID first.");
         return;
-
     }
-
-
+    localStorage.removeItem(JARVIS_SELECTED_LOGIN_KEY);
+    prepareLoginForm(null);
     showStage("login");
-
 }
 
+document.getElementById("setupLoginBtn").addEventListener("click",setupLogin);
 
-document
-    .getElementById(
-        "setupLoginBtn"
-    )
-    .addEventListener(
-        "click",
-        setupLogin
-    );
+function prepareLoginForm(account){
+    const name=document.getElementById("loginName");
+    const access=document.getElementById("loginAccess");
+    const password=document.getElementById("loginPassword");
+    const selected=document.getElementById("loginSelectedAccount");
+    const error=document.getElementById("error");
 
+    if(error){error.classList.remove("show");error.textContent="ACCESS DENIED";}
+    if(name)name.value=account ? account.name : "";
+    if(access)access.value=account ? account.access : "";
+    if(password)password.value="";
+
+    if(account){
+        localStorage.setItem(JARVIS_SELECTED_LOGIN_KEY,account.id);
+        if(selected){
+            selected.textContent="SAVED ID // "+account.name.toUpperCase()+" // ENTER PASSWORD TO CONTINUE";
+            selected.classList.add("show");
+        }
+    }else{
+        localStorage.removeItem(JARVIS_SELECTED_LOGIN_KEY);
+        if(selected)selected.classList.remove("show");
+    }
+}
+
+function openSavedAccountLogin(accountId){
+    const account=getAccountById(accountId);
+    if(!account)return;
+    prepareLoginForm(account);
+    showStage("login");
+    setTimeout(function(){
+        const password=document.getElementById("loginPassword");
+        if(password)password.focus();
+    },100);
+}
+
+function renderSavedAccounts(){
+    const list=document.getElementById("savedAccountsList");
+    const count=document.getElementById("savedAccountsCount");
+    if(!list)return;
+    const accounts=getAccounts();
+    if(count)count.textContent=String(accounts.length).padStart(2,"0")+" SAVED";
+    list.innerHTML="";
+    if(!accounts.length){
+        list.innerHTML='<div class="saved-account-empty">NO SAVED IDENTITIES // CREATE A NEW ID TO BEGIN</div>';
+        return;
+    }
+    accounts.forEach(function(account){
+        const button=document.createElement("button");
+        button.type="button";
+        button.className="saved-account-button";
+        const safeAccess=account.access ? (account.access.length>4 ? "•••• "+account.access.slice(-4) : account.access) : "NO ACCESS ID";
+        button.innerHTML='<span><span class="saved-account-name"></span><span class="saved-account-access"></span></span><span class="saved-account-arrow">›</span>';
+        button.querySelector(".saved-account-name").textContent=account.name || "J.A.R.V.I.S. USER";
+        button.querySelector(".saved-account-access").textContent="ACCESS ID // "+safeAccess;
+        button.addEventListener("click",function(){openSavedAccountLogin(account.id);});
+        list.appendChild(button);
+    });
+}
 
 /* =========================================================
    CREATE NEW ID
 ========================================================= */
 
 function createNewId(){
-
-    const setupName =
-        document.getElementById(
-            "setupName"
-        );
-
-    const setupAccess =
-        document.getElementById(
-            "setupAccess"
-        );
-
-    const setupPass =
-        document.getElementById(
-            "setupPass"
-        );
-
-
-    if(setupName){
-        setupName.value = "";
-    }
-
-    if(setupAccess){
-        setupAccess.value = "";
-    }
-
-    if(setupPass){
-        setupPass.value = "";
-    }
-
-
+    ["setupName","setupBirthMonth","setupBirthDay","setupBirthYear","setupGender","setupAccess","setupPass"].forEach(function(id){
+        const el=document.getElementById(id);
+        if(el)el.value="";
+    });
     showStage("setup");
-
-
-    setTimeout(
-        function(){
-
-            if(setupName){
-                setupName.focus();
-            }
-
-        },
-        100
-    );
-
+    setTimeout(function(){
+        const name=document.getElementById("setupName");
+        if(name)name.focus();
+    },100);
 }
 
+document.getElementById("createNewIdBtn").addEventListener("click",createNewId);
 
-document
-    .getElementById(
-        "createNewIdBtn"
-    )
-    .addEventListener(
-        "click",
-        createNewId
-    );
-
+const setupCreateNewIdButton=document.getElementById("setupCreateNewIdBtn");
+if(setupCreateNewIdButton)setupCreateNewIdButton.addEventListener("click",createNewId);
 
 /* =========================================================
-   SAVE / INITIALIZE SETUP
+   BIRTH MONTH INPUT
+   Keyboard only — no dropdown arrow.
 ========================================================= */
 
-function initializeSetup(){
+const JARVIS_MONTHS = [
+    "january","february","march","april","may","june",
+    "july","august","september","october","november","december"
+];
 
-    const name =
-        document
-            .getElementById(
-                "setupName"
-            )
-            .value
-            .trim();
-
-
-    const access =
-        document
-            .getElementById(
-                "setupAccess"
-            )
-            .value
-            .trim();
-
-
-    const password =
-        document
-            .getElementById(
-                "setupPass"
-            )
-            .value;
-
-
-    const button =
-        document.getElementById(
-            "saveSetup"
-        );
-
-
-    if(!name){
-
-        alert(
-            "Please enter your name."
-        );
-
-        document
-            .getElementById(
-                "setupName"
-            )
-            .focus();
-
-        return;
-
+function monthDistance(a,b){
+    const left=String(a || "").toLowerCase().trim();
+    const right=String(b || "").toLowerCase().trim();
+    const dp=Array.from({length:left.length+1},function(){return Array(right.length+1).fill(0);});
+    for(let i=0;i<=left.length;i++)dp[i][0]=i;
+    for(let j=0;j<=right.length;j++)dp[0][j]=j;
+    for(let i=1;i<=left.length;i++){
+        for(let j=1;j<=right.length;j++){
+            dp[i][j]=left[i-1]===right[j-1]
+                ? dp[i-1][j-1]
+                : Math.min(dp[i-1][j-1]+1,dp[i-1][j]+1,dp[i][j-1]+1);
+        }
     }
-
-
-    if(!access){
-
-        alert(
-            "Please create an access ID."
-        );
-
-        document
-            .getElementById(
-                "setupAccess"
-            )
-            .focus();
-
-        return;
-
-    }
-
-
-    if(!password){
-
-        alert(
-            "Please create a password."
-        );
-
-        document
-            .getElementById(
-                "setupPass"
-            )
-            .focus();
-
-        return;
-
-    }
-
-
-    saveCredentials(
-        name,
-        access,
-        password
-    );
-
-
-    button.classList.add(
-        "saved"
-    );
-
-    button.textContent =
-        "IDENTITY SAVED ✓";
-
-
-    const overlay =
-        document.getElementById(
-            "authorizationOverlay"
-        );
-
-
-    overlay.classList.add(
-        "show"
-    );
-
-
-    setTimeout(
-        function(){
-
-            overlay.classList.remove(
-                "show"
-            );
-
-            document
-                .getElementById(
-                    "welcomeName"
-                )
-                .textContent =
-                    "WELCOME " + name.toUpperCase();
-
-
-            showStage("info");
-
-
-            button.classList.remove(
-                "saved"
-            );
-
-            button.textContent =
-                "INITIALIZE J.A.R.V.I.S. →";
-
-        },
-        1600
-    );
-
+    return dp[left.length][right.length];
 }
 
+function normalizeBirthMonth(input){
+    if(!input)return "";
+    const raw=input.value.trim().toLowerCase();
+    if(!raw)return "";
+    if(/^\\d+$/.test(raw)){
+        const number=Number(raw);
+        if(number>=1 && number<=12){
+            input.value=JARVIS_MONTHS[number-1];
+            return JARVIS_MONTHS[number-1];
+        }
+        return "";
+    }
 
-document
-    .getElementById(
-        "saveSetup"
-    )
-    .addEventListener(
-        "click",
-        initializeSetup
-    );
+    const exact=JARVIS_MONTHS.find(function(month){return month===raw;});
+    if(exact){
+        input.value=exact;
+        return exact;
+    }
 
+    const prefix=JARVIS_MONTHS.find(function(month){
+        return month.startsWith(raw) && raw.length>=3;
+    });
+    if(prefix && raw.length>=3){
+        input.value=prefix;
+        return prefix;
+    }
+
+    let closest="";
+    let best=Infinity;
+    JARVIS_MONTHS.forEach(function(month){
+        const distance=monthDistance(raw,month);
+        if(distance<best){
+            best=distance;
+            closest=month;
+        }
+    });
+
+    const allowed=Math.max(2,Math.floor(raw.length/4));
+    if(best<=allowed){
+        input.value=closest;
+        return closest;
+    }
+    return "";
+}
+
+function getBirthMonthNumber(input){
+    const month=normalizeBirthMonth(input);
+    if(!month)return 0;
+    return JARVIS_MONTHS.indexOf(month)+1;
+}
+
+["setupBirthMonth","googleBirthMonth"].forEach(function(id){
+    const input=document.getElementById(id);
+    if(!input)return;
+    input.addEventListener("blur",function(){normalizeBirthMonth(input);});
+    input.addEventListener("keydown",function(event){
+        if(event.key==="Enter"){
+            event.preventDefault();
+            normalizeBirthMonth(input);
+        }
+    });
+});
+
+function initializeSetup(){
+    const name=document.getElementById("setupName").value.trim();
+    const month=getBirthMonthNumber(document.getElementById("setupBirthMonth"));
+    const day=document.getElementById("setupBirthDay").value.trim();
+    const year=document.getElementById("setupBirthYear").value.trim();
+    const gender=document.getElementById("setupGender").value;
+    const access=document.getElementById("setupAccess").value.trim();
+    const password=document.getElementById("setupPass").value;
+    const button=document.getElementById("saveSetup");
+
+    if(!name){alert("Please enter your name.");document.getElementById("setupName").focus();return;}
+    if(!month){alert("Please enter a valid birth month (January to December).");document.getElementById("setupBirthMonth").focus();return;}
+    if(!day||Number(day)<1||Number(day)>31){alert("Please enter a valid birth day.");return;}
+    if(!year||Number(year)<1900||Number(year)>2100){alert("Please enter a valid birth year.");return;}
+    if(!gender){alert("Please select your gender.");return;}
+    if(!access){alert("Please enter your phone number / Access ID.");document.getElementById("setupAccess").focus();return;}
+    if(!password){alert("Please create a password.");document.getElementById("setupPass").focus();return;}
+
+    const duplicate=getAccounts().some(function(account){return account.access===access;});
+    if(duplicate){alert("That phone number / Access ID is already saved. Use another account or sign in to the existing ID.");return;}
+
+    const account=saveCredentials(name,access,password,{
+        provider:"local",
+        birthday:{month:JARVIS_MONTHS[month-1],day:day,year:year},
+        gender:gender
+    });
+
+    button.classList.add("saved");
+    button.textContent="IDENTITY SAVED ✓";
+
+    const overlay=document.getElementById("authorizationOverlay");
+    if(overlay)overlay.classList.add("show");
+
+    setTimeout(function(){
+        if(overlay)overlay.classList.remove("show");
+        const welcome=document.getElementById("welcomeName");
+        if(welcome)welcome.textContent="WELCOME "+account.name.toUpperCase();
+        setPendingAuth("local");
+        populateProfileSummary(account);
+        showStage("info");
+        button.classList.remove("saved");
+        button.textContent="INITIALIZE J.A.R.V.I.S. →";
+        renderSavedAccounts();
+    },1600);
+}
+
+document.getElementById("saveSetup").addEventListener("click",initializeSetup);
 
 /* =========================================================
    ENTER KEY ON SETUP
 ========================================================= */
-
-[
-    "setupName",
-    "setupAccess",
-    "setupPass"
-]
-.forEach(
-    function(id){
-
-        const input =
-            document.getElementById(
-                id
-            );
-
-        if(!input){
-            return;
-        }
-
-
-        input.addEventListener(
-            "keydown",
-            function(event){
-
-                if(
-                    event.key === "Enter"
-                ){
-
-                    event.preventDefault();
-
-                    initializeSetup();
-
-                }
-
-            }
-        );
-
-    }
-);
-
+["setupName","setupBirthMonth","setupBirthDay","setupBirthYear","setupGender","setupAccess","setupPass"].forEach(function(id){
+    const input=document.getElementById(id);
+    if(!input)return;
+    input.addEventListener("keydown",function(event){
+        if(event.key==="Enter"){event.preventDefault();initializeSetup();}
+    });
+});
 
 /* =========================================================
    LOGIN
 ========================================================= */
 
 function initializeJarvis(){
+    const name=document.getElementById("loginName").value.trim();
+    const access=document.getElementById("loginAccess").value.trim();
+    const password=document.getElementById("loginPassword").value;
+    const error=document.getElementById("error");
+    const selectedId=localStorage.getItem(JARVIS_SELECTED_LOGIN_KEY);
+    let account=selectedId ? getAccountById(selectedId) : null;
 
-    const credentials =
-        getCredentials();
-
-
-    const name =
-        document
-            .getElementById(
-                "loginName"
-            )
-            .value
-            .trim();
-
-
-    const access =
-        document
-            .getElementById(
-                "loginAccess"
-            )
-            .value
-            .trim();
-
-
-    const password =
-        document
-            .getElementById(
-                "loginPassword"
-            )
-            .value;
-
-
-    const error =
-        document.getElementById(
-            "error"
-        );
-
-
-    if(!credentials){
-
-        error.textContent =
-            "NO IDENTITY FOUND";
-
-        error.classList.add(
-            "show"
-        );
-
-        return;
-
+    if(!account){
+        account=getAccounts().find(function(item){
+            return item.name===name && item.access===access && item.password===password;
+        }) || null;
+    }else{
+        const identityMatches=account.name===name && account.access===access && account.password===password;
+        if(!identityMatches)account=null;
     }
 
-
-    const valid =
-        name === credentials.name &&
-        access === credentials.access &&
-        password === credentials.password;
-
-
-    if(!valid){
-
-        error.textContent =
-            "ACCESS DENIED";
-
-        error.classList.remove(
-            "show"
-        );
-
+    if(!account){
+        error.textContent="ACCESS DENIED";
+        error.classList.remove("show");
         void error.offsetWidth;
-
-        error.classList.add(
-            "show"
-        );
-
+        error.classList.add("show");
         return;
-
     }
 
+    error.classList.remove("show");
+    setActiveAccount(account);
+    localStorage.removeItem(JARVIS_SELECTED_LOGIN_KEY);
+    populateProfileSummary(account);
+    setPendingAuth("login");
+    showStage("info");
+}
 
-    error.classList.remove(
-        "show"
-    );
+document.getElementById("initializeLogin").addEventListener("click",initializeJarvis);
 
+["loginName","loginAccess","loginPassword"].forEach(function(id){
+    const input=document.getElementById(id);
+    if(!input)return;
+    input.addEventListener("keydown",function(event){
+        if(event.key==="Enter"){event.preventDefault();initializeJarvis();}
+    });
+});
 
-    document
-        .getElementById(
-            "welcomeName"
-        )
-        .textContent =
-            "WELCOME " + credentials.name.toUpperCase();
+/* =========================================================
+   PROFILE SUMMARY / GOOGLE DETAILS
+========================================================= */
+function populateProfileSummary(account){
+    if(!account)return;
+    const name=document.getElementById("profileName");
+    const access=document.getElementById("profileAccess");
+    const password=document.getElementById("profilePassword");
+    if(name)name.value=account.name || "";
+    if(access)access.value=account.access || "";
+    if(password){password.value=account.password || "";password.type="password";}
+}
 
+function validateBirthday(month,day,year){
+    return Number.isInteger(Number(month)) && Number(month)>=1 && Number(month)<=12 &&
+           Number.isInteger(Number(day)) && Number(day)>=1 && Number(day)<=31 &&
+           Number.isInteger(Number(year)) && Number(year)>=1900 && Number(year)<=2100;
+}
 
+function initializeGoogleDetails(){
+    const pending=getPendingAuth();
+    if(!pending || pending.provider!=="google" || !pending.googleIdentity){
+        alert("Google identity session is not ready. Please sign in with Google again.");
+        return;
+    }
+    const month=getBirthMonthNumber(document.getElementById("googleBirthMonth"));
+    const day=document.getElementById("googleBirthDay").value.trim();
+    const year=document.getElementById("googleBirthYear").value.trim();
+    const phone=document.getElementById("googlePhone").value.trim();
+    const password=document.getElementById("googlePassword").value;
+    const error=document.getElementById("googleSetupError");
+    error.classList.remove("show");
+
+    if(!month || !day || !year || Number(day)<1 || Number(day)>31 || Number(year)<1900 || Number(year)>2100){
+        error.textContent="ENTER A VALID BIRTHDAY";
+        error.classList.add("show");
+        return;
+    }
+    if(!phone){error.textContent="ENTER YOUR PHONE NUMBER / ACCESS ID";error.classList.add("show");return;}
+    if(!password){error.textContent="CREATE A PASSWORD FOR THIS J.A.R.V.I.S. ACCOUNT";error.classList.add("show");return;}
+    if(getAccounts().some(function(account){return account.access===phone;})){error.textContent="THIS PHONE NUMBER / ACCESS ID IS ALREADY SAVED";error.classList.add("show");return;}
+
+    const identity=pending.googleIdentity;
+    const account=saveCredentials(identity.name,phone,password,{
+        provider:"google",
+        email:identity.email,
+        googleSub:identity.sub,
+        birthday:{month:JARVIS_MONTHS[month-1],day:day,year:year}
+    });
+    setPendingAuth("google");
+    const nextPending=getPendingAuth() || {};
+    nextPending.accountId=account.id;
+    localStorage.setItem(JARVIS_PENDING_AUTH_KEY,JSON.stringify(nextPending));
+    populateProfileSummary(account);
+    const welcome=document.getElementById("welcomeName");
+    if(welcome)welcome.textContent="WELCOME "+account.name.toUpperCase();
+    showStage("info");
+}
+
+const saveGoogleDetails=document.getElementById("saveGoogleDetails");
+if(saveGoogleDetails)saveGoogleDetails.addEventListener("click",initializeGoogleDetails);
+
+["googleBirthMonth","googleBirthDay","googleBirthYear","googlePhone","googlePassword"].forEach(function(id){
+    const input=document.getElementById(id);
+    if(input)input.addEventListener("keydown",function(event){if(event.key==="Enter"){event.preventDefault();initializeGoogleDetails();}});
+});
+
+function continueFromProfile(){
+    const account=getCredentials();
+    if(!account){
+        const error=document.getElementById("profileError");
+        if(error){error.textContent="NO ACTIVE IDENTITY FOUND";error.classList.add("show");}
+        return;
+    }
+    populateProfileSummary(account);
+    clearPendingAuth();
+    setPendingAuth("profile");
     showStage("dashboard");
+}
 
+const saveProfileButton=document.getElementById("saveProfile");
+if(saveProfileButton)saveProfileButton.addEventListener("click",continueFromProfile);
+
+function setupPasswordEye(buttonId,inputId){
+    const button=document.getElementById(buttonId);
+    const input=document.getElementById(inputId);
+    if(!button||!input)return;
+    button.addEventListener("click",function(){
+        input.type=input.type==="password" ? "text" : "password";
+        button.setAttribute("aria-label",input.type==="password" ? "Show password" : "Hide password");
+    });
+}
+setupPasswordEye("profilePasswordEye","profilePassword");
+setupPasswordEye("googlePasswordEye","googlePassword");
+
+/* =========================================================
+   CORE ENTRY
+========================================================= */
+
+function beginCoreLoading(){
+    showStage("dashboard");
 }
 
 
-document
-    .getElementById(
-        "initializeLogin"
-    )
-    .addEventListener(
-        "click",
-        initializeJarvis
-    );
+/* =========================================================
+   GOOGLE SIGN-IN
+========================================================= */
+function handleGoogleCredential(response){
+    try{
+        const payload=decodeJwtPayload(response.credential);
+        if(!payload)throw new Error("Invalid Google credential");
+        const name=(payload.name || payload.given_name || "Google User").trim();
+        const email=(payload.email || "").trim();
+        setPendingAuth("google");
+        localStorage.setItem(JARVIS_PENDING_AUTH_KEY,JSON.stringify({
+            provider:"google",
+            active:true,
+            googleIdentity:{name:name,email:email,sub:payload.sub || ""}
+        }));
+        showStage("googleSetup");
+    }catch(error){
+        console.error("GOOGLE AUTH ERROR:",error);
+        alert("Google authentication could not be completed.");
+    }
+}
 
+function decodeJwtPayload(token){
+    const parts=String(token || "").split(".");
+    if(parts.length!==3)return null;
+    const base64=parts[1].replace(/-/g,"+").replace(/_/g,"/");
+    const json=decodeURIComponent(atob(base64).split("").map(function(c){return "%"+("00"+c.charCodeAt(0).toString(16)).slice(-2);}).join(""));
+    return JSON.parse(json);
+}
 
-[
-    "loginName",
-    "loginAccess",
-    "loginPassword"
-]
-.forEach(
-    function(id){
-
-        const input =
-            document.getElementById(
-                id
-            );
-
-        if(!input){
+function initializeGoogleSignIn(){
+    const button=document.getElementById("googleSignInBtn");
+    if(!button)return;
+    button.addEventListener("click",function(){
+        if(JARVIS_GOOGLE_CLIENT_ID.includes("YOUR_GOOGLE_CLIENT_ID")){
+            alert("Google Sign-In needs your Google OAuth Web Client ID in JARVIS_GOOGLE_CLIENT_ID.");
             return;
         }
-
-
-        input.addEventListener(
-            "keydown",
-            function(event){
-
-                if(
-                    event.key === "Enter"
-                ){
-
-                    event.preventDefault();
-
-                    initializeJarvis();
-
-                }
-
-            }
-        );
-
-    }
-);
-
+        if(!window.google || !google.accounts || !google.accounts.id){
+            alert("Google authentication is still loading. Please try again.");
+            return;
+        }
+        google.accounts.id.initialize({
+            client_id:JARVIS_GOOGLE_CLIENT_ID,
+            callback:handleGoogleCredential,
+            auto_select:false,
+            cancel_on_tap_outside:true
+        });
+        google.accounts.id.prompt();
+    });
+}
+initializeGoogleSignIn();
 
 /* =========================================================
    ENTER CORE
@@ -7427,27 +7732,13 @@ document
     .addEventListener(
         "click",
         function(){
-
-            const credentials =
-                getCredentials();
-
-
-            if(credentials){
-
-                document
-                    .getElementById(
-                        "welcomeName"
-                    )
-                    .textContent =
-                        "WELCOME " + credentials.name.toUpperCase();
-
+            const credentials=getCredentials();
+            if(!credentials){
+                alert("NO ACTIVE IDENTITY FOUND");
+                return;
             }
-
-
-            showStage(
-                "login"
-            );
-
+            populateProfileSummary(credentials);
+            showStage("profile");
         }
     );
 
@@ -7695,23 +7986,16 @@ let jarvisCameraStream = null;
 function setCameraStatus(state, message){
 
     const stateElement =
-        document.getElementById(
-            "cameraPermissionState"
-        );
+        document.getElementById("cameraPermissionState");
 
     const statusElement =
-        document.getElementById(
-            "cameraStatusText"
-        );
+        document.getElementById("cameraStatusText");
 
     if(stateElement){
 
         stateElement.textContent = state;
 
-        stateElement.classList.remove(
-            "online",
-            "blocked"
-        );
+        stateElement.classList.remove("online","blocked");
 
         if(state === "ONLINE"){
             stateElement.classList.add("online");
@@ -7731,7 +8015,10 @@ function setCameraStatus(state, message){
 
 function stopJarvisCamera(){
 
-    if(typeof stopJarvisHandTracking === "function" && jarvisHandTrackingRunning){
+    if(
+        typeof stopJarvisHandTracking === "function" &&
+        jarvisHandTrackingRunning
+    ){
         stopJarvisHandTracking();
     }
 
@@ -7739,20 +8026,16 @@ function stopJarvisCamera(){
 
         jarvisCameraStream
             .getTracks()
-            .forEach(
-                function(track){
-                    track.stop();
-                }
-            );
+            .forEach(function(track){
+                track.stop();
+            });
 
         jarvisCameraStream = null;
 
     }
 
     const video =
-        document.getElementById(
-            "jarvisCameraFeed"
-        );
+        document.getElementById("jarvisCameraFeed");
 
     if(video){
         video.srcObject = null;
@@ -7768,16 +8051,16 @@ function stopJarvisCamera(){
 async function startJarvisCamera(){
 
     const video =
-        document.getElementById(
-            "jarvisCameraFeed"
-        );
+        document.getElementById("jarvisCameraFeed");
 
     if(!video){
         return;
     }
 
-    if(!navigator.mediaDevices ||
-       !navigator.mediaDevices.getUserMedia){
+    if(
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia
+    ){
 
         setCameraStatus(
             "BLOCKED",
@@ -7832,224 +8115,24 @@ async function startJarvisCamera(){
             "CAMERA // ACCESS DENIED OR UNAVAILABLE";
 
         if(error && error.name === "NotAllowedError"){
+
             message =
                 "CAMERA // PERMISSION BLOCKED // ALLOW CAMERA IN BROWSER SETTINGS";
+
         }
         else if(error && error.name === "NotFoundError"){
+
             message =
                 "CAMERA // NO CAMERA DEVICE DETECTED";
+
         }
         else if(error && error.name === "NotReadableError"){
+
             message =
                 "CAMERA // DEVICE IS BUSY OR UNAVAILABLE";
+
         }
         else if(error && error.name === "SecurityError"){
-            message =
-                "CAMERA // SECURE CONTEXT REQUIRED // USE HTTPS OR LOCALHOST";
-        }
-
-        setCameraStatus(
-            "BLOCKED",
-            message
-        );
-
-    }
-
-}
-
-/* =========================================================
-   CAMERA PERMISSION / VISION
-========================================================= */
-
-let jarvisCameraStream = null;
-
-function setCameraStatus(state, message){
-
-    const stateElement =
-        document.getElementById(
-            "cameraPermissionState"
-        );
-
-    const statusElement =
-        document.getElementById(
-            "cameraStatusText"
-        );
-
-    if(stateElement){
-
-        stateElement.textContent = state;
-
-        stateElement.classList.remove(
-            "online",
-            "blocked"
-        );
-
-        if(state === "ONLINE"){
-            stateElement.classList.add("online");
-        }
-
-        if(state === "BLOCKED"){
-            stateElement.classList.add("blocked");
-        }
-
-    }
-
-    if(statusElement){
-        statusElement.textContent = message;
-    }
-
-}
-
-
-function stopJarvisCamera(){
-
-    if(
-        typeof stopJarvisHandTracking === "function" &&
-        jarvisHandTrackingRunning
-    ){
-
-        stopJarvisHandTracking();
-
-    }
-
-    if(jarvisCameraStream){
-
-        jarvisCameraStream
-            .getTracks()
-            .forEach(
-                function(track){
-                    track.stop();
-                }
-            );
-
-        jarvisCameraStream = null;
-
-    }
-
-    const video =
-        document.getElementById(
-            "jarvisCameraFeed"
-        );
-
-    if(video){
-
-        video.pause();
-
-        video.srcObject = null;
-
-    }
-
-    setCameraStatus(
-        "OFFLINE",
-        "CAMERA // OFFLINE // DEVICE RELEASED"
-    );
-
-}
-
-
-async function startJarvisCamera(){
-
-    const video =
-        document.getElementById(
-            "jarvisCameraFeed"
-        );
-
-    if(!video){
-        return;
-    }
-
-    if(
-        !navigator.mediaDevices ||
-        !navigator.mediaDevices.getUserMedia
-    ){
-
-        setCameraStatus(
-            "BLOCKED",
-            "CAMERA // BROWSER DOES NOT SUPPORT CAMERA ACCESS"
-        );
-
-        return;
-
-    }
-
-    if(jarvisCameraStream){
-
-        setCameraStatus(
-            "ONLINE",
-            "CAMERA // ONLINE // LIVE VISION FEED ACTIVE"
-        );
-
-        return;
-
-    }
-
-    setCameraStatus(
-        "REQUESTING",
-        "CAMERA // REQUESTING BROWSER PERMISSION..."
-    );
-
-    try{
-
-        jarvisCameraStream =
-            await navigator.mediaDevices.getUserMedia({
-
-                video:{
-                    facingMode:"user"
-                },
-
-                audio:false
-
-            });
-
-        video.srcObject =
-            jarvisCameraStream;
-
-        await video.play();
-
-        setCameraStatus(
-            "ONLINE",
-            "CAMERA // ONLINE // LIVE VISION FEED ACTIVE"
-        );
-
-    }
-    catch(error){
-
-        jarvisCameraStream = null;
-
-        let message =
-            "CAMERA // ACCESS DENIED OR UNAVAILABLE";
-
-        if(
-            error &&
-            error.name === "NotAllowedError"
-        ){
-
-            message =
-                "CAMERA // PERMISSION BLOCKED // ALLOW CAMERA IN BROWSER SETTINGS";
-
-        }
-        else if(
-            error &&
-            error.name === "NotFoundError"
-        ){
-
-            message =
-                "CAMERA // NO CAMERA DEVICE DETECTED";
-
-        }
-        else if(
-            error &&
-            error.name === "NotReadableError"
-        ){
-
-            message =
-                "CAMERA // DEVICE IS BUSY OR UNAVAILABLE";
-
-        }
-        else if(
-            error &&
-            error.name === "SecurityError"
-        ){
 
             message =
                 "CAMERA // SECURE CONTEXT REQUIRED // USE HTTPS OR LOCALHOST";
@@ -8068,7 +8151,7 @@ async function startJarvisCamera(){
 
 /* =========================================================
    HAND TRACKING ENGINE
-   ULTRA SMOOTH / LOW-LAG / EXCLUSIVE GESTURES
+   EXCLUSIVE GESTURES / SMOOTH TRACKING
 ========================================================= */
 
 let jarvisHandLandmarker = null;
@@ -8082,55 +8165,38 @@ let jarvisHandCanvasWidth = 0;
 let jarvisHandCanvasHeight = 0;
 let jarvisHandLastDetectTime = 0;
 
-
-/* =========================================================
-   PERFORMANCE
-========================================================= */
-
-/*
-   MediaPipe detection is synchronous.
-
-   Detection runs around 35-40 FPS.
-   The cursor itself continues visually at
-   display refresh rate through requestAnimationFrame.
-*/
-
-const JARVIS_HAND_SMOOTHING = .62;
-const JARVIS_HAND_DETECT_MIN_INTERVAL = 26;
-
-const JARVIS_GESTURE_CONFIRM_FRAMES = 4;
+const JARVIS_HAND_SMOOTHING = .42;
+const JARVIS_HAND_DETECT_MIN_INTERVAL = 0;
+const JARVIS_GESTURE_CONFIRM_FRAMES = 3;
 const JARVIS_GESTURE_RELEASE_FRAMES = 3;
-
-const JARVIS_GESTURE_COOLDOWN = 650;
 
 let jarvisSmoothedHands = [];
 
 
 /* =========================================================
-   AIR MOUSE
+   AIR MOUSE / LASER POINTER
 ========================================================= */
 
-let jarvisAirMouseActive = false;
-let jarvisAirCursor = null;
+let jarvisLaserActive = false;
+let jarvisLaserX = 0;
+let jarvisLaserY = 0;
+let jarvisLaserTargetX = 0;
+let jarvisLaserTargetY = 0;
 
+const JARVIS_LASER_SMOOTHING = .36;
+
+let jarvisAirCursor = null;
+let jarvisAirCursorVisible = false;
 let jarvisAirCursorX = 0;
 let jarvisAirCursorY = 0;
+let jarvisAirCursorTargetX = 0;
+let jarvisAirCursorTargetY = 0;
 
-let jarvisAirTargetX = 0;
-let jarvisAirTargetY = 0;
-
-const JARVIS_CURSOR_SMOOTHING = .70;
-const JARVIS_CURSOR_PREDICTION = .10;
-
-
-/* =========================================================
-   AIR MOUSE RECT CACHE
-========================================================= */
+const JARVIS_AIR_CURSOR_SMOOTHING = .70;
+const JARVIS_AIR_CURSOR_PREDICTION = .10;
 
 let jarvisAirPreviewRect = null;
 let jarvisAirPreviewRectTime = 0;
-
-const JARVIS_AIR_RECT_REFRESH = 250;
 
 
 /* =========================================================
@@ -8141,46 +8207,35 @@ let jarvisPageZoom = 1;
 let jarvisPageZoomTarget = 1;
 
 let jarvisTwoHandZoomActive = false;
-
 let jarvisTwoHandZoomBaseline = 0;
-
 let jarvisTwoHandZoomBasePageZoom = 1;
-
 let jarvisTwoHandZoomLastDistance = 0;
-
 let jarvisTwoHandZoomSmoothedDistance = 0;
 
 
 /* =========================================================
-   TWO-HAND TRANSITION LOCK
+   EXCLUSIVE GESTURE STATE
 ========================================================= */
 
-let jarvisTwoHandTransitionLock = false;
+let jarvisMediaGestureState = "NONE";
+let jarvisMediaGestureCandidate = "NONE";
+let jarvisMediaGestureFrames = 0;
+let jarvisMediaGestureReleaseFrames = 0;
 
-let jarvisTwoHandTransitionFrames = 0;
+let jarvisLastMediaCommandTime = 0;
 
-const JARVIS_TWO_HAND_TRANSITION_FRAMES = 6;
+const JARVIS_MEDIA_COMMAND_COOLDOWN = 700;
+
+
+/*
+    Prevents a one-hand gesture from firing
+    immediately after two-hand zoom.
+*/
+let jarvisGestureNeedsNeutral = false;
 
 
 /* =========================================================
-   EXCLUSIVE GESTURE STATE MACHINE
-========================================================= */
-
-let jarvisGestureState = "NONE";
-
-let jarvisGestureCandidate = "NONE";
-
-let jarvisGestureFrames = 0;
-
-let jarvisGestureReleaseFrames = 0;
-
-let jarvisLastGestureActionTime = 0;
-
-let jarvisGestureLocked = false;
-
-
-/* =========================================================
-   PINCH HYSTERESIS
+   PINCH STATE
 ========================================================= */
 
 let jarvisPinchActive = false;
@@ -8190,54 +8245,22 @@ const JARVIS_PINCH_RELEASE = .44;
 
 
 /* =========================================================
-   MEDIA COMMAND STATE
-========================================================= */
-
-let jarvisLastMediaCommandTime = 0;
-
-const JARVIS_MEDIA_COMMAND_COOLDOWN = 650;
-
-
-/* =========================================================
    MEDIAPIPE
 ========================================================= */
 
 const JARVIS_HAND_MODEL_URL =
-"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
+    "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
 
 const JARVIS_HAND_WASM_URL =
-"https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm";
-
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm";
 
 const JARVIS_HAND_CONNECTIONS = [
-
-    [0,1],
-    [1,2],
-    [2,3],
-    [3,4],
-
-    [0,5],
-    [5,6],
-    [6,7],
-    [7,8],
-
-    [5,9],
-    [9,10],
-    [10,11],
-    [11,12],
-
-    [9,13],
-    [13,14],
-    [14,15],
-    [15,16],
-
-    [13,17],
-    [17,18],
-    [18,19],
-    [19,20],
-
+    [0,1],[1,2],[2,3],[3,4],
+    [0,5],[5,6],[6,7],[7,8],
+    [5,9],[9,10],[10,11],[11,12],
+    [9,13],[13,14],[14,15],[15,16],
+    [13,17],[17,18],[18,19],[19,20],
     [0,17]
-
 ];
 
 
@@ -8247,55 +8270,38 @@ const JARVIS_HAND_CONNECTIONS = [
 
 function getJarvisHandElements(){
 
-    if(jarvisHandElementsCache)
+    if(jarvisHandElementsCache){
         return jarvisHandElementsCache;
+    }
 
     jarvisHandElementsCache = {
 
         video:
-            document.getElementById(
-                "jarvisCameraFeed"
-            ),
+            document.getElementById("jarvisCameraFeed"),
 
         canvas:
-            document.getElementById(
-                "jarvisHandCanvas"
-            ),
+            document.getElementById("jarvisHandCanvas"),
 
         preview:
-            document.querySelector(
-                ".camera-preview"
-            ),
+            document.querySelector(".camera-preview"),
 
         button:
-            document.getElementById(
-                "handTrackingButton"
-            ),
+            document.getElementById("handTrackingButton"),
 
         state:
-            document.getElementById(
-                "handTrackingState"
-            ),
+            document.getElementById("handTrackingState"),
 
         count:
-            document.getElementById(
-                "handTrackingCount"
-            ),
+            document.getElementById("handTrackingCount"),
 
         gesture:
-            document.getElementById(
-                "handTrackingGesture"
-            ),
+            document.getElementById("handTrackingGesture"),
 
         zoom:
-            document.getElementById(
-                "handTrackingZoom"
-            ),
+            document.getElementById("handTrackingZoom"),
 
         engine:
-            document.getElementById(
-                "handTrackingEngine"
-            )
+            document.getElementById("handTrackingEngine")
 
     };
 
@@ -8308,48 +8314,34 @@ function getJarvisHandElements(){
    UI
 ========================================================= */
 
-function setHandTrackingUI(
-    state,
-    gesture
-){
+function setHandTrackingUI(state, gesture){
 
-    const e =
-        getJarvisHandElements();
+    const e = getJarvisHandElements();
 
     if(e.state){
 
-        e.state.textContent =
-            state;
+        e.state.textContent = state;
 
         e.state.classList.remove(
             "online",
             "blocked"
         );
 
-        if(state === "TRACKING")
+        if(state === "TRACKING"){
             e.state.classList.add("online");
+        }
 
         if(
             state === "ERROR" ||
             state === "BLOCKED"
         ){
-
-            e.state.classList.add(
-                "blocked"
-            );
-
+            e.state.classList.add("blocked");
         }
 
     }
 
-    if(
-        e.gesture &&
-        gesture
-    ){
-
-        e.gesture.textContent =
-            gesture;
-
+    if(e.gesture && gesture){
+        e.gesture.textContent = gesture;
     }
 
 }
@@ -8361,16 +8353,10 @@ function setHandTrackingUI(
 
 function resizeJarvisHandCanvas(){
 
-    const e =
-        getJarvisHandElements();
+    const e = getJarvisHandElements();
 
-    if(
-        !e.video ||
-        !e.canvas
-    ){
-
+    if(!e.video || !e.canvas){
         return;
-
     }
 
     const base =
@@ -8385,7 +8371,7 @@ function resizeJarvisHandCanvas(){
     const d =
         Math.min(
             window.devicePixelRatio || 1,
-            1.5
+            2
         );
 
     const width =
@@ -8405,16 +8391,11 @@ function resizeJarvisHandCanvas(){
         height === jarvisHandCanvasHeight &&
         jarvisHandCanvasContext
     ){
-
         return;
-
     }
 
-    jarvisHandCanvasWidth =
-        width;
-
-    jarvisHandCanvasHeight =
-        height;
+    jarvisHandCanvasWidth = width;
+    jarvisHandCanvasHeight = height;
 
     e.canvas.width =
         Math.max(
@@ -8435,12 +8416,7 @@ function resizeJarvisHandCanvas(){
         height + "px";
 
     jarvisHandCanvasContext =
-        e.canvas.getContext(
-            "2d",
-            {
-                alpha:true
-            }
-        );
+        e.canvas.getContext("2d");
 
     jarvisHandCanvasContext.setTransform(
         d,
@@ -8451,39 +8427,23 @@ function resizeJarvisHandCanvas(){
         0
     );
 
-    jarvisAirPreviewRect = null;
-
 }
 
 
 /* =========================================================
-   LANDMARK CENTER
+   LANDMARK SMOOTHING
 ========================================================= */
 
-function getJarvisLandmarkCenter(
-    landmarks
-){
+function getJarvisLandmarkCenter(landmarks){
 
-    if(
-        !landmarks ||
-        !landmarks.length
-    ){
-
-        return {
-            x:0,
-            y:0
-        };
-
+    if(!landmarks || !landmarks.length){
+        return {x:0,y:0};
     }
 
     let x = 0;
     let y = 0;
 
-    for(
-        let i = 0;
-        i < landmarks.length;
-        i++
-    ){
+    for(let i=0;i<landmarks.length;i++){
 
         x += landmarks[i].x;
         y += landmarks[i].y;
@@ -8491,419 +8451,211 @@ function getJarvisLandmarkCenter(
     }
 
     return {
-
-        x:
-            x / landmarks.length,
-
-        y:
-            y / landmarks.length
-
+        x:x / landmarks.length,
+        y:y / landmarks.length
     };
 
 }
 
 
-/* =========================================================
-   TEMPORAL RESET
-========================================================= */
-
 function resetJarvisHandSmoothing(){
 
     jarvisSmoothedHands = [];
 
-    resetJarvisAirMouse();
+    resetJarvisLaser();
 
-    jarvisPinchActive = false;
+    resetJarvisAirCursor();
 
 }
 
 
-/* =========================================================
-   SMOOTH HAND TRACKING
-========================================================= */
+function smoothJarvisHands(hands){
 
-function smoothJarvisHands(
-    hands
-){
+    if(!hands || !hands.length){
 
-    if(
-        !hands ||
-        !hands.length
-    ){
-
-        jarvisSmoothedHands = [];
+        resetJarvisHandSmoothing();
 
         return [];
 
     }
 
-    const used =
-        new Set();
-
+    const used = new Set();
     const next = [];
 
+    hands.forEach(function(hand){
 
-    hands.forEach(
-        function(hand){
+        const center =
+            getJarvisLandmarkCenter(hand);
 
-            const center =
-                getJarvisLandmarkCenter(
-                    hand
-                );
+        let best = -1;
+        let bestDistance = Infinity;
 
-            let best = -1;
+        jarvisSmoothedHands.forEach(
+            function(previous,index){
 
-            let bestDistance =
-                Infinity;
+                if(used.has(index)){
+                    return;
+                }
 
+                const dx =
+                    center.x -
+                    previous.center.x;
 
-            jarvisSmoothedHands.forEach(
-                function(
-                    previous,
-                    index
-                ){
+                const dy =
+                    center.y -
+                    previous.center.y;
 
-                    if(
-                        used.has(index)
-                    ){
+                const distance =
+                    dx*dx + dy*dy;
 
-                        return;
+                if(distance < bestDistance){
 
-                    }
-
-                    const dx =
-                        center.x -
-                        previous.center.x;
-
-                    const dy =
-                        center.y -
-                        previous.center.y;
-
-                    const distance =
-                        dx * dx +
-                        dy * dy;
-
-                    if(
-                        distance <
-                        bestDistance
-                    ){
-
-                        bestDistance =
-                            distance;
-
-                        best =
-                            index;
-
-                    }
+                    bestDistance = distance;
+                    best = index;
 
                 }
-            );
 
+            }
+        );
 
-            const previous =
-                best >= 0
-                    ? jarvisSmoothedHands[best]
-                    : null;
+        const previous =
+            best >= 0
+                ? jarvisSmoothedHands[best]
+                : null;
 
+        if(best >= 0){
+            used.add(best);
+        }
 
-            if(best >= 0)
-                used.add(best);
+        const landmarks =
+            hand.map(function(point,index){
 
+                if(
+                    !previous ||
+                    !previous.landmarks[index]
+                ){
 
-            const landmarks =
-                hand.map(
-                    function(
-                        point,
-                        index
-                    ){
+                    return {
+                        x:point.x,
+                        y:point.y,
+                        z:point.z || 0
+                    };
 
-                        if(
-                            !previous ||
-                            !previous.landmarks[index]
-                        ){
+                }
 
-                            return {
+                const alpha =
+                    JARVIS_HAND_SMOOTHING;
 
-                                x:
-                                    point.x,
+                return {
 
-                                y:
-                                    point.y,
+                    x:
+                        previous.landmarks[index].x +
+                        (
+                            point.x -
+                            previous.landmarks[index].x
+                        ) * alpha,
 
-                                z:
-                                    point.z || 0
+                    y:
+                        previous.landmarks[index].y +
+                        (
+                            point.y -
+                            previous.landmarks[index].y
+                        ) * alpha,
 
-                            };
+                    z:
+                        (previous.landmarks[index].z || 0) +
+                        (
+                            (point.z || 0) -
+                            (previous.landmarks[index].z || 0)
+                        ) * alpha
 
-                        }
-
-
-                        const alpha =
-                            JARVIS_HAND_SMOOTHING;
-
-
-                        return {
-
-                            x:
-                                previous.landmarks[index].x +
-                                (
-                                    point.x -
-                                    previous.landmarks[index].x
-                                ) * alpha,
-
-                            y:
-                                previous.landmarks[index].y +
-                                (
-                                    point.y -
-                                    previous.landmarks[index].y
-                                ) * alpha,
-
-                            z:
-                                (
-                                    previous.landmarks[index].z || 0
-                                ) +
-                                (
-                                    (point.z || 0) -
-                                    (
-                                        previous.landmarks[index].z || 0
-                                    )
-                                ) * alpha
-
-                        };
-
-                    }
-                );
-
-
-            next.push({
-
-                landmarks:
-                    landmarks,
-
-                center:
-                    getJarvisLandmarkCenter(
-                        landmarks
-                    )
+                };
 
             });
 
-        }
-    );
+        next.push({
+            landmarks:landmarks,
+            center:getJarvisLandmarkCenter(landmarks)
+        });
 
+    });
 
-    jarvisSmoothedHands =
-        next;
+    jarvisSmoothedHands = next;
 
-
-    return next.map(
-        function(item){
-            return item.landmarks;
-        }
-    );
-
-}
-
-
-/* =========================================================
-   MEDIAPIPE INITIALIZATION
-========================================================= */
-
-async function initializeJarvisHandLandmarker(){
-
-    if(jarvisHandLandmarker)
-        return jarvisHandLandmarker;
-
-
-    if(!jarvisHandEnginePromise){
-
-        jarvisHandEnginePromise =
-            (async function(){
-
-                if(
-                    !window.jarvisMediaPipeReady
-                ){
-
-                    throw new Error(
-                        "MediaPipe loader unavailable"
-                    );
-
-                }
-
-
-                const m =
-                    await window.jarvisMediaPipeReady;
-
-
-                const v =
-                    await m.FilesetResolver
-                        .forVisionTasks(
-                            JARVIS_HAND_WASM_URL
-                        );
-
-
-                return await
-                    m.HandLandmarker.createFromOptions(
-                        v,
-                        {
-
-                            baseOptions:{
-
-                                modelAssetPath:
-                                    JARVIS_HAND_MODEL_URL
-
-                            },
-
-                            runningMode:
-                                "VIDEO",
-
-                            numHands:
-                                2,
-
-                            minHandDetectionConfidence:
-                                .55,
-
-                            minHandPresenceConfidence:
-                                .55,
-
-                            minTrackingConfidence:
-                                .55
-
-                        }
-                    );
-
-            })();
-
-    }
-
-
-    try{
-
-        jarvisHandLandmarker =
-            await jarvisHandEnginePromise;
-
-        return jarvisHandLandmarker;
-
-    }
-    catch(error){
-
-        jarvisHandEnginePromise =
-            null;
-
-        throw error;
-
-    }
+    return next.map(function(item){
+        return item.landmarks;
+    });
 
 }
 
 
 /* =========================================================
-   HAND DRAWING
+   DRAW HAND
 ========================================================= */
 
-function drawJarvisHand(
-    landmarks,
-    w,
-    h,
-    c
-){
+function drawJarvisHand(l,w,h,c){
 
-    if(!c)
+    if(!c){
         return;
-
+    }
 
     c.save();
 
-
-    c.lineWidth =
-        1.1;
-
-
+    c.lineWidth = 1.25;
     c.strokeStyle =
-        "rgba(34,211,238,.90)";
+        "rgba(34,211,238,.95)";
 
-
-    c.shadowBlur =
-        4;
-
-
+    c.shadowBlur = 8;
     c.shadowColor =
-        "rgba(34,211,238,.45)";
+        "rgba(34,211,238,.7)";
 
+    JARVIS_HAND_CONNECTIONS.forEach(
+        function(q){
 
-    for(
-        let i = 0;
-        i < JARVIS_HAND_CONNECTIONS.length;
-        i++
-    ){
+            const a = l[q[0]];
+            const b = l[q[1]];
 
-        const q =
-            JARVIS_HAND_CONNECTIONS[i];
+            if(!a || !b){
+                return;
+            }
 
-        const a =
-            landmarks[q[0]];
+            c.beginPath();
 
-        const b =
-            landmarks[q[1]];
+            c.moveTo(
+                a.x*w,
+                a.y*h
+            );
 
+            c.lineTo(
+                b.x*w,
+                b.y*h
+            );
 
-        if(!a || !b)
-            continue;
+            c.stroke();
 
+        }
+    );
 
-        c.beginPath();
-
-
-        c.moveTo(
-            a.x * w,
-            a.y * h
-        );
-
-
-        c.lineTo(
-            b.x * w,
-            b.y * h
-        );
-
-
-        c.stroke();
-
-    }
-
-
-    c.shadowBlur =
-        5;
-
+    c.shadowBlur = 12;
 
     c.fillStyle =
         "#61f6ff";
 
-
-    for(
-        let i = 0;
-        i < landmarks.length;
-        i++
-    ){
-
-        const p =
-            landmarks[i];
-
+    l.forEach(function(p){
 
         c.beginPath();
 
-
         c.arc(
-            p.x * w,
-            p.y * h,
-            1.8,
+            p.x*w,
+            p.y*h,
+            2.35,
             0,
-            Math.PI * 2
+            Math.PI*2
         );
-
 
         c.fill();
 
-    }
-
+    });
 
     c.restore();
 
@@ -8911,38 +8663,10 @@ function drawJarvisHand(
 
 
 /* =========================================================
-   DISTANCE
+   FINGER GEOMETRY
 ========================================================= */
 
-function jarvisDistance(
-    a,
-    b
-){
-
-    if(!a || !b)
-        return Infinity;
-
-
-    const dx =
-        a.x - b.x;
-
-    const dy =
-        a.y - b.y;
-
-
-    return Math.sqrt(
-        dx * dx +
-        dy * dy
-    );
-
-}
-
-
-/* =========================================================
-   FINGER EXTENSION
-========================================================= */
-
-function getJarvisFingerExtended(
+function getJarvisFingerExtension(
     landmarks,
     tip,
     pip,
@@ -8950,59 +8674,89 @@ function getJarvisFingerExtended(
     wrist
 ){
 
-    if(
-        !landmarks[tip] ||
-        !landmarks[pip] ||
-        !landmarks[mcp] ||
-        !landmarks[wrist]
-    ){
+    const distance = function(a,b){
 
-        return false;
+        const dx = a.x-b.x;
+        const dy = a.y-b.y;
 
-    }
-
-
-    const tipDistance =
-        jarvisDistance(
-            landmarks[tip],
-            landmarks[wrist]
+        return Math.sqrt(
+            dx*dx + dy*dy
         );
 
-
-    const pipDistance =
-        jarvisDistance(
-            landmarks[pip],
-            landmarks[wrist]
-        );
-
-
-    const mcpDistance =
-        jarvisDistance(
-            landmarks[mcp],
-            landmarks[wrist]
-        );
-
+    };
 
     return (
-
-        tipDistance >
-        pipDistance * 1.08 &&
-
-        tipDistance >
-        mcpDistance * 1.12
-
+        distance(
+            landmarks[tip],
+            landmarks[wrist]
+        ) >
+        distance(
+            landmarks[pip],
+            landmarks[wrist]
+        ) * 1.07
+    ) &&
+    (
+        distance(
+            landmarks[tip],
+            landmarks[wrist]
+        ) >
+        distance(
+            landmarks[mcp],
+            landmarks[wrist]
+        ) * 1.10
     );
 
 }
 
 
+function getJarvisFingerState(landmarks){
+
+    const indexOpen =
+        getJarvisFingerExtension(
+            landmarks,8,6,5,0
+        );
+
+    const middleOpen =
+        getJarvisFingerExtension(
+            landmarks,12,10,9,0
+        );
+
+    const ringOpen =
+        getJarvisFingerExtension(
+            landmarks,16,14,13,0
+        );
+
+    const pinkyOpen =
+        getJarvisFingerExtension(
+            landmarks,20,18,17,0
+        );
+
+    return {
+        index:indexOpen,
+        middle:middleOpen,
+        ring:ringOpen,
+        pinky:pinkyOpen
+    };
+
+}
+
+
 /* =========================================================
-   THUMB EXTENSION
+   THUMB DETECTION
 ========================================================= */
 
-function isJarvisThumbExtended(
-    landmarks
-){
+function getJarvisThumbOpen(landmarks){
+
+    const distance = function(a,b){
+
+        const dx = a.x-b.x;
+        const dy = a.y-b.y;
+
+        return Math.sqrt(
+            dx*dx + dy*dy
+        );
+
+    };
 
     const tip =
         landmarks[4];
@@ -9016,384 +8770,134 @@ function isJarvisThumbExtended(
     const wrist =
         landmarks[0];
 
-
-    if(
-        !tip ||
-        !ip ||
-        !mcp ||
-        !wrist
-    ){
-
-        return false;
-
-    }
-
-
     const tipDistance =
-        jarvisDistance(
-            tip,
-            wrist
-        );
-
+        distance(tip,wrist);
 
     const ipDistance =
-        jarvisDistance(
-            ip,
-            wrist
-        );
-
+        distance(ip,wrist);
 
     const mcpDistance =
-        jarvisDistance(
-            mcp,
-            wrist
-        );
-
+        distance(mcp,wrist);
 
     return (
-
         tipDistance >
-        ipDistance * 1.04 &&
-
+        ipDistance * 1.08
+    ) &&
+    (
         tipDistance >
-        mcpDistance * 1.15
-
+        mcpDistance * 1.12
     );
 
 }
 
 
 /* =========================================================
-   PINCH DETECTION
-   HYSTERESIS PREVENTS FLICKER
+   PINCH
 ========================================================= */
 
-function isJarvisPinch(
-    landmarks
-){
+function getJarvisPinchDistance(landmarks){
 
-    if(
-        !landmarks ||
-        landmarks.length < 21
-    ){
+    const dx =
+        landmarks[4].x -
+        landmarks[8].x;
 
-        jarvisPinchActive =
-            false;
+    const dy =
+        landmarks[4].y -
+        landmarks[8].y;
 
-        return false;
-
-    }
-
-
-    const thumb =
-        landmarks[4];
-
-    const index =
-        landmarks[8];
-
-    const handSize =
-        jarvisDistance(
-            landmarks[0],
-            landmarks[9]
+    const distance =
+        Math.sqrt(
+            dx*dx + dy*dy
         );
 
+    const wx =
+        landmarks[0].x -
+        landmarks[9].x;
 
-    if(
-        !thumb ||
-        !index ||
-        handSize <= 0
-    ){
+    const wy =
+        landmarks[0].y -
+        landmarks[9].y;
 
-        jarvisPinchActive =
-            false;
+    const palmScale =
+        Math.sqrt(
+            wx*wx + wy*wy
+        ) || .1;
 
-        return false;
-
-    }
-
-
-    const ratio =
-        jarvisDistance(
-            thumb,
-            index
-        ) /
-        handSize;
-
-
-    if(jarvisPinchActive){
-
-        if(
-            ratio >
-            JARVIS_PINCH_RELEASE
-        ){
-
-            jarvisPinchActive =
-                false;
-
-        }
-
-    }
-    else{
-
-        if(
-            ratio <
-            JARVIS_PINCH_START
-        ){
-
-            jarvisPinchActive =
-                true;
-
-        }
-
-    }
-
-
-    return jarvisPinchActive;
+    return distance / palmScale;
 
 }
 
 
-/* =========================================================
-   THUMB DIRECTION
-   ORIENTATION-AWARE APPROXIMATION
-========================================================= */
+function isJarvisPinching(landmarks){
 
-function getJarvisThumbDirection(
-    landmarks
-){
+    const distance =
+        getJarvisPinchDistance(landmarks);
 
-    const wrist =
-        landmarks[0];
+    if(jarvisPinchActive){
 
-    const indexMcp =
-        landmarks[5];
+        if(
+            distance <=
+            JARVIS_PINCH_RELEASE
+        ){
+            return true;
+        }
 
-    const pinkyMcp =
-        landmarks[17];
+        jarvisPinchActive = false;
 
-    const thumbMcp =
-        landmarks[2];
-
-    const thumbTip =
-        landmarks[4];
-
-
-    if(
-        !wrist ||
-        !indexMcp ||
-        !pinkyMcp ||
-        !thumbMcp ||
-        !thumbTip
-    ){
-
-        return "NONE";
+        return false;
 
     }
 
-
-    /*
-       Palm vertical axis.
-
-       This is more reliable than simply
-       comparing thumb tip against one point.
-    */
-
-    const palmX =
-        (
-            indexMcp.x +
-            pinkyMcp.x
-        ) / 2 -
-        wrist.x;
-
-
-    const palmY =
-        (
-            indexMcp.y +
-            pinkyMcp.y
-        ) / 2 -
-        wrist.y;
-
-
-    const thumbX =
-        thumbTip.x -
-        thumbMcp.x;
-
-
-    const thumbY =
-        thumbTip.y -
-        thumbMcp.y;
-
-
-    const palmLength =
-        Math.sqrt(
-            palmX * palmX +
-            palmY * palmY
-        );
-
-
-    if(palmLength <= 0)
-        return "NONE";
-
-
-    /*
-       Projection onto the palm's
-       vertical direction.
-    */
-
-    const verticalProjection =
-        (
-            thumbY * palmY +
-            thumbX * palmX
-        ) /
-        palmLength;
-
-
-    /*
-       Camera-space fallback keeps
-       normal thumbs-up/down intuitive.
-    */
-
     if(
-        thumbTip.y <
-        indexMcp.y - .045 &&
-        verticalProjection < 0
+        distance <=
+        JARVIS_PINCH_START
     ){
 
-        return "THUMB_UP";
+        jarvisPinchActive = true;
+
+        return true;
 
     }
 
-
-    if(
-        thumbTip.y >
-        indexMcp.y + .045 &&
-        verticalProjection > 0
-    ){
-
-        return "THUMB_DOWN";
-
-    }
-
-
-    /*
-       Fallback for normal upright hands.
-    */
-
-    if(
-        thumbTip.y <
-        indexMcp.y - .075
-    ){
-
-        return "THUMB_UP";
-
-    }
-
-
-    if(
-        thumbTip.y >
-        indexMcp.y + .075
-    ){
-
-        return "THUMB_DOWN";
-
-    }
-
-
-    return "NONE";
+    return false;
 
 }
 
 
 /* =========================================================
    EXCLUSIVE GESTURE CLASSIFIER
-
-   PINCH
-   POINT
-   THUMB UP / DOWN
-   OPEN PALM
-   CLOSED FIST
 ========================================================= */
 
-function getJarvisGesture(
-    landmarks
-){
+function detectJarvisGesture(landmarks){
 
-    if(
-        !landmarks ||
-        landmarks.length < 21
-    ){
-
+    if(!landmarks || landmarks.length < 21){
         return "NONE";
-
     }
 
-
-    const indexOpen =
-        getJarvisFingerExtended(
-            landmarks,
-            8,
-            6,
-            5,
-            0
-        );
-
-
-    const middleOpen =
-        getJarvisFingerExtended(
-            landmarks,
-            12,
-            10,
-            9,
-            0
-        );
-
-
-    const ringOpen =
-        getJarvisFingerExtended(
-            landmarks,
-            16,
-            14,
-            13,
-            0
-        );
-
-
-    const pinkyOpen =
-        getJarvisFingerExtended(
-            landmarks,
-            20,
-            18,
-            17,
-            0
-        );
-
+    const fingers =
+        getJarvisFingerState(landmarks);
 
     const thumbOpen =
-        isJarvisThumbExtended(
-            landmarks
-        );
-
+        getJarvisThumbOpen(landmarks);
 
     const openCount =
         [
-            indexOpen,
-            middleOpen,
-            ringOpen,
-            pinkyOpen
-        ]
-        .filter(Boolean)
-        .length;
+            fingers.index,
+            fingers.middle,
+            fingers.ring,
+            fingers.pinky
+        ].filter(Boolean).length;
 
 
-    /* =====================================================
-       PINCH
-       HIGHEST PRIORITY
-    ===================================================== */
+    /*
+        PINCH
+        Highest priority.
+        Used only as SELECT / CLICK.
+    */
 
     if(
-        isJarvisPinch(
-            landmarks
-        )
+        isJarvisPinching(landmarks) &&
+        fingers.index
     ){
 
         return "PINCH";
@@ -9401,16 +8905,17 @@ function getJarvisGesture(
     }
 
 
-    /* =====================================================
-       POINT
-       INDEX ONLY
-    ===================================================== */
+    /*
+        POINTING
+        Index only.
+    */
 
     if(
-        indexOpen &&
-        !middleOpen &&
-        !ringOpen &&
-        !pinkyOpen
+        fingers.index &&
+        !fingers.middle &&
+        !fingers.ring &&
+        !fingers.pinky &&
+        !thumbOpen
     ){
 
         return "POINT";
@@ -9418,57 +8923,44 @@ function getJarvisGesture(
     }
 
 
-    /* =====================================================
-       THUMB UP / DOWN
-       ALL OTHER FINGERS CLOSED
-    ===================================================== */
-
-    const otherFingersClosed =
-        !indexOpen &&
-        !middleOpen &&
-        !ringOpen &&
-        !pinkyOpen;
-
+    /*
+        THUMB UP / DOWN
+        Thumb extended while all four
+        other fingers are closed.
+    */
 
     if(
         thumbOpen &&
-        otherFingersClosed
+        !fingers.index &&
+        !fingers.middle &&
+        !fingers.ring &&
+        !fingers.pinky
     ){
 
-        const direction =
-            getJarvisThumbDirection(
-                landmarks
-            );
+        const wrist = landmarks[0];
+        const thumb = landmarks[4];
 
+        const vertical =
+            wrist.y - thumb.y;
 
-        if(
-            direction ===
-            "THUMB_UP"
-        ){
-
+        if(vertical > .045){
             return "THUMB_UP";
-
         }
 
-
-        if(
-            direction ===
-            "THUMB_DOWN"
-        ){
-
+        if(vertical < -.045){
             return "THUMB_DOWN";
-
         }
 
     }
 
 
-    /* =====================================================
-       OPEN PALM
-    ===================================================== */
+    /*
+        OPEN PALM
+        Strictly four fingers + thumb.
+    */
 
     if(
-        openCount >= 3 &&
+        openCount === 4 &&
         thumbOpen
     ){
 
@@ -9477,9 +8969,10 @@ function getJarvisGesture(
     }
 
 
-    /* =====================================================
-       CLOSED FIST
-    ===================================================== */
+    /*
+        CLOSED FIST
+        All four fingers closed and thumb closed.
+    */
 
     if(
         openCount === 0 &&
@@ -9497,341 +8990,220 @@ function getJarvisGesture(
 
 
 /* =========================================================
-   AIR MOUSE ELEMENT
+   LASER POINTER
 ========================================================= */
 
-function createJarvisAirCursor(){
+function resetJarvisLaser(){
 
-    if(jarvisAirCursor)
-        return jarvisAirCursor;
+    jarvisLaserActive = false;
 
+    jarvisLaserX = 0;
+    jarvisLaserY = 0;
 
-    jarvisAirCursor =
-        document.createElement(
-            "div"
-        );
-
-
-    jarvisAirCursor.id =
-        "jarvisAirCursor";
-
-
-    jarvisAirCursor.style.position =
-        "fixed";
-
-
-    jarvisAirCursor.style.width =
-        "22px";
-
-
-    jarvisAirCursor.style.height =
-        "22px";
-
-
-    jarvisAirCursor.style.border =
-        "1px solid rgba(34,211,238,.95)";
-
-
-    jarvisAirCursor.style.borderRadius =
-        "50%";
-
-
-    jarvisAirCursor.style.boxShadow =
-        "0 0 8px rgba(34,211,238,.8),0 0 18px rgba(34,211,238,.35)";
-
-
-    jarvisAirCursor.style.pointerEvents =
-        "none";
-
-
-    jarvisAirCursor.style.zIndex =
-        "2147483647";
-
-
-    jarvisAirCursor.style.transform =
-        "translate3d(-50%,-50%,0)";
-
-
-    jarvisAirCursor.style.display =
-        "none";
-
-
-    const dot =
-        document.createElement(
-            "div"
-        );
-
-
-    dot.style.position =
-        "absolute";
-
-
-    dot.style.left =
-        "50%";
-
-
-    dot.style.top =
-        "50%";
-
-
-    dot.style.width =
-        "4px";
-
-
-    dot.style.height =
-        "4px";
-
-
-    dot.style.transform =
-        "translate(-50%,-50%)";
-
-
-    dot.style.borderRadius =
-        "50%";
-
-
-    dot.style.background =
-        "#fff";
-
-
-    dot.style.boxShadow =
-        "0 0 8px #fff";
-
-
-    jarvisAirCursor.appendChild(
-        dot
-    );
-
-
-    document.body.appendChild(
-        jarvisAirCursor
-    );
-
-
-    return jarvisAirCursor;
+    jarvisLaserTargetX = 0;
+    jarvisLaserTargetY = 0;
 
 }
 
 
-/* =========================================================
-   RESET AIR MOUSE
-========================================================= */
+function isJarvisPointingGesture(landmarks){
 
-function resetJarvisAirMouse(){
-
-    jarvisAirMouseActive =
-        false;
-
-
-    jarvisAirTargetX =
-        0;
-
-
-    jarvisAirTargetY =
-        0;
-
-
-    jarvisAirPreviewRect =
-        null;
-
-
-    if(jarvisAirCursor){
-
-        jarvisAirCursor.style.display =
-            "none";
-
-    }
+    return detectJarvisGesture(landmarks) === "POINT";
 
 }
 
 
-/* =========================================================
-   UPDATE AIR MOUSE
-   POINTING ONLY
-========================================================= */
-
-function updateJarvisAirMouse(
+function updateJarvisLaserPointer(
     landmarks,
-    gesture
+    w,
+    h,
+    c
 ){
 
     if(
-        !landmarks ||
-        !landmarks.length
-    ){
-
-        resetJarvisAirMouse();
-
-        return false;
-
-    }
-
-
-    /*
-       Never recalculate the gesture here.
-       The detection loop already classified it.
-    */
-
-    if(
-        gesture !==
+        detectJarvisGesture(landmarks) !==
         "POINT"
     ){
 
-        resetJarvisAirMouse();
+        resetJarvisLaser();
 
         return false;
 
     }
-
-
-    const e =
-        getJarvisHandElements();
-
-
-    const preview =
-        e.preview ||
-        e.video;
-
-
-    if(!preview)
-        return false;
-
-
-    const now =
-        performance.now();
-
-
-    if(
-        !jarvisAirPreviewRect ||
-        now -
-        jarvisAirPreviewRectTime >
-        JARVIS_AIR_RECT_REFRESH
-    ){
-
-        jarvisAirPreviewRect =
-            preview.getBoundingClientRect();
-
-        jarvisAirPreviewRectTime =
-            now;
-
-    }
-
-
-    const rect =
-        jarvisAirPreviewRect;
-
 
     const tip =
         landmarks[8];
 
+    const mcp =
+        landmarks[5];
 
-    if(!tip)
-        return false;
+    jarvisLaserTargetX =
+        tip.x*w;
 
+    jarvisLaserTargetY =
+        tip.y*h;
 
-    /*
-       Mirror X to match the camera preview.
-    */
+    if(!jarvisLaserActive){
 
-    const targetX =
-        rect.left +
-        (
-            1 -
-            tip.x
-        ) *
-        rect.width;
+        jarvisLaserX =
+            jarvisLaserTargetX;
 
+        jarvisLaserY =
+            jarvisLaserTargetY;
 
-    const targetY =
-        rect.top +
-        tip.y *
-        rect.height;
-
-
-    if(
-        !jarvisAirMouseActive
-    ){
-
-        jarvisAirCursorX =
-            targetX;
-
-        jarvisAirCursorY =
-            targetY;
-
-        jarvisAirTargetX =
-            targetX;
-
-        jarvisAirTargetY =
-            targetY;
-
-        jarvisAirMouseActive =
-            true;
+        jarvisLaserActive = true;
 
     }
     else{
 
-        jarvisAirTargetX =
-            targetX;
-
-        jarvisAirTargetY =
-            targetY;
-
-
-        const velocityX =
-            targetX -
-            jarvisAirCursorX;
-
-
-        const velocityY =
-            targetY -
-            jarvisAirCursorY;
-
-
-        const predictedX =
-            targetX +
-            velocityX *
-            JARVIS_CURSOR_PREDICTION;
-
-
-        const predictedY =
-            targetY +
-            velocityY *
-            JARVIS_CURSOR_PREDICTION;
-
-
-        jarvisAirCursorX +=
+        jarvisLaserX +=
             (
-                predictedX -
-                jarvisAirCursorX
+                jarvisLaserTargetX -
+                jarvisLaserX
             ) *
-            JARVIS_CURSOR_SMOOTHING;
+            JARVIS_LASER_SMOOTHING;
 
-
-        jarvisAirCursorY +=
+        jarvisLaserY +=
             (
-                predictedY -
-                jarvisAirCursorY
+                jarvisLaserTargetY -
+                jarvisLaserY
             ) *
-            JARVIS_CURSOR_SMOOTHING;
+            JARVIS_LASER_SMOOTHING;
 
     }
 
+    let dx =
+        tip.x -
+        mcp.x;
 
-    const cursor =
-        createJarvisAirCursor();
+    let dy =
+        tip.y -
+        mcp.y;
+
+    const len =
+        Math.sqrt(dx*dx + dy*dy) || 1;
+
+    dx /= len;
+    dy /= len;
+
+    const sx = jarvisLaserX;
+    const sy = jarvisLaserY;
+
+    const candidates = [];
+
+    if(dx > 0){
+        candidates.push((w-sx)/dx);
+    }
+
+    if(dx < 0){
+        candidates.push((0-sx)/dx);
+    }
+
+    if(dy > 0){
+        candidates.push((h-sy)/dy);
+    }
+
+    if(dy < 0){
+        candidates.push((0-sy)/dy);
+    }
+
+    const positive =
+        candidates.filter(function(v){
+            return (
+                v > 0 &&
+                Number.isFinite(v)
+            );
+        });
+
+    const reach =
+        positive.length
+            ? Math.min.apply(null,positive)
+            : Math.max(w,h);
+
+    const ex =
+        sx + dx*reach;
+
+    const ey =
+        sy + dy*reach;
 
 
-    cursor.style.display =
-        "block";
+    c.save();
+
+    c.lineCap = "round";
+    c.globalCompositeOperation = "lighter";
+
+    c.beginPath();
+
+    c.moveTo(sx,sy);
+    c.lineTo(ex,ey);
+
+    c.lineWidth = 7;
+
+    c.strokeStyle =
+        "rgba(34,211,238,.12)";
+
+    c.shadowBlur = 22;
+
+    c.shadowColor =
+        "rgba(34,211,238,.95)";
+
+    c.stroke();
 
 
-    cursor.style.transform =
-        "translate3d(" +
-        jarvisAirCursorX +
-        "px," +
-        jarvisAirCursorY +
-        "px,0) translate(-50%,-50%)";
+    c.beginPath();
 
+    c.moveTo(sx,sy);
+    c.lineTo(ex,ey);
+
+    c.lineWidth = 1.15;
+
+    c.strokeStyle =
+        "rgba(255,255,255,.96)";
+
+    c.shadowBlur = 10;
+
+    c.stroke();
+
+
+    c.beginPath();
+
+    c.arc(
+        sx,
+        sy,
+        7,
+        0,
+        Math.PI*2
+    );
+
+    c.fillStyle =
+        "rgba(34,211,238,.16)";
+
+    c.shadowBlur = 18;
+
+    c.shadowColor =
+        "rgba(34,211,238,1)";
+
+    c.fill();
+
+
+    c.beginPath();
+
+    c.arc(
+        sx,
+        sy,
+        2.5,
+        0,
+        Math.PI*2
+    );
+
+    c.fillStyle =
+        "#ffffff";
+
+    c.shadowBlur = 10;
+
+    c.fill();
+
+    c.restore();
 
     return true;
 
@@ -9839,21 +9211,269 @@ function updateJarvisAirMouse(
 
 
 /* =========================================================
-   PINCH CLICK
-   PINCH = ONE CLICK ONLY
+   AIR MOUSE CURSOR
 ========================================================= */
 
-function jarvisAirClick(){
+function ensureJarvisAirCursor(){
+
+    if(jarvisAirCursor){
+        return jarvisAirCursor;
+    }
+
+    const cursor =
+        document.createElement("div");
+
+    cursor.id =
+        "jarvisAirCursor";
+
+    cursor.style.position =
+        "fixed";
+
+    cursor.style.left =
+        "0px";
+
+    cursor.style.top =
+        "0px";
+
+    cursor.style.width =
+        "22px";
+
+    cursor.style.height =
+        "22px";
+
+    cursor.style.border =
+        "1px solid rgba(34,211,238,.95)";
+
+    cursor.style.borderRadius =
+        "50%";
+
+    cursor.style.background =
+        "rgba(34,211,238,.10)";
+
+    cursor.style.boxShadow =
+        "0 0 12px rgba(34,211,238,.9), inset 0 0 7px rgba(255,255,255,.4)";
+
+    cursor.style.pointerEvents =
+        "none";
+
+    cursor.style.zIndex =
+        "2147483647";
+
+    cursor.style.transform =
+        "translate(-50%,-50%)";
+
+    cursor.style.display =
+        "none";
+
+    const dot =
+        document.createElement("div");
+
+    dot.style.position =
+        "absolute";
+
+    dot.style.left =
+        "50%";
+
+    dot.style.top =
+        "50%";
+
+    dot.style.width =
+        "4px";
+
+    dot.style.height =
+        "4px";
+
+    dot.style.transform =
+        "translate(-50%,-50%)";
+
+    dot.style.borderRadius =
+        "50%";
+
+    dot.style.background =
+        "#ffffff";
+
+    dot.style.boxShadow =
+        "0 0 8px rgba(255,255,255,.95)";
+
+    cursor.appendChild(dot);
+
+    document.body.appendChild(cursor);
+
+    jarvisAirCursor = cursor;
+
+    return cursor;
+
+}
+
+
+function resetJarvisAirCursor(){
+
+    jarvisAirCursorVisible = false;
+
+    jarvisAirCursorX = 0;
+    jarvisAirCursorY = 0;
+
+    jarvisAirCursorTargetX = 0;
+    jarvisAirCursorTargetY = 0;
+
+    if(jarvisAirCursor){
+        jarvisAirCursor.style.display = "none";
+    }
+
+    jarvisAirPreviewRect = null;
+
+}
+
+
+function updateJarvisAirCursor(
+    landmarks,
+    gesture
+){
 
     if(
-        !jarvisAirMouseActive ||
-        !jarvisAirCursor
+        gesture !== "POINT" &&
+        gesture !== "PINCH"
     ){
+
+        if(
+            gesture !== "PINCH"
+        ){
+            resetJarvisAirCursor();
+        }
 
         return;
 
     }
 
+    const e =
+        getJarvisHandElements();
+
+    if(!e.video){
+        return;
+    }
+
+    const now =
+        performance.now();
+
+    if(
+        !jarvisAirPreviewRect ||
+        now - jarvisAirPreviewRectTime > 250
+    ){
+
+        jarvisAirPreviewRect =
+            e.video.getBoundingClientRect();
+
+        jarvisAirPreviewRectTime =
+            now;
+
+    }
+
+    const rect =
+        jarvisAirPreviewRect;
+
+    if(
+        !rect ||
+        rect.width <= 0 ||
+        rect.height <= 0
+    ){
+        return;
+    }
+
+
+    const tip =
+        landmarks[8];
+
+    /*
+        Mirror X because the camera is
+        displayed as a user-facing mirror.
+    */
+
+    const normalizedX =
+        1 - tip.x;
+
+    const targetX =
+        rect.left +
+        normalizedX * rect.width;
+
+    const targetY =
+        rect.top +
+        tip.y * rect.height;
+
+
+    jarvisAirCursorTargetX =
+        targetX;
+
+    jarvisAirCursorTargetY =
+        targetY;
+
+
+    if(!jarvisAirCursorVisible){
+
+        jarvisAirCursorX =
+            targetX;
+
+        jarvisAirCursorY =
+            targetY;
+
+        jarvisAirCursorVisible = true;
+
+    }
+    else{
+
+        const vx =
+            targetX -
+            jarvisAirCursorTargetX;
+
+        const vy =
+            targetY -
+            jarvisAirCursorTargetY;
+
+        jarvisAirCursorX +=
+            (
+                targetX +
+                vx*JARVIS_AIR_CURSOR_PREDICTION -
+                jarvisAirCursorX
+            ) *
+            JARVIS_AIR_CURSOR_SMOOTHING;
+
+        jarvisAirCursorY +=
+            (
+                targetY +
+                vy*JARVIS_AIR_CURSOR_PREDICTION -
+                jarvisAirCursorY
+            ) *
+            JARVIS_AIR_CURSOR_SMOOTHING;
+
+    }
+
+    const cursor =
+        ensureJarvisAirCursor();
+
+    cursor.style.display =
+        "block";
+
+    cursor.style.left =
+        jarvisAirCursorX + "px";
+
+    cursor.style.top =
+        jarvisAirCursorY + "px";
+
+}
+
+
+/* =========================================================
+   AIR MOUSE CLICK
+========================================================= */
+
+function jarvisAirClick(){
+
+    if(
+        !jarvisAirCursorVisible ||
+        !jarvisAirCursorX ||
+        !jarvisAirCursorY
+    ){
+        return;
+    }
 
     const x =
         jarvisAirCursorX;
@@ -9869,114 +9489,51 @@ function jarvisAirClick(){
         );
 
 
-    let target =
-        null;
-
-
     for(
-        let i = 0;
-        i < elements.length;
+        let i=0;
+        i<elements.length;
         i++
     ){
 
         const element =
             elements[i];
 
-
-        if(
-            element ===
-            jarvisAirCursor
-        ){
-
+        if(!element){
             continue;
-
         }
 
-
-        const e =
-            getJarvisHandElements();
-
-
         if(
-            element === e.canvas ||
-            element === e.video
+            element === jarvisAirCursor ||
+            element.id === "jarvisAirCursor" ||
+            element.id === "jarvisHandCanvas" ||
+            element.id === "jarvisCameraFeed"
         ){
-
             continue;
-
         }
 
 
-        /*
-           Ignore the camera overlay itself.
-        */
+        const target =
+            element.closest(
+                "button,a,input,select,textarea,[role='button'],[tabindex]"
+            );
+
+
+        if(!target){
+            continue;
+        }
+
 
         if(
-            e.preview &&
-            (
-                element ===
-                e.preview ||
-                e.preview.contains(
-                    element
-                )
-            )
+            target.disabled ||
+            target.getAttribute("aria-disabled") === "true"
         ){
-
-            /*
-               Only skip actual camera/video
-               layers, not controls placed
-               above the preview.
-            */
-
-            if(
-                element === e.video ||
-                element === e.canvas
-            ){
-
-                continue;
-
-            }
-
+            return;
         }
 
 
-        target =
-            element;
+        target.click();
 
-        break;
-
-    }
-
-
-    if(!target)
         return;
-
-
-    try{
-
-        /*
-           One activation only.
-
-           No manual mousedown + mouseup,
-           preventing duplicate button actions.
-        */
-
-        if(
-            typeof target.click ===
-            "function"
-        ){
-
-            target.click();
-
-        }
-
-    }
-    catch(error){
-
-        console.warn(
-            "JARVIS AIR CLICK:",
-            error
-        );
 
     }
 
@@ -9984,25 +9541,10 @@ function jarvisAirClick(){
 
 
 /* =========================================================
-   TWO HAND CENTER
+   PAGE ZOOM
 ========================================================= */
 
-function getJarvisHandCenter(
-    landmarks
-){
-
-    if(
-        !landmarks ||
-        landmarks.length < 18
-    ){
-
-        return {
-            x:0,
-            y:0
-        };
-
-    }
-
+function getJarvisHandCenter(landmarks){
 
     const wrist =
         landmarks[0];
@@ -10018,7 +9560,6 @@ function getJarvisHandCenter(
 
     const pinkyMcp =
         landmarks[17];
-
 
     return {
 
@@ -10045,92 +9586,65 @@ function getJarvisHandCenter(
 }
 
 
-/* =========================================================
-   TWO HAND DISTANCE
-========================================================= */
-
-function getJarvisTwoHandDistance(
-    left,
-    right
-){
+function getJarvisTwoHandDistance(left,right){
 
     const a =
-        getJarvisHandCenter(
-            left
-        );
-
+        getJarvisHandCenter(left);
 
     const b =
-        getJarvisHandCenter(
-            right
-        );
+        getJarvisHandCenter(right);
 
+    const dx =
+        a.x-b.x;
 
-    return jarvisDistance(
-        a,
-        b
+    const dy =
+        a.y-b.y;
+
+    return Math.sqrt(
+        dx*dx + dy*dy
     );
 
 }
 
 
-/* =========================================================
-   APPLY PAGE ZOOM
-========================================================= */
-
 function applyJarvisPageZoom(){
+
+    const e =
+        getJarvisHandElements();
 
     jarvisPageZoom +=
         (
             jarvisPageZoomTarget -
             jarvisPageZoom
-        ) *
-        .24;
-
+        ) * .32;
 
     if(
         Math.abs(
             jarvisPageZoom -
             jarvisPageZoomTarget
-        ) < .001
+        ) < .0015
     ){
-
         jarvisPageZoom =
             jarvisPageZoomTarget;
-
     }
-
 
     const zoomValue =
         jarvisPageZoom.toFixed(3);
-
-
-    /*
-       Only write style when necessary.
-       Avoids unnecessary layout work.
-    */
 
     if(
         document.documentElement.style.zoom !==
         zoomValue
     ){
-
         document.documentElement.style.zoom =
             zoomValue;
-
     }
-
-
-    const e =
-        getJarvisHandElements();
-
 
     if(e.zoom){
 
         e.zoom.textContent =
             "WEB ZOOM // " +
             Math.round(
-                jarvisPageZoom * 100
+                jarvisPageZoom*100
             ) +
             "%";
 
@@ -10139,47 +9653,35 @@ function applyJarvisPageZoom(){
 }
 
 
-/* =========================================================
-   RESET ZOOM
-========================================================= */
-
 function resetJarvisTwoHandZoom(){
 
-    jarvisTwoHandZoomActive =
-        false;
+    jarvisTwoHandZoomActive = false;
 
-    jarvisTwoHandZoomBaseline =
-        0;
+    jarvisTwoHandZoomBaseline = 0;
 
     jarvisTwoHandZoomBasePageZoom =
-        jarvisPageZoomTarget;
+        jarvisPageZoom;
 
-    jarvisTwoHandZoomLastDistance =
-        0;
+    jarvisTwoHandZoomLastDistance = 0;
 
-    jarvisTwoHandZoomSmoothedDistance =
-        0;
+    jarvisTwoHandZoomSmoothedDistance = 0;
 
 }
 
 
-/* =========================================================
-   TWO HAND ZOOM
-   TWO HANDS ONLY
-========================================================= */
-
-function updateJarvisTwoHandZoom(
-    hands
-){
+function updateJarvisTwoHandZoom(hands){
 
     const e =
         getJarvisHandElements();
-
 
     if(
         !hands ||
         hands.length < 2
     ){
+
+        resetJarvisTwoHandZoom();
+
+        applyJarvisPageZoom();
 
         return false;
 
@@ -10191,15 +9693,6 @@ function updateJarvisTwoHandZoom(
             hands[0],
             hands[1]
         );
-
-
-    if(
-        !isFinite(rawDistance)
-    ){
-
-        return false;
-
-    }
 
 
     if(
@@ -10216,33 +9709,25 @@ function updateJarvisTwoHandZoom(
         (
             rawDistance -
             jarvisTwoHandZoomSmoothedDistance
-        ) *
-        .30;
+        ) * .50;
 
 
     const distance =
         jarvisTwoHandZoomSmoothedDistance;
 
 
-    if(
-        !jarvisTwoHandZoomActive
-    ){
+    if(!jarvisTwoHandZoomActive){
 
-        jarvisTwoHandZoomActive =
-            true;
-
+        jarvisTwoHandZoomActive = true;
 
         jarvisTwoHandZoomBaseline =
             distance;
 
-
         jarvisTwoHandZoomBasePageZoom =
             jarvisPageZoomTarget;
 
-
         jarvisTwoHandZoomLastDistance =
             distance;
-
 
         if(e.gesture){
 
@@ -10258,20 +9743,18 @@ function updateJarvisTwoHandZoom(
         distance -
         jarvisTwoHandZoomBaseline;
 
-
     const DEAD_ZONE =
-        .015;
-
+        .012;
 
     const effectiveDelta =
         Math.abs(delta) < DEAD_ZONE
             ? 0
             : delta -
-                (
-                    delta > 0
-                        ? DEAD_ZONE
-                        : -DEAD_ZONE
-                );
+              (
+                  delta > 0
+                      ? DEAD_ZONE
+                      : -DEAD_ZONE
+              );
 
 
     jarvisPageZoomTarget =
@@ -10280,36 +9763,26 @@ function updateJarvisTwoHandZoom(
             Math.min(
                 1.80,
                 jarvisTwoHandZoomBasePageZoom +
-                effectiveDelta * 3.2
+                effectiveDelta * 3.4
             )
         );
 
 
-    if(effectiveDelta > .012){
+    if(e.gesture){
 
-        if(e.gesture){
+        if(effectiveDelta > .012){
 
             e.gesture.textContent =
                 "GESTURE // HANDS APART // WEB ZOOM IN";
 
         }
-
-    }
-    else if(
-        effectiveDelta < -.012
-    ){
-
-        if(e.gesture){
+        else if(effectiveDelta < -.012){
 
             e.gesture.textContent =
                 "GESTURE // HANDS CLOSER // WEB ZOOM OUT";
 
         }
-
-    }
-    else{
-
-        if(e.gesture){
+        else{
 
             e.gesture.textContent =
                 "GESTURE // TWO HANDS // ZOOM HOLD";
@@ -10318,13 +9791,10 @@ function updateJarvisTwoHandZoom(
 
     }
 
-
     jarvisTwoHandZoomLastDistance =
         distance;
 
-
     applyJarvisPageZoom();
-
 
     return true;
 
@@ -10332,31 +9802,24 @@ function updateJarvisTwoHandZoom(
 
 
 /* =========================================================
-   MEDIA BRIDGE
+   PYTHON MEDIA BRIDGE
 ========================================================= */
 
-async function sendJarvisMediaCommand(
-    action
-){
+async function sendJarvisMediaCommand(action){
 
     const now =
         performance.now();
-
 
     if(
         now -
         jarvisLastMediaCommandTime <
         JARVIS_MEDIA_COMMAND_COOLDOWN
     ){
-
         return;
-
     }
-
 
     jarvisLastMediaCommandTime =
         now;
-
 
     try{
 
@@ -10367,16 +9830,10 @@ async function sendJarvisMediaCommand(
                 "&t=" +
                 Date.now(),
                 {
-
-                    method:
-                        "GET",
-
-                    cache:
-                        "no-store"
-
+                    method:"GET",
+                    cache:"no-store"
                 }
             );
-
 
         if(!response.ok){
 
@@ -10401,52 +9858,16 @@ async function sendJarvisMediaCommand(
 
 
 /* =========================================================
-   GESTURE ACTION
+   MEDIA GESTURE ACTION
 ========================================================= */
 
-function commandJarvisGesture(
-    gesture
-){
-
-    const now =
-        performance.now();
-
-
-    if(
-        now -
-        jarvisLastGestureActionTime <
-        JARVIS_GESTURE_COOLDOWN
-    ){
-
-        return;
-
-    }
-
-
-    if(jarvisGestureLocked)
-        return;
-
-
-    jarvisLastGestureActionTime =
-        now;
-
-
-    jarvisGestureLocked =
-        true;
-
+function executeJarvisGesture(gesture){
 
     const e =
         getJarvisHandElements();
 
 
-    /* =====================================================
-       OPEN PALM = PAUSE ONLY
-    ===================================================== */
-
-    if(
-        gesture ===
-        "OPEN_PALM"
-    ){
+    if(gesture === "OPEN_PALM"){
 
         if(e.gesture){
 
@@ -10455,25 +9876,14 @@ function commandJarvisGesture(
 
         }
 
-
-        sendJarvisMediaCommand(
-            "pause"
-        );
-
+        sendJarvisMediaCommand("pause");
 
         return;
 
     }
 
 
-    /* =====================================================
-       CLOSED FIST = PLAY ONLY
-    ===================================================== */
-
-    if(
-        gesture ===
-        "CLOSED_FIST"
-    ){
+    if(gesture === "CLOSED_FIST"){
 
         if(e.gesture){
 
@@ -10482,50 +9892,14 @@ function commandJarvisGesture(
 
         }
 
-
-        sendJarvisMediaCommand(
-            "play"
-        );
-
+        sendJarvisMediaCommand("play");
 
         return;
 
     }
 
 
-    /* =====================================================
-       PINCH = SELECT ONLY
-    ===================================================== */
-
-    if(
-        gesture ===
-        "PINCH"
-    ){
-
-        if(e.gesture){
-
-            e.gesture.textContent =
-                "GESTURE // PINCH // SELECT";
-
-        }
-
-
-        jarvisAirClick();
-
-
-        return;
-
-    }
-
-
-    /* =====================================================
-       THUMB UP = VOLUME UP ONLY
-    ===================================================== */
-
-    if(
-        gesture ===
-        "THUMB_UP"
-    ){
+    if(gesture === "THUMB_UP"){
 
         if(e.gesture){
 
@@ -10534,25 +9908,14 @@ function commandJarvisGesture(
 
         }
 
-
-        sendJarvisMediaCommand(
-            "volume_up"
-        );
-
+        sendJarvisMediaCommand("volume_up");
 
         return;
 
     }
 
 
-    /* =====================================================
-       THUMB DOWN = VOLUME DOWN ONLY
-    ===================================================== */
-
-    if(
-        gesture ===
-        "THUMB_DOWN"
-    ){
+    if(gesture === "THUMB_DOWN"){
 
         if(e.gesture){
 
@@ -10561,11 +9924,23 @@ function commandJarvisGesture(
 
         }
 
+        sendJarvisMediaCommand("volume_down");
 
-        sendJarvisMediaCommand(
-            "volume_down"
-        );
+        return;
 
+    }
+
+
+    if(gesture === "PINCH"){
+
+        if(e.gesture){
+
+            e.gesture.textContent =
+                "GESTURE // PINCH // SELECT";
+
+        }
+
+        jarvisAirClick();
 
         return;
 
@@ -10578,138 +9953,149 @@ function commandJarvisGesture(
    GESTURE STATE MACHINE
 ========================================================= */
 
-function updateJarvisGestureState(
-    gesture
-){
+function resetJarvisMediaGesture(){
+
+    jarvisMediaGestureState =
+        "NONE";
+
+    jarvisMediaGestureCandidate =
+        "NONE";
+
+    jarvisMediaGestureFrames =
+        0;
+
+    jarvisMediaGestureReleaseFrames =
+        0;
+
+    jarvisPinchActive = false;
+
+}
+
+
+/*
+    POINT is continuous and never directly
+    sends a media command.
+
+    NONE releases the gesture lock.
+
+    Other gestures require confirmation.
+*/
+
+function updateJarvisGestureState(gesture){
 
     const e =
         getJarvisHandElements();
 
 
-    /* =====================================================
-       POINT = CONTINUOUS AIR MOUSE
-    ===================================================== */
+    /*
+        Neutral state.
+    */
 
-    if(
-        gesture ===
-        "POINT"
-    ){
+    if(gesture === "NONE"){
 
-        if(
-            jarvisGestureCandidate !==
-            "POINT"
-        ){
+        jarvisMediaGestureCandidate =
+            "NONE";
 
-            jarvisGestureCandidate =
-                "POINT";
-
-            jarvisGestureFrames =
-                1;
-
-        }
-        else{
-
-            jarvisGestureFrames++;
-
-        }
-
-
-        jarvisGestureReleaseFrames =
+        jarvisMediaGestureFrames =
             0;
 
-
-        if(
-            jarvisGestureFrames >=
-            JARVIS_GESTURE_CONFIRM_FRAMES
-        ){
-
-            if(e.gesture){
-
-                e.gesture.textContent =
-                    "GESTURE // POINTING // AIR MOUSE";
-
-            }
-
-        }
-
-
-        return;
-
-    }
-
-
-    /* =====================================================
-       NONE = RELEASE
-    ===================================================== */
-
-    if(
-        gesture ===
-        "NONE"
-    ){
-
-        jarvisGestureReleaseFrames++;
+        jarvisMediaGestureReleaseFrames++;
 
 
         if(
-            jarvisGestureReleaseFrames >=
+            jarvisMediaGestureReleaseFrames >=
             JARVIS_GESTURE_RELEASE_FRAMES
         ){
 
-            jarvisGestureCandidate =
+            jarvisMediaGestureState =
                 "NONE";
 
-            jarvisGestureFrames =
+            jarvisMediaGestureReleaseFrames =
                 0;
 
-            jarvisGestureState =
-                "NONE";
-
-            jarvisGestureLocked =
+            jarvisGestureNeedsNeutral =
                 false;
-
-            jarvisGestureReleaseFrames =
-                0;
 
         }
 
+        if(e.gesture){
+
+            e.gesture.textContent =
+                "GESTURE // SEARCHING";
+
+        }
 
         return;
 
     }
 
 
-    jarvisGestureReleaseFrames =
+    jarvisMediaGestureReleaseFrames =
         0;
 
 
     /*
-       If a command is already locked,
-       do not switch directly to another
-       command.
-
-       User must release first.
+        Air mouse is continuous.
+        It never fires media commands.
     */
 
-    if(
-        jarvisGestureLocked &&
-        gesture !==
-        jarvisGestureState
-    ){
+    if(gesture === "POINT"){
+
+        jarvisMediaGestureCandidate =
+            "POINT";
+
+        jarvisMediaGestureFrames = 0;
+
+        if(e.gesture){
+
+            e.gesture.textContent =
+                "GESTURE // POINTING // AIR MOUSE";
+
+        }
 
         return;
 
     }
 
 
+    /*
+        If two-hand zoom just ended,
+        force a neutral release first.
+    */
+
+    if(jarvisGestureNeedsNeutral){
+
+        jarvisMediaGestureCandidate =
+            "NONE";
+
+        jarvisMediaGestureFrames =
+            0;
+
+        if(e.gesture){
+
+            e.gesture.textContent =
+                "GESTURE // RELEASE HANDS TO REARM";
+
+        }
+
+        return;
+
+    }
+
+
+    /*
+        Candidate changed.
+    */
+
     if(
         gesture !==
-        jarvisGestureCandidate
+        jarvisMediaGestureCandidate
     ){
 
-        jarvisGestureCandidate =
+        jarvisMediaGestureCandidate =
             gesture;
 
-        jarvisGestureFrames =
+        jarvisMediaGestureFrames =
             1;
 
         return;
@@ -10717,22 +10103,27 @@ function updateJarvisGestureState(
     }
 
 
-    jarvisGestureFrames++;
+    jarvisMediaGestureFrames++;
 
 
     if(
-        jarvisGestureFrames >=
-        JARVIS_GESTURE_CONFIRM_FRAMES &&
-        gesture !==
-        jarvisGestureState
+        jarvisMediaGestureFrames >=
+        JARVIS_GESTURE_CONFIRM_FRAMES
     ){
 
-        jarvisGestureState =
-            gesture;
+        if(
+            gesture !==
+            jarvisMediaGestureState
+        ){
 
-        commandJarvisGesture(
-            gesture
-        );
+            jarvisMediaGestureState =
+                gesture;
+
+            executeJarvisGesture(
+                gesture
+            );
+
+        }
 
     }
 
@@ -10740,49 +10131,90 @@ function updateJarvisGestureState(
 
 
 /* =========================================================
-   RESET GESTURE STATE
+   MEDIAPIPE INITIALIZATION
 ========================================================= */
 
-function resetJarvisGestureState(){
+async function initializeJarvisHandLandmarker(){
 
-    jarvisGestureState =
-        "NONE";
+    if(jarvisHandLandmarker){
+        return jarvisHandLandmarker;
+    }
 
-    jarvisGestureCandidate =
-        "NONE";
+    if(!jarvisHandEnginePromise){
 
-    jarvisGestureFrames =
-        0;
+        jarvisHandEnginePromise =
+            (async function(){
 
-    jarvisGestureReleaseFrames =
-        0;
+                if(!window.jarvisMediaPipeReady){
 
-    jarvisGestureLocked =
-        false;
+                    throw new Error(
+                        "MediaPipe loader unavailable"
+                    );
 
-    jarvisLastGestureActionTime =
-        0;
+                }
 
-    jarvisPinchActive =
-        false;
+                const m =
+                    await window.jarvisMediaPipeReady;
+
+                const v =
+                    await m.FilesetResolver.forVisionTasks(
+                        JARVIS_HAND_WASM_URL
+                    );
+
+                return await
+                    m.HandLandmarker.createFromOptions(
+                        v,
+                        {
+                            baseOptions:{
+                                modelAssetPath:
+                                    JARVIS_HAND_MODEL_URL
+                            },
+
+                            runningMode:"VIDEO",
+
+                            numHands:2,
+
+                            minHandDetectionConfidence:.45,
+
+                            minHandPresenceConfidence:.45,
+
+                            minTrackingConfidence:.45
+                        }
+                    );
+
+            })();
+
+    }
+
+    try{
+
+        jarvisHandLandmarker =
+            await jarvisHandEnginePromise;
+
+        return jarvisHandLandmarker;
+
+    }
+    catch(e){
+
+        jarvisHandEnginePromise =
+            null;
+
+        throw e;
+
+    }
 
 }
 
 
 /* =========================================================
-   HAND DETECTION
+   HAND DETECTION LOOP
 ========================================================= */
 
 function detectJarvisHands(){
 
-    if(
-        !jarvisHandTrackingRunning
-    ){
-
+    if(!jarvisHandTrackingRunning){
         return;
-
     }
-
 
     const e =
         getJarvisHandElements();
@@ -10804,43 +10236,6 @@ function detectJarvisHands(){
     }
 
 
-    /* =====================================================
-       60 FPS CURSOR INTERPOLATION
-    ===================================================== */
-
-    if(
-        jarvisAirMouseActive &&
-        jarvisAirCursor
-    ){
-
-        jarvisAirCursorX +=
-            (
-                jarvisAirTargetX -
-                jarvisAirCursorX
-            ) * .18;
-
-
-        jarvisAirCursorY +=
-            (
-                jarvisAirTargetY -
-                jarvisAirCursorY
-            ) * .18;
-
-
-        jarvisAirCursor.style.transform =
-            "translate3d(" +
-            jarvisAirCursorX +
-            "px," +
-            jarvisAirCursorY +
-            "px,0) translate(-50%,-50%)";
-
-    }
-
-
-    /* =====================================================
-       CAMERA FRAME CHECK
-    ===================================================== */
-
     if(
         e.video.readyState >= 2 &&
         e.video.currentTime !==
@@ -10850,15 +10245,9 @@ function detectJarvisHands(){
         jarvisHandLastVideoTime =
             e.video.currentTime;
 
-
         const now =
             performance.now();
 
-
-        /*
-           Keep MediaPipe inference
-           off the 60 FPS cursor loop.
-        */
 
         if(
             now -
@@ -10869,7 +10258,6 @@ function detectJarvisHands(){
             jarvisHandLastDetectTime =
                 now;
 
-
             resizeJarvisHandCanvas();
 
 
@@ -10878,18 +10266,14 @@ function detectJarvisHands(){
                 e.canvas.clientWidth ||
                 1;
 
-
             const h =
                 jarvisHandCanvasHeight ||
                 e.canvas.clientHeight ||
                 1;
 
-
             const c =
                 jarvisHandCanvasContext ||
-                e.canvas.getContext(
-                    "2d"
-                );
+                e.canvas.getContext("2d");
 
 
             c.clearRect(
@@ -10903,16 +10287,14 @@ function detectJarvisHands(){
             try{
 
                 const result =
-                    jarvisHandLandmarker
-                        .detectForVideo(
-                            e.video,
-                            now
-                        );
+                    jarvisHandLandmarker.detectForVideo(
+                        e.video,
+                        now
+                    );
 
 
                 const rawHands =
-                    result.landmarks ||
-                    [];
+                    result.landmarks || [];
 
 
                 const hands =
@@ -10926,261 +10308,128 @@ function detectJarvisHands(){
                     e.count.textContent =
                         String(
                             hands.length
-                        ).padStart(
-                            2,
-                            "0"
+                        ).padStart(2,"0");
+
+                }
+
+
+                hands.forEach(
+                    function(landmarks){
+
+                        drawJarvisHand(
+                            landmarks,
+                            w,
+                            h,
+                            c
                         );
 
-                }
-
-
-                /* =================================================
-                   DRAW
-                ================================================= */
-
-                for(
-                    let i = 0;
-                    i < hands.length;
-                    i++
-                ){
-
-                    drawJarvisHand(
-                        hands[i],
-                        w,
-                        h,
-                        c
-                    );
-
-                }
+                    }
+                );
 
 
                 /* =================================================
                    TWO HANDS = ZOOM ONLY
                 ================================================= */
 
-                if(
-                    hands.length >= 2
-                ){
+                if(hands.length >= 2){
 
-                    jarvisTwoHandTransitionLock =
+                    resetJarvisLaser();
+
+                    resetJarvisAirCursor();
+
+                    /*
+                        Lock one-hand gestures until
+                        neutral release occurs.
+                    */
+
+                    jarvisGestureNeedsNeutral =
                         true;
 
-                    jarvisTwoHandTransitionFrames =
+                    jarvisMediaGestureCandidate =
+                        "NONE";
+
+                    jarvisMediaGestureFrames =
                         0;
-
-
-                    resetJarvisAirMouse();
-
 
                     updateJarvisTwoHandZoom(
                         hands
                     );
 
-
-                    /*
-                       Two-hand mode cannot issue
-                       any one-hand command.
-                    */
-
-                    resetJarvisGestureState();
-
-
-                    if(e.gesture){
-
-                        /*
-                           updateJarvisTwoHandZoom()
-                           owns this text.
-                        */
-
-                    }
-
                 }
 
 
                 /* =================================================
-                   ONE HAND = GESTURE MODE
+                   ONE HAND
                 ================================================= */
 
-                else if(
-                    hands.length === 1
-                ){
-
-                    /*
-                       After two-hand zoom,
-                       wait a few detection frames
-                       before accepting a one-hand
-                       command.
-                    */
-
-                    if(
-                        jarvisTwoHandTransitionLock
-                    ){
-
-                        jarvisTwoHandTransitionFrames++;
-
-
-                        resetJarvisAirMouse();
-
-
-                        resetJarvisGestureState();
-
-
-                        if(
-                            jarvisTwoHandTransitionFrames >=
-                            JARVIS_TWO_HAND_TRANSITION_FRAMES
-                        ){
-
-                            jarvisTwoHandTransitionLock =
-                                false;
-
-                        }
-                        else{
-
-                            if(e.gesture){
-
-                                e.gesture.textContent =
-                                    "GESTURE // TRANSITION // READY";
-
-                            }
-
-                            /*
-                               Do not classify this
-                               hand yet.
-                            */
-
-                            jarvisHandAnimationFrame =
-                                requestAnimationFrame(
-                                    detectJarvisHands
-                                );
-
-                            return;
-
-                        }
-
-                    }
-
+                else if(hands.length === 1){
 
                     resetJarvisTwoHandZoom();
 
-
-                    const landmarks =
-                        hands[0];
+                    applyJarvisPageZoom();
 
 
                     const gesture =
-                        getJarvisGesture(
-                            landmarks
+                        detectJarvisGesture(
+                            hands[0]
                         );
 
 
-                    /* =================================================
-                       POINT = AIR MOUSE ONLY
-                    ================================================= */
+                    /*
+                        Point and pinch keep the
+                        cursor alive.
+                    */
 
                     if(
-                        gesture ===
-                        "POINT"
+                        gesture === "POINT" ||
+                        gesture === "PINCH"
                     ){
 
-                        const active =
-                            updateJarvisAirMouse(
-                                landmarks,
-                                gesture
-                            );
-
-
-                        if(
-                            active &&
-                            e.gesture
-                        ){
-
-                            e.gesture.textContent =
-                                "GESTURE // POINTING // AIR MOUSE";
-
-                        }
-
-
-                        updateJarvisGestureState(
-                            "POINT"
+                        updateJarvisAirCursor(
+                            hands[0],
+                            gesture
                         );
 
                     }
 
 
-                    /* =================================================
-                       ALL OTHER ONE-HAND GESTURES
-                    ================================================= */
+                    /*
+                        All non-pointer gestures
+                        hide the cursor.
+                    */
 
                     else{
 
-                        resetJarvisAirMouse();
+                        resetJarvisAirCursor();
+
+                    }
 
 
-                        updateJarvisGestureState(
-                            gesture
+                    updateJarvisGestureState(
+                        gesture
+                    );
+
+
+                    /*
+                        Update laser separately
+                        for visual feedback.
+                    */
+
+                    if(
+                        gesture === "POINT"
+                    ){
+
+                        updateJarvisLaserPointer(
+                            hands[0],
+                            w,
+                            h,
+                            c
                         );
 
+                    }
+                    else{
 
-                        if(
-                            e.gesture &&
-                            jarvisGestureState ===
-                            "OPEN_PALM"
-                        ){
-
-                            e.gesture.textContent =
-                                "GESTURE // OPEN PALM // PAUSE";
-
-                        }
-                        else if(
-                            e.gesture &&
-                            jarvisGestureState ===
-                            "CLOSED_FIST"
-                        ){
-
-                            e.gesture.textContent =
-                                "GESTURE // CLOSED FIST // PLAY";
-
-                        }
-                        else if(
-                            e.gesture &&
-                            jarvisGestureState ===
-                            "PINCH"
-                        ){
-
-                            e.gesture.textContent =
-                                "GESTURE // PINCH // SELECT";
-
-                        }
-                        else if(
-                            e.gesture &&
-                            jarvisGestureState ===
-                            "THUMB_UP"
-                        ){
-
-                            e.gesture.textContent =
-                                "GESTURE // THUMB UP // VOLUME UP";
-
-                        }
-                        else if(
-                            e.gesture &&
-                            jarvisGestureState ===
-                            "THUMB_DOWN"
-                        ){
-
-                            e.gesture.textContent =
-                                "GESTURE // THUMB DOWN // VOLUME DOWN";
-
-                        }
-                        else if(
-                            e.gesture &&
-                            gesture ===
-                            "NONE"
-                        ){
-
-                            e.gesture.textContent =
-                                "GESTURE // SEARCHING";
-
-                        }
+                        resetJarvisLaser();
 
                     }
 
@@ -11193,44 +10442,27 @@ function detectJarvisHands(){
 
                 else{
 
-                    /*
-                       No hand is the release state.
-
-                       This unlocks the next command
-                       only after the release frames.
-                    */
-
                     resetJarvisTwoHandZoom();
 
+                    applyJarvisPageZoom();
 
-                    resetJarvisAirMouse();
+                    resetJarvisAirCursor();
 
+                    resetJarvisLaser();
 
                     updateJarvisGestureState(
                         "NONE"
                     );
 
-
-                    if(
-                        e.gesture &&
-                        !jarvisGestureLocked
-                    ){
-
-                        e.gesture.textContent =
-                            "GESTURE // SEARCHING";
-
-                    }
-
                 }
 
             }
-            catch(error){
+            catch(err){
 
                 console.error(
                     "JARVIS HAND DETECTION ERROR:",
-                    error
+                    err
                 );
-
 
                 setHandTrackingUI(
                     "ERROR",
@@ -11261,22 +10493,15 @@ async function startJarvisHandTracking(){
     const e =
         getJarvisHandElements();
 
-
-    if(
-        jarvisHandTrackingRunning
-    ){
-
+    if(jarvisHandTrackingRunning){
         return;
-
     }
-
 
     if(!jarvisCameraStream){
 
         await startJarvisCamera();
 
     }
-
 
     if(
         !jarvisCameraStream ||
@@ -11288,14 +10513,12 @@ async function startJarvisHandTracking(){
             "GESTURE // CAMERA OFFLINE"
         );
 
-
         if(e.engine){
 
             e.engine.textContent =
                 "VISION ENGINE // CAMERA REQUIRED";
 
         }
-
 
         return;
 
@@ -11320,34 +10543,20 @@ async function startJarvisHandTracking(){
 
         await initializeJarvisHandLandmarker();
 
-
         resizeJarvisHandCanvas();
-
 
         resetJarvisHandSmoothing();
 
+        resetJarvisMediaGesture();
 
-        resetJarvisGestureState();
-
-
-        resetJarvisTwoHandZoom();
-
-
-        jarvisTwoHandTransitionLock =
+        jarvisGestureNeedsNeutral =
             false;
-
-
-        jarvisTwoHandTransitionFrames =
-            0;
-
 
         jarvisHandTrackingRunning =
             true;
 
-
         jarvisHandLastVideoTime =
             -1;
-
 
         jarvisHandLastDetectTime =
             0;
@@ -11357,7 +10566,6 @@ async function startJarvisHandTracking(){
 
             e.button.textContent =
                 "DISABLE HAND TRACKING";
-
 
             e.button.classList.add(
                 "active"
@@ -11380,19 +10588,15 @@ async function startJarvisHandTracking(){
         );
 
 
-        createJarvisAirCursor();
-
-
         detectJarvisHands();
 
     }
-    catch(error){
+    catch(err){
 
         console.error(
             "JARVIS HAND TRACKING INITIALIZATION ERROR:",
-            error
+            err
         );
-
 
         jarvisHandTrackingRunning =
             false;
@@ -11417,7 +10621,6 @@ async function startJarvisHandTracking(){
             e.button.textContent =
                 "ENABLE HAND TRACKING";
 
-
             e.button.classList.remove(
                 "active"
             );
@@ -11438,7 +10641,6 @@ function stopJarvisHandTracking(){
     const e =
         getJarvisHandElements();
 
-
     jarvisHandTrackingRunning =
         false;
 
@@ -11449,7 +10651,6 @@ function stopJarvisHandTracking(){
             jarvisHandAnimationFrame
         );
 
-
         jarvisHandAnimationFrame =
             null;
 
@@ -11459,33 +10660,22 @@ function stopJarvisHandTracking(){
     jarvisPageZoom =
         1;
 
-
     jarvisPageZoomTarget =
         1;
 
 
     resetJarvisTwoHandZoom();
 
-
     resetJarvisHandSmoothing();
 
+    resetJarvisMediaGesture();
 
-    resetJarvisGestureState();
-
-
-    jarvisTwoHandTransitionLock =
+    jarvisGestureNeedsNeutral =
         false;
-
-
-    jarvisTwoHandTransitionFrames =
-        0;
 
 
     document.documentElement.style.zoom =
         "1";
-
-
-    resetJarvisAirMouse();
 
 
     if(e.zoom){
@@ -11506,6 +10696,7 @@ function stopJarvisHandTracking(){
             0,
             jarvisHandCanvasWidth ||
             e.canvas.width,
+
             jarvisHandCanvasHeight ||
             e.canvas.height
         );
@@ -11514,10 +10705,7 @@ function stopJarvisHandTracking(){
 
 
     if(e.count){
-
-        e.count.textContent =
-            "00";
-
+        e.count.textContent = "00";
     }
 
 
@@ -11525,7 +10713,6 @@ function stopJarvisHandTracking(){
 
         e.button.textContent =
             "ENABLE HAND TRACKING";
-
 
         e.button.classList.remove(
             "active"
@@ -11551,7 +10738,7 @@ function stopJarvisHandTracking(){
 
 
 /* =========================================================
-   CAMERA CONTROLS
+   CAMERA / HAND CONTROLS
 ========================================================= */
 
 function setupCameraControls(){
@@ -11561,7 +10748,6 @@ function setupCameraControls(){
             "enableCameraButton"
         );
 
-
     const disableButton =
         document.getElementById(
             "disableCameraButton"
@@ -11570,20 +10756,17 @@ function setupCameraControls(){
 
     if(
         enableButton &&
-        enableButton.dataset.cameraReady !==
-        "1"
+        enableButton.dataset.cameraReady !== "1"
     ){
 
         enableButton.dataset.cameraReady =
             "1";
-
 
         enableButton.addEventListener(
             "click",
             function(event){
 
                 event.stopPropagation();
-
 
                 startJarvisCamera();
 
@@ -11595,20 +10778,17 @@ function setupCameraControls(){
 
     if(
         disableButton &&
-        disableButton.dataset.cameraReady !==
-        "1"
+        disableButton.dataset.cameraReady !== "1"
     ){
 
         disableButton.dataset.cameraReady =
             "1";
-
 
         disableButton.addEventListener(
             "click",
             function(event){
 
                 event.stopPropagation();
-
 
                 stopJarvisCamera();
 
@@ -11626,13 +10806,11 @@ function setupCameraControls(){
 
     if(
         handButton &&
-        handButton.dataset.handReady !==
-        "1"
+        handButton.dataset.handReady !== "1"
     ){
 
         handButton.dataset.handReady =
             "1";
-
 
         handButton.addEventListener(
             "click",
@@ -11640,10 +10818,7 @@ function setupCameraControls(){
 
                 event.stopPropagation();
 
-
-                if(
-                    jarvisHandTrackingRunning
-                ){
+                if(jarvisHandTrackingRunning){
 
                     stopJarvisHandTracking();
 
@@ -11665,23 +10840,15 @@ function setupCameraControls(){
 setupCameraControls();
 
 
-/* =========================================================
-   RESIZE
-========================================================= */
-
 window.addEventListener(
     "resize",
     function(){
 
-        jarvisAirPreviewRect =
-            null;
-
-
-        if(
-            jarvisHandTrackingRunning
-        ){
+        if(jarvisHandTrackingRunning){
 
             resizeJarvisHandCanvas();
+
+            jarvisAirPreviewRect = null;
 
         }
 
@@ -11689,20 +10856,15 @@ window.addEventListener(
 );
 
 
-/* =========================================================
-   CLEANUP
-========================================================= */
-
 window.addEventListener(
     "beforeunload",
     function(){
-
-        stopJarvisHandTracking();
 
         stopJarvisCamera();
 
     }
 );
+
 
 /* =========================================================
    TRAINING MEMORY
@@ -12967,6 +12129,7 @@ function boot(){
 
     resizeSpaceCanvas();
 
+    renderSavedAccounts();
 
     requestAnimationFrame(
         drawSpace
@@ -13018,6 +12181,16 @@ window.JARVIS = {
             showStage("login");
         },
 
+    showProfile:
+        function(){
+            showStage("profile");
+        },
+
+    showCoreLoading:
+        function(){
+            showStage("dashboard");
+        },
+
     showInfo:
         function(){
             showStage("info");
@@ -13038,7 +12211,10 @@ window.JARVIS = {
         setReady,
 
     credentials:
-        getCredentials
+        getCredentials,
+
+    profile:
+        getProfile
 
 };
 
