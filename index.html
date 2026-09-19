@@ -8255,20 +8255,16 @@ let jarvisHandLastDetectTime = 0;
 
 
 /*
-    16ms = maximum approximately 60 detections/sec.
-
-    requestAnimationFrame still runs normally,
-    but MediaPipe inference is not unnecessarily
-    executed multiple times between useful frames.
+    Smooth landmark tracking without making
+    the gesture system feel delayed.
 */
 
-const JARVIS_HAND_SMOOTHING = .38;
+const JARVIS_HAND_SMOOTHING = .45;
 const JARVIS_HAND_DETECT_MIN_INTERVAL = 16;
 
 
 /*
-    Media gestures need more confirmation so
-    temporary landmark noise cannot trigger them.
+    Gesture confirmation.
 */
 
 const JARVIS_GESTURE_CONFIRM_FRAMES = 4;
@@ -8276,60 +8272,29 @@ const JARVIS_GESTURE_RELEASE_FRAMES = 3;
 
 
 /*
-    Separate pointer smoothing from gesture
-    classification.
+    Smoothed hand landmarks.
 */
 
 let jarvisSmoothedHands = [];
 
 
 /* =========================================================
-   AIR MOUSE / CURSOR
+   HAND SWIPE SYSTEM
 ========================================================= */
 
-let jarvisAirCursor = null;
-let jarvisAirCursorVisible = false;
+let jarvisSwipeHistory = [];
 
-let jarvisAirCursorX = 0;
-let jarvisAirCursorY = 0;
+let jarvisSwipeLocked = false;
 
-let jarvisAirCursorTargetX = 0;
-let jarvisAirCursorTargetY = 0;
+let jarvisSwipeLastCommandTime = 0;
 
-let jarvisAirCursorVelocityX = 0;
-let jarvisAirCursorVelocityY = 0;
+const JARVIS_SWIPE_MIN_DISTANCE = .18;
+const JARVIS_SWIPE_MAX_TIME = 650;
+const JARVIS_SWIPE_MIN_TIME = 70;
 
+const JARVIS_SWIPE_VERTICAL_RATIO = 1.35;
 
-/*
-    Higher = smoother response.
-*/
-
-const JARVIS_AIR_CURSOR_SMOOTHING = .55;
-
-
-/*
-    Small prediction helps reduce the feeling
-    that the cursor is following the hand late.
-*/
-
-const JARVIS_AIR_CURSOR_PREDICTION = .055;
-
-
-/*
-    Keep cursor slightly away from viewport edges.
-*/
-
-const JARVIS_AIR_CURSOR_MARGIN = 12;
-
-
-/*
-    Pinch freezes the cursor so the click
-    does not drift while fingers close.
-*/
-
-let jarvisPinchClickX = 0;
-let jarvisPinchClickY = 0;
-let jarvisPinchWasActive = false;
+const JARVIS_SWIPE_COMMAND_COOLDOWN = 1000;
 
 
 /* =========================================================
@@ -8345,6 +8310,8 @@ let jarvisTwoHandZoomBasePageZoom = 1;
 let jarvisTwoHandZoomLastDistance = 0;
 let jarvisTwoHandZoomSmoothedDistance = 0;
 
+let jarvisTwoHandWasActive = false;
+
 
 /* =========================================================
    EXCLUSIVE GESTURE STATE
@@ -8357,40 +8324,15 @@ let jarvisMediaGestureReleaseFrames = 0;
 
 let jarvisLastMediaCommandTime = 0;
 
-
-/*
-    Prevent commands from being fired repeatedly.
-*/
-
 const JARVIS_MEDIA_COMMAND_COOLDOWN = 900;
 
 
 /*
-    After any command, the hand must return
-    to neutral before another command can fire.
-
-    This is what prevents:
-
-        OPEN PALM
-        -> PAUSE
-        -> slight detection change
-        -> FIST
-        -> PLAY
-
-    while the user is still holding the same hand.
+    Prevent commands from repeatedly firing
+    while the same gesture is being held.
 */
 
 let jarvisGestureNeedsNeutral = false;
-
-
-/* =========================================================
-   PINCH STATE
-========================================================= */
-
-let jarvisPinchActive = false;
-
-const JARVIS_PINCH_START = .34;
-const JARVIS_PINCH_RELEASE = .46;
 
 
 /* =========================================================
@@ -8702,7 +8644,7 @@ function resetJarvisHandSmoothing(){
 
     jarvisSmoothedHands = [];
 
-    resetJarvisAirCursor();
+    resetJarvisSwipe();
 
 }
 
@@ -8783,8 +8725,7 @@ function smoothJarvisHands(hands){
 
 
         /*
-            Prevent a hand from suddenly
-            jumping to another tracked hand.
+            Prevent sudden hand identity jumps.
         */
 
         const MAX_MATCH_DISTANCE =
@@ -9217,102 +9158,6 @@ function getJarvisThumbOpen(landmarks){
 
 
 /* =========================================================
-   PINCH
-========================================================= */
-
-function getJarvisPinchDistance(landmarks){
-
-    const dx =
-        landmarks[4].x -
-        landmarks[8].x;
-
-
-    const dy =
-        landmarks[4].y -
-        landmarks[8].y;
-
-
-    const distance =
-        Math.sqrt(
-            dx*dx +
-            dy*dy
-        );
-
-
-    const wx =
-        landmarks[0].x -
-        landmarks[9].x;
-
-
-    const wy =
-        landmarks[0].y -
-        landmarks[9].y;
-
-
-    const palmScale =
-        Math.sqrt(
-            wx*wx +
-            wy*wy
-        ) || .1;
-
-
-    return (
-        distance /
-        palmScale
-    );
-
-}
-
-
-function isJarvisPinching(landmarks){
-
-    const distance =
-        getJarvisPinchDistance(
-            landmarks
-        );
-
-
-    if(jarvisPinchActive){
-
-        if(
-            distance <=
-            JARVIS_PINCH_RELEASE
-        ){
-
-            return true;
-
-        }
-
-
-        jarvisPinchActive =
-            false;
-
-
-        return false;
-
-    }
-
-
-    if(
-        distance <=
-        JARVIS_PINCH_START
-    ){
-
-        jarvisPinchActive =
-            true;
-
-
-        return true;
-
-    }
-
-
-    return false;
-
-}
-
-
-/* =========================================================
    EXCLUSIVE GESTURE CLASSIFIER
 ========================================================= */
 
@@ -9351,53 +9196,8 @@ function detectJarvisGesture(landmarks){
 
     /*
         =====================================================
-        PINCH
-        ONLY SELECT / CLICK
-        =====================================================
-    */
-
-    if(
-        isJarvisPinching(
-            landmarks
-        ) &&
-        fingers.index
-    ){
-
-        return "PINCH";
-
-    }
-
-
-    /*
-        =====================================================
-        POINT
-        ONLY AIR MOUSE
-        =====================================================
-    */
-
-    if(
-
-        fingers.index &&
-
-        !fingers.middle &&
-
-        !fingers.ring &&
-
-        !fingers.pinky &&
-
-        !thumbOpen
-
-    ){
-
-        return "POINT";
-
-    }
-
-
-    /*
-        =====================================================
-        THUMB
-        ONLY VOLUME
+        THUMB GESTURES
+        Thumb only = volume control.
         =====================================================
     */
 
@@ -9405,13 +9205,7 @@ function detectJarvisGesture(landmarks){
 
         thumbOpen &&
 
-        !fingers.index &&
-
-        !fingers.middle &&
-
-        !fingers.ring &&
-
-        !fingers.pinky
+        openCount === 0
 
     ){
 
@@ -9451,8 +9245,8 @@ function detectJarvisGesture(landmarks){
 
     /*
         =====================================================
-        OPEN PALM
-        ONLY PAUSE
+        FIVE FINGERS
+        OPEN PALM = PAUSE ONLY
         =====================================================
     */
 
@@ -9471,8 +9265,88 @@ function detectJarvisGesture(landmarks){
 
     /*
         =====================================================
+        FOUR FINGERS
+        NO ACTION
+        =====================================================
+    */
+
+    if(
+
+        openCount === 4 &&
+        !thumbOpen
+
+    ){
+
+        return "FOUR_FINGERS";
+
+    }
+
+
+    /*
+        =====================================================
+        THREE FINGERS
+        NO ACTION
+        =====================================================
+    */
+
+    if(
+        openCount === 3
+    ){
+
+        return "THREE_FINGERS";
+
+    }
+
+
+    /*
+        =====================================================
+        TWO FINGERS
+        SCREENSHOT ONLY
+
+        Thumb is ignored here so that
+        index + middle remain the gesture.
+        =====================================================
+    */
+
+    if(
+
+        openCount === 2 &&
+
+        fingers.index &&
+
+        fingers.middle &&
+
+        !fingers.ring &&
+
+        !fingers.pinky
+
+    ){
+
+        return "TWO_FINGERS";
+
+    }
+
+
+    /*
+        =====================================================
+        ONE FINGER
+        NO ACTION
+        =====================================================
+    */
+
+    if(
+        openCount === 1
+    ){
+
+        return "ONE_FINGER";
+
+    }
+
+
+    /*
+        =====================================================
         CLOSED FIST
-        ONLY PLAY
+        PLAY ONLY
         =====================================================
     */
 
@@ -9495,494 +9369,7 @@ function detectJarvisGesture(landmarks){
 
 
 /* =========================================================
-   AIR MOUSE CURSOR
-========================================================= */
-
-function ensureJarvisAirCursor(){
-
-    if(jarvisAirCursor){
-        return jarvisAirCursor;
-    }
-
-
-    const cursor =
-        document.createElement("div");
-
-
-    cursor.id =
-        "jarvisAirCursor";
-
-
-    cursor.style.position =
-        "fixed";
-
-
-    cursor.style.left =
-        "0px";
-
-
-    cursor.style.top =
-        "0px";
-
-
-    cursor.style.width =
-        "20px";
-
-
-    cursor.style.height =
-        "20px";
-
-
-    cursor.style.pointerEvents =
-        "none";
-
-
-    cursor.style.zIndex =
-        "2147483647";
-
-
-    cursor.style.display =
-        "none";
-
-
-    cursor.style.transform =
-        "translate(-2px,-2px) rotate(-8deg)";
-
-
-    /*
-        Futuristic cursor arrow.
-    */
-
-    cursor.style.clipPath =
-        "polygon(0 0, 0 100%, 28% 72%, 48% 100%, 61% 94%, 42% 66%, 78% 66%)";
-
-
-    cursor.style.background =
-        "#61f6ff";
-
-
-    cursor.style.filter =
-        "drop-shadow(0 0 5px rgba(34,211,238,.95)) " +
-        "drop-shadow(0 0 12px rgba(34,211,238,.65))";
-
-
-    document.body.appendChild(
-        cursor
-    );
-
-
-    jarvisAirCursor =
-        cursor;
-
-
-    return cursor;
-
-}
-
-
-function resetJarvisAirCursor(){
-
-    jarvisAirCursorVisible =
-        false;
-
-
-    jarvisAirCursorX =
-        0;
-
-    jarvisAirCursorY =
-        0;
-
-
-    jarvisAirCursorTargetX =
-        0;
-
-    jarvisAirCursorTargetY =
-        0;
-
-
-    jarvisAirCursorVelocityX =
-        0;
-
-    jarvisAirCursorVelocityY =
-        0;
-
-
-    jarvisPinchWasActive =
-        false;
-
-
-    jarvisPinchClickX =
-        0;
-
-    jarvisPinchClickY =
-        0;
-
-
-    if(jarvisAirCursor){
-
-        jarvisAirCursor.style.display =
-            "none";
-
-    }
-
-}
-
-
-/* =========================================================
-   AIR CURSOR POSITION
-========================================================= */
-
-function updateJarvisAirCursor(
-    landmarks,
-    gesture
-){
-
-    if(
-        gesture !== "POINT" &&
-        gesture !== "PINCH"
-    ){
-
-        resetJarvisAirCursor();
-
-        return;
-
-    }
-
-
-    const tip =
-        landmarks[8];
-
-
-    if(
-        !tip ||
-        !Number.isFinite(tip.x) ||
-        !Number.isFinite(tip.y)
-    ){
-
-        return;
-
-    }
-
-
-    const width =
-        window.innerWidth;
-
-
-    const height =
-        window.innerHeight;
-
-
-    /*
-        Camera mirror compensation.
-
-        Left hand movement on camera
-        corresponds naturally to left/right
-        screen movement.
-    */
-
-    let normalizedX =
-        1 - tip.x;
-
-
-    let normalizedY =
-        tip.y;
-
-
-    normalizedX =
-        Math.max(
-            0,
-            Math.min(
-                1,
-                normalizedX
-            )
-        );
-
-
-    normalizedY =
-        Math.max(
-            0,
-            Math.min(
-                1,
-                normalizedY
-            )
-        );
-
-
-    const targetX =
-        JARVIS_AIR_CURSOR_MARGIN +
-        normalizedX *
-        (
-            width -
-            JARVIS_AIR_CURSOR_MARGIN*2
-        );
-
-
-    const targetY =
-        JARVIS_AIR_CURSOR_MARGIN +
-        normalizedY *
-        (
-            height -
-            JARVIS_AIR_CURSOR_MARGIN*2
-        );
-
-
-    /*
-        =====================================================
-        PINCH START
-        Freeze the cursor position.
-        =====================================================
-    */
-
-    if(
-        gesture === "PINCH" &&
-        !jarvisPinchWasActive
-    ){
-
-        jarvisPinchClickX =
-            jarvisAirCursorVisible
-                ? jarvisAirCursorX
-                : targetX;
-
-
-        jarvisPinchClickY =
-            jarvisAirCursorVisible
-                ? jarvisAirCursorY
-                : targetY;
-
-
-        jarvisPinchWasActive =
-            true;
-
-    }
-
-
-    /*
-        During pinch the cursor does NOT
-        move around.
-    */
-
-    if(
-        gesture === "PINCH" &&
-        jarvisPinchWasActive
-    ){
-
-        jarvisAirCursorTargetX =
-            jarvisPinchClickX;
-
-        jarvisAirCursorTargetY =
-            jarvisPinchClickY;
-
-    }
-    else{
-
-        jarvisAirCursorTargetX =
-            targetX;
-
-        jarvisAirCursorTargetY =
-            targetY;
-
-    }
-
-
-    /*
-        First frame.
-    */
-
-    if(!jarvisAirCursorVisible){
-
-        jarvisAirCursorX =
-            jarvisAirCursorTargetX;
-
-        jarvisAirCursorY =
-            jarvisAirCursorTargetY;
-
-        jarvisAirCursorVisible =
-            true;
-
-    }
-    else{
-
-        const dx =
-            jarvisAirCursorTargetX -
-            jarvisAirCursorX;
-
-
-        const dy =
-            jarvisAirCursorTargetY -
-            jarvisAirCursorY;
-
-
-        jarvisAirCursorVelocityX =
-            jarvisAirCursorVelocityX*.65 +
-            dx*.35;
-
-
-        jarvisAirCursorVelocityY =
-            jarvisAirCursorVelocityY*.65 +
-            dy*.35;
-
-
-        /*
-            Prediction is intentionally small
-            to avoid overshooting buttons.
-        */
-
-        const predictedX =
-            jarvisAirCursorTargetX +
-            jarvisAirCursorVelocityX *
-            JARVIS_AIR_CURSOR_PREDICTION;
-
-
-        const predictedY =
-            jarvisAirCursorTargetY +
-            jarvisAirCursorVelocityY *
-            JARVIS_AIR_CURSOR_PREDICTION;
-
-
-        jarvisAirCursorX +=
-            (
-                predictedX -
-                jarvisAirCursorX
-            ) *
-            JARVIS_AIR_CURSOR_SMOOTHING;
-
-
-        jarvisAirCursorY +=
-            (
-                predictedY -
-                jarvisAirCursorY
-            ) *
-            JARVIS_AIR_CURSOR_SMOOTHING;
-
-    }
-
-
-    const cursor =
-        ensureJarvisAirCursor();
-
-
-    cursor.style.display =
-        "block";
-
-
-    cursor.style.left =
-        jarvisAirCursorX +
-        "px";
-
-
-    cursor.style.top =
-        jarvisAirCursorY +
-        "px";
-
-}
-
-
-/* =========================================================
-   AIR MOUSE CLICK
-========================================================= */
-
-function jarvisAirClick(){
-
-    if(
-        !jarvisAirCursorVisible
-    ){
-
-        return;
-
-    }
-
-
-    const x =
-        jarvisPinchWasActive
-            ? jarvisPinchClickX
-            : jarvisAirCursorX;
-
-
-    const y =
-        jarvisPinchWasActive
-            ? jarvisPinchClickY
-            : jarvisAirCursorY;
-
-
-    if(
-        !Number.isFinite(x) ||
-        !Number.isFinite(y)
-    ){
-
-        return;
-
-    }
-
-
-    const elements =
-        document.elementsFromPoint(
-            x,
-            y
-        );
-
-
-    for(
-        let i=0;
-        i<elements.length;
-        i++
-    ){
-
-        const element =
-            elements[i];
-
-
-        if(!element){
-            continue;
-        }
-
-
-        if(
-            element === jarvisAirCursor ||
-            element.id === "jarvisAirCursor" ||
-            element.id === "jarvisHandCanvas" ||
-            element.id === "jarvisCameraFeed"
-        ){
-
-            continue;
-
-        }
-
-
-        const target =
-            element.closest(
-                "button,a,input,select,textarea," +
-                "[role='button'],[tabindex]"
-            );
-
-
-        if(!target){
-            continue;
-        }
-
-
-        if(
-            target.disabled ||
-            target.getAttribute(
-                "aria-disabled"
-            ) === "true"
-        ){
-
-            return;
-
-        }
-
-
-        target.click();
-
-        return;
-
-    }
-
-}
-
-
-/* =========================================================
-   TWO-HAND ZOOM
+   HAND CENTER
 ========================================================= */
 
 function getJarvisHandCenter(landmarks){
@@ -10029,6 +9416,212 @@ function getJarvisHandCenter(landmarks){
 }
 
 
+/* =========================================================
+   HAND SWIPE TRACKING
+========================================================= */
+
+function resetJarvisSwipe(){
+
+    jarvisSwipeHistory = [];
+
+    jarvisSwipeLocked = false;
+
+}
+
+
+function updateJarvisSwipe(landmarks){
+
+    if(
+        !landmarks ||
+        landmarks.length < 21
+    ){
+
+        return "NONE";
+
+    }
+
+
+    const center =
+        getJarvisHandCenter(
+            landmarks
+        );
+
+
+    const now =
+        performance.now();
+
+
+    jarvisSwipeHistory.push({
+
+        x:center.x,
+        y:center.y,
+        time:now
+
+    });
+
+
+    /*
+        Keep only the recent movement window.
+    */
+
+    while(
+        jarvisSwipeHistory.length &&
+        now -
+        jarvisSwipeHistory[0].time >
+        JARVIS_SWIPE_MAX_TIME
+    ){
+
+        jarvisSwipeHistory.shift();
+
+    }
+
+
+    if(
+        jarvisSwipeHistory.length < 2
+    ){
+
+        return "NONE";
+
+    }
+
+
+    if(jarvisSwipeLocked){
+
+        return "NONE";
+
+    }
+
+
+    const first =
+        jarvisSwipeHistory[0];
+
+    const last =
+        jarvisSwipeHistory[
+            jarvisSwipeHistory.length - 1
+        ];
+
+
+    const elapsed =
+        last.time -
+        first.time;
+
+
+    if(
+        elapsed <
+        JARVIS_SWIPE_MIN_TIME
+    ){
+
+        return "NONE";
+
+    }
+
+
+    const dx =
+        last.x -
+        first.x;
+
+
+    const dy =
+        last.y -
+        first.y;
+
+
+    const horizontalDistance =
+        Math.abs(dx);
+
+
+    const verticalDistance =
+        Math.abs(dy);
+
+
+    /*
+        Movement must clearly be horizontal.
+    */
+
+    if(
+        horizontalDistance <
+        JARVIS_SWIPE_MIN_DISTANCE
+    ){
+
+        return "NONE";
+
+    }
+
+
+    if(
+        horizontalDistance <
+        verticalDistance *
+        JARVIS_SWIPE_VERTICAL_RATIO
+    ){
+
+        return "NONE";
+
+    }
+
+
+    /*
+        Prevent one continuous movement from
+        firing repeatedly.
+    */
+
+    if(
+        now -
+        jarvisSwipeLastCommandTime <
+        JARVIS_SWIPE_COMMAND_COOLDOWN
+    ){
+
+        return "NONE";
+
+    }
+
+
+    jarvisSwipeLocked =
+        true;
+
+
+    jarvisSwipeLastCommandTime =
+        now;
+
+
+    jarvisSwipeHistory =
+        [];
+
+
+    /*
+        Camera coordinates:
+        decreasing X = hand moved right -> left
+        increasing X = hand moved left -> right
+    */
+
+    if(
+        dx <
+        0
+    ){
+
+        return "NEXT_TAB";
+
+    }
+
+
+    if(
+        dx >
+        0
+    ){
+
+        return "PREVIOUS_TAB";
+
+    }
+
+
+    return "NONE";
+
+}
+
+
+/* =========================================================
+   TWO-HAND ZOOM
+========================================================= */
+
 function getJarvisTwoHandDistance(
     left,
     right
@@ -10068,6 +9661,10 @@ function applyJarvisPageZoom(){
         getJarvisHandElements();
 
 
+    const oldZoom =
+        jarvisPageZoom;
+
+
     jarvisPageZoom +=
         (
             jarvisPageZoomTarget -
@@ -10097,8 +9694,54 @@ function applyJarvisPageZoom(){
         zoomValue
     ){
 
+        /*
+            Keep the point currently in the
+            center of the viewport centered
+            while zoom changes.
+        */
+
+        const centerX =
+            (
+                window.scrollX +
+                window.innerWidth / 2
+            ) /
+            oldZoom;
+
+
+        const centerY =
+            (
+                window.scrollY +
+                window.innerHeight / 2
+            ) /
+            oldZoom;
+
+
         document.documentElement.style.zoom =
             zoomValue;
+
+
+        requestAnimationFrame(
+            function(){
+
+                const newX =
+                    centerX *
+                    jarvisPageZoom -
+                    window.innerWidth / 2;
+
+
+                const newY =
+                    centerY *
+                    jarvisPageZoom -
+                    window.innerHeight / 2;
+
+
+                window.scrollTo(
+                    Math.max(0,newX),
+                    Math.max(0,newY)
+                );
+
+            }
+        );
 
     }
 
@@ -10399,7 +10042,7 @@ function executeJarvisGesture(
         if(e.gesture){
 
             e.gesture.textContent =
-                "GESTURE // OPEN PALM // PAUSE";
+                "GESTURE // 5 FINGERS // PAUSE";
 
         }
 
@@ -10408,12 +10051,6 @@ function executeJarvisGesture(
             "pause"
         );
 
-
-        /*
-            IMPORTANT:
-            Do not allow another command
-            until neutral.
-        */
 
         jarvisGestureNeedsNeutral =
             true;
@@ -10438,7 +10075,7 @@ function executeJarvisGesture(
         if(e.gesture){
 
             e.gesture.textContent =
-                "GESTURE // CLOSED FIST // PLAY";
+                "GESTURE // 0 FINGERS // PLAY";
 
         }
 
@@ -10525,24 +10162,140 @@ function executeJarvisGesture(
 
     /*
         =====================================================
-        PINCH = SELECT / CLICK ONLY
+        TWO FINGERS = SCREENSHOT ONLY
         =====================================================
     */
 
     if(
         gesture ===
-        "PINCH"
+        "TWO_FINGERS"
     ){
 
         if(e.gesture){
 
             e.gesture.textContent =
-                "GESTURE // PINCH // SELECT";
+                "GESTURE // 2 FINGERS // SCREENSHOT";
 
         }
 
 
-        jarvisAirClick();
+        sendJarvisMediaCommand(
+            "screenshot"
+        );
+
+
+        jarvisGestureNeedsNeutral =
+            true;
+
+
+        return;
+
+    }
+
+
+    /*
+        =====================================================
+        THREE / FOUR / ONE FINGER
+        NO ACTION
+        =====================================================
+    */
+
+    if(
+        gesture === "ONE_FINGER" ||
+        gesture === "THREE_FINGERS" ||
+        gesture === "FOUR_FINGERS"
+    ){
+
+        if(e.gesture){
+
+            if(
+                gesture === "ONE_FINGER"
+            ){
+
+                e.gesture.textContent =
+                    "GESTURE // 1 FINGER // NO ACTION";
+
+            }
+            else if(
+                gesture === "THREE_FINGERS"
+            ){
+
+                e.gesture.textContent =
+                    "GESTURE // 3 FINGERS // NO ACTION";
+
+            }
+            else{
+
+                e.gesture.textContent =
+                    "GESTURE // 4 FINGERS // NO ACTION";
+
+            }
+
+        }
+
+
+        return;
+
+    }
+
+}
+
+
+/* =========================================================
+   SWIPE ACTIONS
+========================================================= */
+
+function executeJarvisSwipe(
+    swipe
+){
+
+    const e =
+        getJarvisHandElements();
+
+
+    if(
+        swipe ===
+        "NEXT_TAB"
+    ){
+
+        if(e.gesture){
+
+            e.gesture.textContent =
+                "GESTURE // SWIPE RIGHT TO LEFT // NEXT TAB";
+
+        }
+
+
+        sendJarvisMediaCommand(
+            "next_tab"
+        );
+
+
+        jarvisGestureNeedsNeutral =
+            true;
+
+
+        return;
+
+    }
+
+
+    if(
+        swipe ===
+        "PREVIOUS_TAB"
+    ){
+
+        if(e.gesture){
+
+            e.gesture.textContent =
+                "GESTURE // SWIPE LEFT TO RIGHT // PREVIOUS TAB";
+
+        }
+
+
+        sendJarvisMediaCommand(
+            "previous_tab"
+        );
 
 
         jarvisGestureNeedsNeutral =
@@ -10578,12 +10331,11 @@ function resetJarvisMediaGesture(){
         0;
 
 
-    jarvisPinchActive =
+    jarvisGestureNeedsNeutral =
         false;
 
 
-    jarvisPinchWasActive =
-        false;
+    resetJarvisSwipe();
 
 }
 
@@ -10591,31 +10343,38 @@ function resetJarvisMediaGesture(){
 /*
     Gesture rules:
 
-    POINT
-        -> continuous cursor
-        -> NEVER media
+    0 fingers
+        -> PLAY
 
-    PINCH
-        -> one click
-        -> NEVER media
+    1 finger
+        -> NO ACTION
 
-    OPEN PALM
-        -> one PAUSE
+    2 fingers
+        -> SCREENSHOT
 
-    CLOSED FIST
-        -> one PLAY
+    3 fingers
+        -> NO ACTION
+
+    4 fingers
+        -> NO ACTION
+
+    5 fingers
+        -> PAUSE
 
     THUMB UP
-        -> one VOLUME UP
+        -> VOLUME UP
 
     THUMB DOWN
-        -> one VOLUME DOWN
+        -> VOLUME DOWN
+
+    HAND SWIPE RIGHT -> LEFT
+        -> NEXT TAB
+
+    HAND SWIPE LEFT -> RIGHT
+        -> PREVIOUS TAB
 
     TWO HANDS
-        -> zoom only
-
-    NONE
-        -> releases the command lock
+        -> ZOOM ONLY
 */
 
 function updateJarvisGestureState(
@@ -10661,20 +10420,7 @@ function updateJarvisGestureState(
                 0;
 
 
-            /*
-                Only neutral can unlock
-                the next command.
-            */
-
             jarvisGestureNeedsNeutral =
-                false;
-
-
-            jarvisPinchWasActive =
-                false;
-
-
-            jarvisPinchActive =
                 false;
 
         }
@@ -10695,54 +10441,6 @@ function updateJarvisGestureState(
 
     jarvisMediaGestureReleaseFrames =
         0;
-
-
-    /*
-        =====================================================
-        POINT
-        AIR MOUSE ONLY
-        =====================================================
-    */
-
-    if(
-        gesture ===
-        "POINT"
-    ){
-
-        if(
-            !jarvisGestureNeedsNeutral
-        ){
-
-            jarvisMediaGestureCandidate =
-                "POINT";
-
-            jarvisMediaGestureFrames =
-                0;
-
-
-            if(e.gesture){
-
-                e.gesture.textContent =
-                    "GESTURE // POINTING // AIR MOUSE";
-
-            }
-
-        }
-        else{
-
-            if(e.gesture){
-
-                e.gesture.textContent =
-                    "GESTURE // RELEASE TO REARM";
-
-            }
-
-        }
-
-
-        return;
-
-    }
 
 
     /*
@@ -10770,6 +10468,74 @@ function updateJarvisGestureState(
 
         }
 
+
+        return;
+
+    }
+
+
+    /*
+        =====================================================
+        NON-ACTION GESTURES
+        =====================================================
+    */
+
+    if(
+        gesture === "ONE_FINGER" ||
+        gesture === "THREE_FINGERS" ||
+        gesture === "FOUR_FINGERS"
+    ){
+
+        if(
+            gesture !==
+            jarvisMediaGestureCandidate
+        ){
+
+            jarvisMediaGestureCandidate =
+                gesture;
+
+            jarvisMediaGestureFrames =
+                1;
+
+        }
+        else{
+
+            jarvisMediaGestureFrames++;
+
+        }
+
+
+        if(e.gesture){
+
+            if(
+                gesture === "ONE_FINGER"
+            ){
+
+                e.gesture.textContent =
+                    "GESTURE // 1 FINGER // NO ACTION";
+
+            }
+            else if(
+                gesture === "THREE_FINGERS"
+            ){
+
+                e.gesture.textContent =
+                    "GESTURE // 3 FINGERS // NO ACTION";
+
+            }
+            else{
+
+                e.gesture.textContent =
+                    "GESTURE // 4 FINGERS // NO ACTION";
+
+            }
+
+        }
+
+
+        /*
+            These gestures NEVER execute commands.
+        */
 
         return;
 
@@ -11092,18 +10858,13 @@ function detectJarvisHands(){
                     hands.length >= 2
                 ){
 
-                    /*
-                        No cursor.
-                        No click.
-                        No media.
-                        No volume.
-                    */
-
-                    resetJarvisAirCursor();
+                    jarvisTwoHandWasActive =
+                        true;
 
 
                     /*
-                        Lock all one-hand commands.
+                        Two hands are exclusively
+                        for webpage zoom.
                     */
 
                     jarvisGestureNeedsNeutral =
@@ -11117,18 +10878,6 @@ function detectJarvisHands(){
                     jarvisMediaGestureFrames =
                         0;
 
-
-                    jarvisPinchActive =
-                        false;
-
-
-                    jarvisPinchWasActive =
-                        false;
-
-
-                    /*
-                        ONLY zoom.
-                    */
 
                     updateJarvisTwoHandZoom(
                         hands
@@ -11145,7 +10894,51 @@ function detectJarvisHands(){
                     hands.length === 1
                 ){
 
-                    resetJarvisTwoHandZoom();
+                    /*
+                        If two-hand zoom has just ended,
+                        re-arm the one-hand gesture system.
+                    */
+
+                    if(
+                        jarvisTwoHandWasActive
+                    ){
+
+                        jarvisTwoHandWasActive =
+                            false;
+
+
+                        resetJarvisTwoHandZoom();
+
+
+                        jarvisGestureNeedsNeutral =
+                            false;
+
+
+                        jarvisMediaGestureState =
+                            "NONE";
+
+
+                        jarvisMediaGestureCandidate =
+                            "NONE";
+
+
+                        jarvisMediaGestureFrames =
+                            0;
+
+
+                        jarvisMediaGestureReleaseFrames =
+                            0;
+
+
+                        resetJarvisSwipe();
+
+                    }
+                    else{
+
+                        resetJarvisTwoHandZoom();
+
+                    }
+
 
                     applyJarvisPageZoom();
 
@@ -11154,49 +10947,52 @@ function detectJarvisHands(){
                         hands[0];
 
 
-                    const gesture =
-                        detectJarvisGesture(
+                    /*
+                        Whole-hand swipe is checked
+                        independently from finger count.
+
+                        If a deliberate swipe is detected,
+                        it gets priority and the normal
+                        finger gesture is NOT executed.
+                    */
+
+                    const swipe =
+                        updateJarvisSwipe(
                             landmarks
                         );
 
 
-                    /*
-                        POINT
-                        -> cursor only
-
-                        PINCH
-                        -> cursor + click only
-
-                        No other gesture gets
-                        the cursor.
-                    */
-
                     if(
-                        gesture === "POINT" ||
-                        gesture === "PINCH"
+                        swipe !== "NONE"
                     ){
 
-                        updateJarvisAirCursor(
-                            landmarks,
-                            gesture
+                        executeJarvisSwipe(
+                            swipe
                         );
+
+                        jarvisMediaGestureState =
+                            "NONE";
+
+                        jarvisMediaGestureCandidate =
+                            "NONE";
+
+                        jarvisMediaGestureFrames =
+                            0;
 
                     }
                     else{
 
-                        resetJarvisAirCursor();
+                        const gesture =
+                            detectJarvisGesture(
+                                landmarks
+                            );
+
+
+                        updateJarvisGestureState(
+                            gesture
+                        );
 
                     }
-
-
-                    /*
-                        Gesture state machine
-                        controls actual commands.
-                    */
-
-                    updateJarvisGestureState(
-                        gesture
-                    );
 
                 }
 
@@ -11209,15 +11005,18 @@ function detectJarvisHands(){
 
                     resetJarvisTwoHandZoom();
 
+                    jarvisTwoHandWasActive =
+                        false;
+
+
                     applyJarvisPageZoom();
 
-                    resetJarvisAirCursor();
+
+                    resetJarvisSwipe();
 
 
                     /*
-                        IMPORTANT:
-                        NONE is what releases the
-                        command lock.
+                        NONE releases the gesture lock.
                     */
 
                     updateJarvisGestureState(
@@ -11343,6 +11142,10 @@ async function startJarvisHandTracking(){
 
 
         resetJarvisMediaGesture();
+
+
+        jarvisTwoHandWasActive =
+            false;
 
 
         jarvisGestureNeedsNeutral =
@@ -11478,6 +11281,10 @@ function stopJarvisHandTracking(){
 
 
     resetJarvisMediaGesture();
+
+
+    jarvisTwoHandWasActive =
+        false;
 
 
     jarvisGestureNeedsNeutral =
@@ -11651,6 +11458,7 @@ function setupCameraControls(){
                 }
 
             }
+
         );
 
     }
