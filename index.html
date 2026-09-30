@@ -6,6 +6,12 @@
 <meta name="theme-color" content="#020207">
 
 <title>J.A.R.V.I.S. — Personal AI System</title>
+<meta name="description" content="J.A.R.V.I.S. — one personal AI system for your voice, your hands and your machine. Voice intelligence, computer vision, hand gestures and direct system control.">
+<meta property="og:title" content="J.A.R.V.I.S. — Personal AI System">
+<meta property="og:description" content="Voice intelligence. Computer vision. Hand gestures. Direct system control. One continuous personal AI system.">
+<meta property="og:type" content="website">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2305040c'/%3E%3Cpath d='M32 10 52 21v22L32 54 12 43V21z' fill='none' stroke='%238b5cf6' stroke-width='3'/%3E%3Ctext x='32' y='41' font-family='Arial' font-weight='700' font-size='24' text-anchor='middle' fill='%23fff'%3EJ%3C/text%3E%3C/svg%3E">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -234,7 +240,7 @@ button{
 #cursorGlow{
     z-index:12050 !important;
 }
-.overlay .close{position:relative;z-index:20;cursor:none;}
+.overlay .close{z-index:20;cursor:none;}
 #cursor.big{
     width:58px;
     height:58px;
@@ -1754,24 +1760,6 @@ button{
         rgba(76,124,255,.34);
 }
 
-.mobile-menu{
-    display:none;
-
-    width:38px;
-    height:38px;
-
-    border:
-        1px solid
-        rgba(255,255,255,.1);
-
-    border-radius:11px;
-
-    color:white;
-
-    background:
-        rgba(255,255,255,.04);
-}
-
 
 /* =========================================================
    SYSTEM UI
@@ -2056,7 +2044,7 @@ section{
 .section-sub{
     max-width:650px;
 
-    margin-top:16px;
+    margin-top:22px;
 
     color:#aaa4b9;
 
@@ -2159,9 +2147,11 @@ section{
     font-size:
         clamp(50px,7.5vw,100px);
 
-    line-height:.92;
+    line-height:1.05;
 
     letter-spacing:-.06em;
+
+    padding-bottom:.08em;
 }
 
 .hero-title span{
@@ -2200,28 +2190,6 @@ section{
     margin-top:28px;
 
     flex-wrap:wrap;
-}
-
-.hero-status{
-    position:absolute;
-
-    right:5%;
-    top:37%;
-
-    color:#6e687d;
-
-    font:
-        8px
-        "IBM Plex Mono";
-
-    line-height:2;
-    letter-spacing:.14em;
-}
-
-.hero-status strong{
-    color:var(--teal);
-
-    font-weight:400;
 }
 
 
@@ -2806,35 +2774,6 @@ section{
 /* =========================================================
    LAPTOP MODULE DETAILS
    ========================================================= */
-.hero-status{
-    width:220px;
-    padding:18px 18px 16px;
-    border-left:1px solid rgba(70,255,150,.35);
-    background:linear-gradient(90deg,rgba(8,14,12,.72),transparent);
-    box-shadow:inset 18px 0 35px rgba(70,255,150,.035);
-}
-.hero-status-title{
-    color:#9dffca;
-    font-size:10px;
-    letter-spacing:.22em;
-    margin-bottom:13px;
-    text-shadow:0 0 12px rgba(70,255,150,.35);
-}
-.hero-status-row{
-    display:flex;
-    justify-content:space-between;
-    gap:16px;
-    padding:7px 0;
-    border-top:1px solid rgba(255,255,255,.06);
-    color:#777f87;
-    font-size:8px;
-    letter-spacing:.1em;
-}
-.hero-status-row strong{
-    color:#a9ffc9;
-    font-weight:500;
-    text-shadow:0 0 9px rgba(70,255,150,.28);
-}
 .mini-hardware-icon{
     position:relative;
     width:38px;
@@ -3547,17 +3486,7 @@ footer strong{
     align-items:center;
     justify-content:center;
     gap:7px;
-    opacity:0;
-    transform:translateY(9px) scale(.92);
-    animation:visionGestureSequence 12.6s ease-in-out infinite;
 }
-.vision-seq-item:nth-child(1){animation-delay:0s}
-.vision-seq-item:nth-child(2){animation-delay:1.8s}
-.vision-seq-item:nth-child(3){animation-delay:3.6s}
-.vision-seq-item:nth-child(4){animation-delay:5.4s}
-.vision-seq-item:nth-child(5){animation-delay:7.2s}
-.vision-seq-item:nth-child(6){animation-delay:9s}
-.vision-seq-item:nth-child(7){animation-delay:10.8s}
 .vision-seq-emoji{
     font-size:22px;
     line-height:1;
@@ -3569,11 +3498,6 @@ footer strong{
     letter-spacing:.11em;
     text-align:center;
 }
-@keyframes visionGestureSequence{
-    0%,12%{opacity:0;transform:translateY(9px) scale(.92)}
-    17%,31%{opacity:1;transform:translateY(0) scale(1)}
-    38%,100%{opacity:0;transform:translateY(-6px) scale(1.03)}
-}
 .perf-bars[data-perf-group="core"]{
     height:30px;
     margin-top:10px;
@@ -3584,32 +3508,6 @@ footer strong{
     min-height:4px;
 }
 #final{position:relative;}
-
-.final-core-monitor{
-    position:absolute;
-    left:clamp(24px,7vw,110px);
-    top:50%;
-    transform:translateY(-50%);
-    width:min(300px,24vw);
-    margin:0;
-    padding:15px 18px 13px;
-    border:1px solid rgba(70,255,150,.22);
-    border-left:1px solid rgba(70,255,150,.55);
-    border-radius:15px;
-    background:linear-gradient(90deg,rgba(8,18,13,.72),rgba(8,10,17,.34));
-    box-shadow:inset 16px 0 30px rgba(70,255,150,.025),0 0 35px rgba(70,255,150,.045);
-    text-align:left;
-}
-.final-core-head{
-    display:flex;
-    justify-content:space-between;
-    color:#7d8790;
-    font:7px "IBM Plex Mono";
-    letter-spacing:.16em;
-}
-.final-core-head strong{color:#a9ffc9;font-weight:500;text-shadow:0 0 9px rgba(70,255,150,.3)}
-.final-core-monitor .perf-bars{margin-top:9px;height:25px}
-.final-core-monitor .perf-bars i{background:linear-gradient(180deg,#b6ffd4,#45e88a 70%,#1d9c5d);box-shadow:0 0 7px rgba(70,255,150,.38);}
 
 /* Dedicated PC-control sections */
 .pc-control-sections{
@@ -3740,7 +3638,7 @@ footer strong{
 
     overflow:auto;
 
-    padding:40px;
+    padding:76px 40px 40px;
 
     border:
         1px solid
@@ -3775,8 +3673,9 @@ footer strong{
 .close{
     position:absolute;
 
-    right:22px;
-    top:22px;
+    right:18px;
+    top:18px;
+    z-index:5;
 
     width:38px;
     height:38px;
@@ -3961,10 +3860,6 @@ footer strong{
         display:none;
     }
 
-    .mobile-menu{
-        display:block;
-    }
-
     section{
         padding:
             60px 22px;
@@ -3972,19 +3867,6 @@ footer strong{
 
     #hero{
         padding-top:130px;
-    }
-
-    .hero-status{
-        display:none;
-    }
-
-    .final-core-monitor{
-        position:relative;
-        left:auto;
-        top:auto;
-        transform:none;
-        width:min(390px,88vw);
-        margin:28px auto 0;
     }
 
     .voice-layout,
@@ -4064,7 +3946,15 @@ footer strong{
     }
 
     .panel{
-        padding:25px 18px;
+        padding:66px 18px 25px;
+    }
+
+    .close{
+        right:12px;
+        top:12px;
+        width:30px;
+        height:30px;
+        font-size:14px;
     }
 
     footer{
@@ -4085,6 +3975,218 @@ footer strong{
 
 }
 
+
+
+/* Gesture showcase: static grid, numbered, no auto-sliding loop */
+.gesture-num{position:absolute;top:12px;right:14px;font-size:9px;letter-spacing:.18em;color:var(--teal);opacity:.8;}
+.gesture-dir{margin-left:8px;font:500 11px "IBM Plex Mono",monospace;color:var(--teal);letter-spacing:.05em;vertical-align:middle;}
+
+/* =========================================================
+   AUTH PANEL — login / create ID
+   ========================================================= */
+.auth-panel{max-width:420px;}
+.auth-title{font-family:"Space Grotesk";font-size:26px;font-weight:600;margin-top:6px;}
+.auth-sub{color:var(--dim);font-size:13px;margin-top:6px;line-height:1.5;}
+.auth-form{margin-top:24px;display:flex;flex-direction:column;gap:14px;}
+.auth-form .field{display:flex;flex-direction:column;gap:6px;}
+.auth-form .field label{font-size:11px;letter-spacing:.04em;color:var(--dim);}
+.auth-form .field input,
+.auth-form .field select{
+    background:rgba(255,255,255,.04);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:11px 13px;
+    color:var(--soft);
+    font:14px "Inter",sans-serif;
+    outline:none;
+    transition:border-color .2s var(--ease);
+}
+.auth-form .field input:focus,
+.auth-form .field select:focus{border-color:var(--violet);}
+.auth-extra{display:none;flex-direction:column;gap:14px;}
+.auth-extra.show{display:flex;}
+.auth-submit{width:100%;margin-top:2px;}
+.auth-divider{
+    display:flex;align-items:center;gap:12px;
+    color:var(--faint);font-size:12px;margin:20px 0 16px;
+}
+.auth-divider::before,.auth-divider::after{content:"";flex:1;height:1px;background:var(--border);}
+.auth-google{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    padding:11px;border-radius:10px;border:none;
+    background:#fff;color:#1f1f1f;font-weight:600;font-size:13.5px;
+    width:100%;cursor:pointer;
+}
+.auth-google:hover{filter:brightness(.97);}
+.auth-switch{text-align:center;margin-top:22px;font-size:13px;color:var(--dim);}
+.auth-switch button{background:none;border:none;color:var(--teal);font-weight:600;cursor:pointer;font-size:13px;}
+.auth-switch button:hover{text-decoration:underline;}
+.auth-saved{margin-top:22px;padding-top:20px;border-top:1px solid var(--border);}
+.auth-saved-label{font-size:11px;letter-spacing:.05em;color:var(--faint);margin-bottom:10px;}
+.auth-saved-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 12px;border-radius:10px;
+    background:rgba(255,255,255,.03);
+    margin-bottom:8px;font-size:13px;
+}
+.auth-saved-row span{color:var(--soft);display:block;}
+.auth-saved-row small{display:block;color:var(--faint);font:11px "IBM Plex Mono",monospace;}
+.auth-saved-row button{
+    background:none;border:none;color:var(--faint);font-size:16px;line-height:1;
+    padding:4px 6px;border-radius:6px;cursor:pointer;
+}
+.auth-saved-row button:hover{color:var(--pink);background:rgba(232,71,156,.1);}
+.auth-saved-empty{color:var(--faint);font-size:12.5px;}
+
+/* multi-step wizard */
+.auth-step{display:none;}
+.auth-step.show{display:block;}
+
+/* temporary-ID mode hides everything that needs an email/password —
+   visible by default, hidden only when .temp-mode is on the panel */
+.auth-panel.temp-mode .auth-login-only{display:none !important;}
+
+/* fast birthday picker — three selects instead of a native calendar */
+.birthday-fast{display:flex;gap:8px;}
+.birthday-fast select{
+    flex:1;
+    background:rgba(255,255,255,.04);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:11px 8px;
+    color:var(--soft);
+    font:13px "Inter",sans-serif;
+    outline:none;
+}
+.birthday-fast select:focus{border-color:var(--violet);}
+
+.field-warn{color:var(--pink) !important;}
+
+/* companion check / setup / installing */
+.companion-spinner{
+    width:34px;height:34px;margin:28px auto 4px;
+    border-radius:50%;
+    border:3px solid rgba(255,255,255,.12);
+    border-top-color:var(--violet);
+    animation:companionSpin .8s linear infinite;
+}
+@keyframes companionSpin{to{transform:rotate(360deg);}}
+.companion-ok{color:var(--teal);}
+.companion-missing{color:var(--pink);}
+.auth-recheck{
+    display:block;margin:14px auto 0;background:none;border:none;
+    color:var(--dim);font-size:12.5px;text-decoration:underline;cursor:pointer;
+}
+
+.dashboard-settings-btn{
+    display:block;width:100%;margin-top:22px;padding:11px;
+    border-radius:10px;border:1px solid var(--border);
+    background:rgba(255,255,255,.03);color:var(--soft);
+    font-size:13px;cursor:pointer;
+}
+.dashboard-settings-btn:hover{background:rgba(255,255,255,.06);}
+
+.settings-rows{margin-top:24px;}
+.settings-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:13px 0;border-bottom:1px solid var(--border);
+    font-size:12px;letter-spacing:.05em;color:var(--faint);
+    text-transform:uppercase;
+}
+.settings-row span{color:var(--teal);font-weight:600;letter-spacing:.02em;}
+
+.auth-temp-note{
+    margin-top:14px;
+    padding:10px 13px;
+    border:1px solid rgba(240,168,61,.3);
+    background:rgba(240,168,61,.07);
+    border-radius:10px;
+    color:#f0c98d;
+    font-size:12px;
+    line-height:1.5;
+}
+
+.field-hint{color:var(--faint);font-size:10.5px;line-height:1.4;margin-top:1px;}
+
+/* gender — always-visible pills, not a hidden dropdown */
+.gender-pills{display:flex;flex-wrap:wrap;gap:7px;}
+.gender-pill{
+    padding:8px 13px;
+    border-radius:20px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.03);
+    color:var(--dim);
+    font:12px "Inter",sans-serif;
+    cursor:pointer;
+    transition:border-color .2s var(--ease),color .2s var(--ease),background .2s var(--ease);
+}
+.gender-pill:hover{border-color:rgba(139,92,246,.4);color:var(--soft);}
+.gender-pill.active{
+    border-color:var(--violet);
+    background:rgba(139,92,246,.16);
+    color:#fff;
+}
+
+/* terms step */
+.terms-box{
+    margin-top:22px;
+    max-height:180px;
+    overflow:auto;
+    padding:14px 16px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:rgba(255,255,255,.02);
+}
+.terms-box p{color:var(--dim);font-size:12.5px;line-height:1.65;margin-bottom:10px;}
+.terms-box p:last-child{margin-bottom:0;}
+.terms-check{
+    display:flex;align-items:flex-start;gap:10px;
+    margin-top:18px;color:var(--dim);font-size:12.5px;line-height:1.5;cursor:pointer;
+}
+.terms-check input{margin-top:2px;accent-color:var(--violet);}
+
+/* mock google account picker */
+.google-picker-panel{max-width:360px;padding:34px 28px;}
+.google-picker-head{display:flex;align-items:center;gap:10px;font:600 16px "Space Grotesk";color:var(--soft);margin-bottom:18px;}
+.google-picker-list{display:flex;flex-direction:column;gap:2px;}
+.google-picker-row{
+    display:flex;align-items:center;gap:12px;
+    padding:11px 10px;border-radius:10px;
+    background:none;border:none;width:100%;cursor:pointer;text-align:left;
+}
+.google-picker-row:hover{background:rgba(255,255,255,.05);}
+.google-picker-avatar{
+    width:34px;height:34px;border-radius:50%;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--blue),var(--violet));
+    color:#fff;font:600 13px "Space Grotesk";
+}
+.google-picker-row strong{display:block;color:var(--soft);font-size:13.5px;font-weight:500;}
+.google-picker-row small{display:block;color:var(--faint);font-size:11.5px;}
+.google-picker-other{
+    margin-top:6px;padding:11px 10px;border-radius:10px;
+    background:none;border:none;color:var(--teal);font-size:13px;
+    cursor:pointer;text-align:left;width:100%;
+}
+.google-picker-other:hover{background:rgba(255,255,255,.05);}
+.google-picker-note{margin-top:16px;color:var(--faint);font-size:11px;line-height:1.5;}
+
+
+/* ---- Final polish ---- */
+html{-webkit-text-size-adjust:100%;}
+a:focus-visible,button:focus-visible,input:focus-visible,.earth-chip:focus-visible{
+    outline:2px solid rgba(139,92,246,.85);
+    outline-offset:3px;
+}
+::selection{background:rgba(139,92,246,.35);color:#fff;}
+@media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{
+        animation-duration:.01ms !important;
+        animation-iteration-count:1 !important;
+        transition-duration:.01ms !important;
+        scroll-behavior:auto !important;
+    }
+}
 </style>
 </head>
 
@@ -4118,8 +4220,6 @@ footer strong{
     <div class="intro-ecosystem mono" id="introEcosystem">
         <span>API</span><i>.</i><span>THREE.JS</span><i>.</i><span>PYTHON</span><i>.</i><span>VISION</span><i>.</i><span>VOICE</span><i>.</i><span>WEB</span>
     </div>
-
-    <button class="intro-sound mono" id="introSound" type="button">SOUND / ON</button>
 
     <div class="intro-corner tl mono" id="introCornerTL">
         SYS / <b>JARVIS-01</b><br>NEURAL CORE // BOOT
@@ -4376,22 +4476,20 @@ footer strong{
 
     <div class="nav-actions">
 
-        <a
-            href="preview__14_.html#login"
+        <button
+            type="button"
             class="btn btn-ghost"
+            data-action="login"
         >
             LOGIN
-        </a>
+        </button>
 
-        <a
-            href="preview__14_.html"
+        <button
+            type="button"
             class="btn btn-primary"
+            data-action="signup"
         >
-            SIGN UP ↗
-        </a>
-
-        <button class="mobile-menu">
-            ☰
+            SIGN UP
         </button>
 
     </div>
@@ -4454,12 +4552,13 @@ footer strong{
 
             <div class="hero-buttons reveal">
 
-                <a
-                    href="#final"
+                <button
+                    type="button"
                     class="btn btn-primary"
+                    data-action="signup-temp"
                 >
-                    CREATE YOUR ID ↗
-                </a>
+                    CREATE YOUR ID
+                </button>
 
                 <a
                     href="#voice"
@@ -4470,10 +4569,6 @@ footer strong{
 
             </div>
 
-        </div>
-
-        <div class="hero-status mono">
-            <div class="hero-status-title">JARVIS CORE</div>
         </div>
 
     </div>
@@ -4799,100 +4894,60 @@ footer strong{
 
                 <div class="gesture-grid reveal">
 
-                    <div class="gesture">
-
-                        <div class="gesture-icon">
-                            ✋
-                        </div>
-
-                        <div class="gesture-name">
-                            OPEN PALM
-                        </div>
-
-                        <div class="gesture-action">
-                            PLAY / PAUSE
-                        </div>
-
+                    <div class="gesture" style="--i:0">
+                        <div class="gesture-num mono">01</div>
+                        <div class="gesture-icon">✋</div>
+                        <div class="gesture-name">OPEN PALM</div>
+                        <div class="gesture-action">PAUSE</div>
                     </div>
 
-                    <div class="gesture">
-
-                        <div class="gesture-icon">
-                            👍
-                        </div>
-
-                        <div class="gesture-name">
-                            THUMBS UP
-                        </div>
-
-                        <div class="gesture-action">
-                            VOLUME UP
-                        </div>
-
+                    <div class="gesture" style="--i:1">
+                        <div class="gesture-num mono">02</div>
+                        <div class="gesture-icon">✊</div>
+                        <div class="gesture-name">CLOSED FIST</div>
+                        <div class="gesture-action">PLAY</div>
                     </div>
 
-                    <div class="gesture">
-
-                        <div class="gesture-icon">
-                            👎
-                        </div>
-
-                        <div class="gesture-name">
-                            THUMBS DOWN
-                        </div>
-
-                        <div class="gesture-action">
-                            VOLUME DOWN
-                        </div>
-
+                    <div class="gesture" style="--i:2">
+                        <div class="gesture-num mono">03</div>
+                        <div class="gesture-icon">👍</div>
+                        <div class="gesture-name">THUMBS UP</div>
+                        <div class="gesture-action">VOLUME UP</div>
                     </div>
 
-                    <div class="gesture">
-
-                        <div class="gesture-icon">
-                            ✌
-                        </div>
-
-                        <div class="gesture-name">
-                            TWO FINGERS
-                        </div>
-
-                        <div class="gesture-action">
-                            SCREENSHOT
-                        </div>
-
+                    <div class="gesture" style="--i:3">
+                        <div class="gesture-num mono">04</div>
+                        <div class="gesture-icon">👎</div>
+                        <div class="gesture-name">THUMBS DOWN</div>
+                        <div class="gesture-action">VOLUME DOWN</div>
                     </div>
 
-                    <div class="gesture">
-
-                        <div class="gesture-icon">
-                            🤏
-                        </div>
-
-                        <div class="gesture-name">
-                            PINCH
-                        </div>
-
-                        <div class="gesture-action">
-                            ZOOM IN / OUT
-                        </div>
-
+                    <div class="gesture" style="--i:4">
+                        <div class="gesture-num mono">05</div>
+                        <div class="gesture-icon">✌</div>
+                        <div class="gesture-name">TWO FINGERS</div>
+                        <div class="gesture-action">SCREENSHOT</div>
                     </div>
 
-                    <div class="gesture">
+                    <div class="gesture" style="--i:5">
+                        <div class="gesture-num mono">06</div>
+                        <div class="gesture-icon">🤏<span class="gesture-dir">→ ←</span></div>
+                        <div class="gesture-name">PINCH IN</div>
+                        <div class="gesture-action">ZOOM OUT</div>
+                    </div>
 
-                        <div class="gesture-icon">
-                            ↔
-                        </div>
+                    <div class="gesture" style="--i:6">
+                        <div class="gesture-num mono">07</div>
+                        <div class="gesture-icon">🤏<span class="gesture-dir">← →</span></div>
+                        <div class="gesture-name">PINCH OUT</div>
+                        <div class="gesture-action">ZOOM IN</div>
+                    </div>
 
-                        <div class="gesture-name">
-                            SWIPE
-                        </div>
-
-                        <div class="gesture-action">
-                            CHANGE TAB
-                        </div>
-
+                    <div class="gesture" style="--i:7">
+                        <div class="gesture-num mono">08</div>
+                        <div class="gesture-icon">↔</div>
+                        <div class="gesture-name">SWIPE</div>
+                        <div class="gesture-action">CHANGE TAB</div>
                     </div>
 
                 </div>
@@ -5213,26 +5268,23 @@ footer strong{
 
         </p>
 
-        <div class="final-core-monitor reveal">
-            <div class="final-core-head mono"><span>JARVIS CORE</span><strong>ACTIVE</strong></div>
-            <div class="perf-bars" data-perf-group="core"></div>
-        </div>
-
         <div class="final-buttons reveal">
 
-            <a
-                href="preview__14_.html"
+            <button
+                type="button"
                 class="btn btn-primary"
+                data-action="signup-temp"
             >
-                CREATE YOUR ID ↗
-            </a>
+                CREATE YOUR ID
+            </button>
 
-            <a
-                href="preview__14_.html#login"
+            <button
+                type="button"
                 class="btn btn-ghost"
+                data-action="login"
             >
                 LOGIN
-            </a>
+            </button>
 
         </div>
 
@@ -5448,6 +5500,210 @@ footer strong{
                 <span class="vision-seq-word">ZOOM IN / OUT</span>
             </div>
         </div>
+    </div>
+</div>
+
+
+<!-- =========================================================
+     AUTH OVERLAY — LOGIN / CREATE ID
+     ========================================================= -->
+
+<div class="overlay" id="authOverlay">
+
+    <div class="panel auth-panel">
+
+        <button class="close" data-close>×</button>
+
+        <!-- STEP 1: LOGIN / CREATE ID -->
+        <div class="auth-step show" id="authStepForm">
+
+            <div class="panel-kicker" id="authKicker">J.A.R.V.I.S. // LOGIN</div>
+            <h2 class="auth-title" id="authTitle">Log in</h2>
+            <p class="auth-sub" id="authSub">Sign in to continue to your JARVIS ID.</p>
+
+            <p class="auth-temp-note auth-extra" id="authTempNote">
+                This ID is temporary — just your name, birthday and gender, stored
+                only on this device until you finish full sign-up later.
+            </p>
+
+            <form id="authForm" class="auth-form">
+
+                <div class="auth-extra auth-login-only" id="authAccessIdField">
+                    <div class="field">
+                        <label for="authAccessId">Access ID</label>
+                        <input type="text" id="authAccessId" autocomplete="username" placeholder="e.g. dragonmaster07">
+                        <small class="field-hint">Auto-generated from your email — edit it if you'd like.</small>
+                    </div>
+                </div>
+
+                <div class="field auth-login-only">
+                    <label for="authEmail">Email</label>
+                    <input type="email" id="authEmail">
+                </div>
+
+                <div class="field auth-login-only" id="authPasswordField">
+                    <label for="authPassword">Password</label>
+                    <input type="password" id="authPassword">
+                    <small class="field-hint field-warn" id="authPasswordWarning" hidden>That password is too common — create a stronger one.</small>
+                </div>
+
+                <div class="auth-extra" id="authExtra">
+                    <div class="field">
+                        <label for="authName">Name</label>
+                        <input type="text" id="authName">
+                    </div>
+                    <div class="field">
+                        <label>Birthday</label>
+                        <div class="birthday-fast" id="authBirthdayFast">
+                            <select id="authBirthDay" aria-label="Day"></select>
+                            <select id="authBirthMonth" aria-label="Month"></select>
+                            <select id="authBirthYear" aria-label="Year"></select>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>Gender</label>
+                        <div class="gender-pills" id="authGenderPills" role="radiogroup" aria-label="Gender">
+                            <button type="button" class="gender-pill" data-value="">Prefer not to say</button>
+                            <button type="button" class="gender-pill" data-value="Female">Female</button>
+                            <button type="button" class="gender-pill" data-value="Male">Male</button>
+                            <button type="button" class="gender-pill" data-value="Non-binary">Non-binary</button>
+                            <button type="button" class="gender-pill" data-value="Other">Other</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary auth-submit" id="authSubmit">Log in</button>
+
+            </form>
+
+            <div class="auth-divider auth-login-only">or</div>
+
+            <button type="button" class="auth-google auth-login-only" id="authGoogleBtn">
+                <svg viewBox="0 0 18 18" width="17" height="17"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.87 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.9v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.9A9 9 0 0 0 0 9c0 1.45.35 2.83.9 4.03l3.05-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.42 0 9 0A9 9 0 0 0 .9 4.97l3.05 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
+                <span id="authGoogleLabel">Sign in with Google</span>
+            </button>
+
+            <div class="auth-switch auth-login-only">
+                <span id="authSwitchPrompt">Don't have an ID?</span>
+                <button type="button" id="authSwitchBtn">Create one</button>
+            </div>
+
+            <div class="auth-saved auth-login-only">
+                <div class="auth-saved-label">SAVED IDs ON THIS DEVICE</div>
+                <div id="authSavedList"></div>
+            </div>
+
+        </div>
+
+        <!-- STEP 2: CHECKING FOR THE COMPANION -->
+        <div class="auth-step" id="authStepChecking">
+            <div class="panel-kicker">J.A.R.V.I.S. // COMPANION</div>
+            <h2 class="auth-title">Checking for J.A.R.V.I.S....</h2>
+            <p class="auth-sub">Looking for the JARVIS Companion running on this PC.</p>
+            <div class="companion-spinner"></div>
+        </div>
+
+        <!-- STEP 3a: COMPANION DETECTED -->
+        <div class="auth-step" id="authStepDetected">
+            <div class="panel-kicker">J.A.R.V.I.S. // COMPANION</div>
+            <h2 class="auth-title companion-ok">J.A.R.V.I.S. detected</h2>
+            <p class="auth-sub">The Companion is running on this PC and ready to connect.</p>
+            <button type="button" class="btn btn-primary auth-submit" id="authConnectBtn">Connect J.A.R.V.I.S. to your PC</button>
+        </div>
+
+        <!-- STEP 3b: COMPANION NOT FOUND -->
+        <div class="auth-step" id="authStepSetup">
+            <div class="panel-kicker">J.A.R.V.I.S. // COMPANION</div>
+            <h2 class="auth-title companion-missing">J.A.R.V.I.S. not installed</h2>
+            <p class="auth-sub">JARVIS needs its Companion app installed on this PC to control
+            your voice, vision and system — it's a one-time setup.</p>
+            <button type="button" class="btn btn-primary auth-submit" id="authInstallBtn">Install J.A.R.V.I.S.</button>
+            <button type="button" class="auth-recheck" id="authRecheckBtn">I've already installed it — check again</button>
+        </div>
+
+        <!-- STEP 3c: INSTALLING -->
+        <div class="auth-step" id="authStepInstalling">
+            <div class="panel-kicker">J.A.R.V.I.S. // COMPANION</div>
+            <h2 class="auth-title">Installing J.A.R.V.I.S....</h2>
+            <p class="auth-sub" id="authInstallStatus">Downloading the Companion installer.</p>
+            <div class="companion-spinner"></div>
+        </div>
+
+        <!-- STEP 4: TERMS & INFO (signup only) -->
+        <div class="auth-step" id="authStepTerms">
+
+            <div class="panel-kicker">J.A.R.V.I.S. // TERMS &amp; INFO</div>
+            <h2 class="auth-title">Terms &amp; info</h2>
+            <p class="auth-sub">A quick read before your JARVIS ID goes live.</p>
+
+            <div class="terms-box">
+                <p>JARVIS uses your microphone, camera and system permissions only
+                when you actively invoke it, to control your machine by voice,
+                vision and gesture.</p>
+                <p>Your ID, name, birthday and gender are stored to personalize
+                your assistant. You can delete your ID at any time from the
+                login screen.</p>
+                <p>This is a prototype — no real account system is connected yet,
+                so nothing here is shared outside this browser.</p>
+            </div>
+
+            <label class="terms-check">
+                <input type="checkbox" id="authTermsCheck">
+                I agree to the Terms of Service and Privacy Policy.
+            </label>
+
+            <button type="button" class="btn btn-primary auth-submit" id="authTermsContinue">Continue</button>
+
+        </div>
+
+        <!-- STEP 5: FINAL WELCOME -->
+        <div class="auth-step" id="authStepFinal">
+            <div class="panel-kicker">J.A.R.V.I.S. // READY</div>
+            <h2 class="auth-title" id="authFinalGreeting">Welcome.</h2>
+            <p class="auth-sub">Your JARVIS ID is set up and the Companion is ready.</p>
+            <button type="button" class="btn btn-primary auth-submit" id="authFinalConnectBtn">Connect J.A.R.V.I.S. to your PC</button>
+        </div>
+
+        <!-- STEP 6: DASHBOARD (placeholder) -->
+        <div class="auth-step" id="authStepDashboard">
+
+            <div class="panel-kicker">J.A.R.V.I.S. // DASHBOARD</div>
+            <h2 class="auth-title" id="authDashboardGreeting">Welcome.</h2>
+            <p class="auth-sub">The real dashboard isn't built into this prototype yet — this is a
+            placeholder so the flow has somewhere to land.</p>
+
+            <button type="button" class="dashboard-settings-btn" id="authOpenSettingsBtn">⚙ Settings</button>
+
+            <button type="button" class="btn btn-primary auth-submit" id="authDashboardContinue">Done</button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- SETTINGS — shows the created ID's own saved details -->
+<div class="overlay" id="settingsOverlay">
+    <div class="panel">
+        <button class="close" data-close>×</button>
+        <div class="panel-kicker">J.A.R.V.I.S. // CONFIGURATION</div>
+        <h2 class="auth-title">Settings</h2>
+        <p class="auth-sub">Interface configuration for the JARVIS dashboard.</p>
+        <div class="settings-rows" id="settingsRows"></div>
+    </div>
+</div>
+
+<!-- MOCK GOOGLE ACCOUNT PICKER (frontend-only demo — see note in JS) -->
+<div class="overlay" id="googlePickerOverlay">
+    <div class="panel google-picker-panel">
+        <button class="close" data-close>×</button>
+        <div class="google-picker-head">
+            <svg viewBox="0 0 18 18" width="20" height="20"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.87 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.9v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.9A9 9 0 0 0 0 9c0 1.45.35 2.83.9 4.03l3.05-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.42 0 9 0A9 9 0 0 0 .9 4.97l3.05 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
+            <span>Choose an account</span>
+        </div>
+        <div class="google-picker-list" id="googlePickerList"></div>
+        <button type="button" class="google-picker-other" id="googlePickerOther">Use another account</button>
+        <p class="google-picker-note">Demo account picker — this isn't connected to a real Google sign-in.</p>
     </div>
 </div>
 
@@ -5743,6 +5999,8 @@ function buildIntroScore(){
 
 function startIntroScore(){
 
+    /* intro sound removed */
+    return;
     if(introAudioStarted) return;
     introAudioStarted = true;
 
@@ -7055,7 +7313,7 @@ function init3DHandStage(){
         }
 
         /* palm */
-        block(0,48,118,112,0,glowColorTeal);
+        block(0,58,90,120,0,glowColorTeal);
 
         /* four fingers: individual rectangular segments */
         [
@@ -7074,7 +7332,7 @@ function init3DHandStage(){
 
         /* scan ring under the hand, ties it to the HUD aesthetic */
         ctx.save();
-        ctx.translate(cx, cy + 96*scale);
+        ctx.translate(cx, cy + 118*scale);
         ctx.strokeStyle = "rgba(47,217,196,.25)";
         ctx.lineWidth = 1.2;
         ctx.setLineDash([5,7]);
@@ -7101,12 +7359,12 @@ function init3DHandStage(){
    ========================================================= */
 
 /* =========================================================
-   LIVE SYSTEM PERFORMANCE BARS (pc section dashboard)
+   LIVE SYSTEM PERFORMANCE BARS — PC control screen
    Bars are seeded from real measured frame performance (actual
    requestAnimationFrame delta / fps of this browser tab), plus a
-   small per-channel jitter so the four panels don't move in
-   lockstep. This is genuine system performance, not a canned
-   loop.
+   wave pattern so the bars visibly rise and fall rather than
+   sitting still. This is the only perf-bars instance left in the
+   page — it lives in the PC-control laptop screen.
    ========================================================= */
 (function initPerfBars(){
 
@@ -7140,7 +7398,7 @@ function init3DHandStage(){
         const groups = document.querySelectorAll('.perf-bars[data-perf-group="core"]');
         if(!groups.length) return;
 
-        barPhase += .42;
+        barPhase += .55;
         const load = Math.max(.16, Math.min(1, (62 - smoothedFps) / 40 + .34));
 
         groups.forEach(group=>{
@@ -7152,14 +7410,14 @@ function init3DHandStage(){
             bars.forEach((bar,i)=>{
                 const wave = (Math.sin(barPhase + i*.72) + 1) * .5;
                 const secondary = (Math.sin(barPhase*.63 + i*1.31) + 1) * .5;
-                const height = 22 + (load*24) + wave*24 + secondary*10;
-                bar.style.height = Math.max(18, Math.min(86, height)) + "%";
+                const height = 18 + (load*22) + wave*32 + secondary*14;
+                bar.style.height = Math.max(14, Math.min(94, height)) + "%";
             });
         });
     }
 
     render();
-    setInterval(render, 90);
+    setInterval(render, 70);
 })();
 
 function initMain3DScenes(){
@@ -7292,6 +7550,553 @@ document.querySelectorAll("[data-action='about']").forEach(a=>{
         if(aboutOverlay) aboutOverlay.classList.add("open");
     });
 });
+
+/* =========================================================
+   AUTH OVERLAY — login / create ID, opened from the nav and
+   the final CTA. Google buttons and form submits are working
+   demo stubs (they persist to localStorage on this device) —
+   real auth and OAuth need a backend.
+   ========================================================= */
+/* =========================================================
+   ACCESS ID GENERATOR
+   Splits the email's local-part against a small gamer-tag style
+   wordlist and takes the first two recognized words, Title Cased —
+   e.g. "shadowfightermax11@..." -> "Shadow Fighter". Falls back to
+   the raw local-part, Title Cased, if nothing in the list matches.
+   ========================================================= */
+const ACCESS_ID_WORDS = [
+    "shadow","fighter","fight","fire","ice","storm","dark","light","night",
+    "dragon","phoenix","wolf","tiger","lion","hawk","eagle","raven","ghost",
+    "ninja","samurai","warrior","knight","king","queen","master","hunter",
+    "blade","sword","storm","thunder","frost","flame","star","moon","sun",
+    "max","pro","x","god","king","legend","prime","alpha","omega","ace",
+    "rex","zero","neo","viper","cobra","panther","falcon","wraith","reaper"
+];
+function generateAccessId(email){
+    if(!email || email.indexOf("@") === -1) return "";
+    let local = email.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g,"");
+    local = local.replace(/[0-9]+$/,""); // strip trailing digits
+    if(!local) return "";
+
+    const words = [];
+    let i = 0;
+    while(i < local.length && words.length < 2){
+        let matched = null;
+        for(const w of ACCESS_ID_WORDS.slice().sort((a,b)=>b.length-a.length)){
+            if(local.startsWith(w, i)){ matched = w; break; }
+        }
+        if(matched){
+            words.push(matched);
+            i += matched.length;
+        }else{
+            break;
+        }
+    }
+    if(!words.length) return local.charAt(0).toUpperCase() + local.slice(1);
+    return words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+}
+
+(function initAuthOverlay(){
+    const overlay = document.getElementById("authOverlay");
+    if(!overlay) return;
+
+    const STORAGE_KEY = "jarvisSavedIds";
+    const COMPANION_FLAG_KEY = "jarvisCompanionInstalled";
+    const COMPANION_URL = "http://127.0.0.1:8765/state";
+    let authMode = "login";
+    let authIsTemporary = false; // true only for the marketing CTAs (hero / final)
+
+    const panel = document.querySelector(".auth-panel");
+    const kicker = document.getElementById("authKicker");
+    const title = document.getElementById("authTitle");
+    const sub = document.getElementById("authSub");
+    const submitBtn = document.getElementById("authSubmit");
+    const googleLabel = document.getElementById("authGoogleLabel");
+    const switchPrompt = document.getElementById("authSwitchPrompt");
+    const switchBtn = document.getElementById("authSwitchBtn");
+    const extraGroups = document.querySelectorAll(".auth-extra");
+    const form = document.getElementById("authForm");
+    const googleBtn = document.getElementById("authGoogleBtn");
+    const emailInput = document.getElementById("authEmail");
+    const passwordInput = document.getElementById("authPassword");
+    const passwordWarning = document.getElementById("authPasswordWarning");
+    const nameInput = document.getElementById("authName");
+    const accessIdInput = document.getElementById("authAccessId");
+    const dayInput = document.getElementById("authBirthDay");
+    const monthInput = document.getElementById("authBirthMonth");
+    const yearInput = document.getElementById("authBirthYear");
+    const genderPills = document.querySelectorAll(".gender-pill");
+    const savedList = document.getElementById("authSavedList");
+
+    const stepForm = document.getElementById("authStepForm");
+    const stepChecking = document.getElementById("authStepChecking");
+    const stepDetected = document.getElementById("authStepDetected");
+    const stepSetup = document.getElementById("authStepSetup");
+    const stepInstalling = document.getElementById("authStepInstalling");
+    const stepTerms = document.getElementById("authStepTerms");
+    const stepFinal = document.getElementById("authStepFinal");
+    const stepDashboard = document.getElementById("authStepDashboard");
+
+    const termsCheck = document.getElementById("authTermsCheck");
+    const termsContinueBtn = document.getElementById("authTermsContinue");
+    const connectBtn = document.getElementById("authConnectBtn");
+    const installBtn = document.getElementById("authInstallBtn");
+    const recheckBtn = document.getElementById("authRecheckBtn");
+    const installStatus = document.getElementById("authInstallStatus");
+    const finalGreeting = document.getElementById("authFinalGreeting");
+    const finalConnectBtn = document.getElementById("authFinalConnectBtn");
+    const dashboardGreeting = document.getElementById("authDashboardGreeting");
+    const dashboardContinueBtn = document.getElementById("authDashboardContinue");
+    const openSettingsBtn = document.getElementById("authOpenSettingsBtn");
+
+    let selectedGender = "";
+    let accessIdEdited = false;
+    let pendingEntry = null;
+    let currentGreetingName = "";
+
+    /* ---------- fast birthday picker ---------- */
+    (function populateBirthdaySelects(){
+        if(!dayInput || !monthInput || !yearInput) return;
+        dayInput.innerHTML = '<option value="">Day</option>' +
+            Array.from({length:31}, (_,i)=>`<option>${i+1}</option>`).join("");
+        const months = ["January","February","March","April","May","June","July",
+            "August","September","October","November","December"];
+        monthInput.innerHTML = '<option value="">Month</option>' +
+            months.map(m=>`<option>${m}</option>`).join("");
+        const thisYear = new Date().getFullYear();
+        let years = "";
+        for(let y=thisYear; y>=thisYear-100; y--) years += `<option>${y}</option>`;
+        yearInput.innerHTML = '<option value="">Year</option>' + years;
+    })();
+    function getBirthday(){
+        if(!dayInput || !monthInput || !yearInput) return "";
+        if(!dayInput.value || !monthInput.value || !yearInput.value) return "";
+        return `${monthInput.value} ${dayInput.value}, ${yearInput.value}`;
+    }
+    function resetBirthday(){
+        if(dayInput) dayInput.value = "";
+        if(monthInput) monthInput.value = "";
+        if(yearInput) yearInput.value = "";
+    }
+
+    /* ---------- gender pills ---------- */
+    genderPills.forEach(pill=>{
+        pill.addEventListener("click", ()=>{
+            genderPills.forEach(p => p.classList.remove("active"));
+            pill.classList.add("active");
+            selectedGender = pill.dataset.value;
+        });
+    });
+
+    if(accessIdInput){
+        accessIdInput.addEventListener("input", ()=> accessIdEdited = true);
+    }
+    if(emailInput){
+        emailInput.addEventListener("input", ()=>{
+            if(authMode !== "signup" || accessIdEdited || !accessIdInput) return;
+            const suggestion = generateAccessId(emailInput.value.trim());
+            if(suggestion) accessIdInput.value = suggestion;
+        });
+    }
+
+    /* ---------- weak-password check ---------- */
+    const WEAK_PASSWORDS = [
+        "12345","123456","1234567","12345678","123456789","1234567890",
+        "111111","222222","333333","444444","555555","666666","777777",
+        "888888","999999","000000","password","qwerty","abc123","letmein",
+        "iloveyou","admin","welcome","1q2w3e","password1"
+    ];
+    function isWeakPassword(pw){
+        if(!pw) return false;
+        const lower = pw.toLowerCase();
+        if(WEAK_PASSWORDS.includes(lower)) return true;
+        if(/^(\d)\1+$/.test(pw)) return true; // e.g. 111111
+        if(/^(0123456789|1234567890|123456789|012345)/.test(pw)) return true;
+        if(pw.length < 6) return true;
+        return false;
+    }
+    if(passwordInput){
+        passwordInput.addEventListener("input", ()=>{
+            const weak = isWeakPassword(passwordInput.value);
+            if(passwordWarning) passwordWarning.hidden = !weak;
+        });
+    }
+
+    /* ---------- steps ---------- */
+    function showStep(step){
+        [stepForm, stepChecking, stepDetected, stepSetup, stepInstalling,
+         stepTerms, stepFinal, stepDashboard].forEach(s => { if(s) s.classList.remove("show"); });
+        if(step) step.classList.add("show");
+    }
+
+    function setAuthMode(mode){
+        authMode = mode;
+        const isLogin = mode === "login";
+        if(panel) panel.classList.toggle("temp-mode", !isLogin && authIsTemporary);
+
+        if(kicker) kicker.textContent = "J.A.R.V.I.S. // " + (isLogin ? "LOGIN" : "CREATE ID");
+        if(title) title.textContent = isLogin ? "Log in" : "Create your ID";
+        if(sub) sub.textContent = isLogin
+            ? "Sign in to continue to your JARVIS ID."
+            : (authIsTemporary
+                ? "Just your name, birthday and gender to get started."
+                : "Set up a new JARVIS ID for your machine.");
+        if(submitBtn) submitBtn.textContent = isLogin ? "Log in" : "Continue";
+        if(googleLabel) googleLabel.textContent = isLogin ? "Sign in with Google" : "Sign up with Google";
+        if(switchPrompt) switchPrompt.textContent = isLogin ? "Don't have an ID?" : "Already have an ID?";
+        if(switchBtn) switchBtn.textContent = isLogin ? "Create one" : "Log in";
+
+        /* Access ID, Name, Birthday, Gender and the temporary-ID
+           notice only apply when creating a new ID. */
+        extraGroups.forEach(group => {
+            const isTempNote = group.id === "authTempNote";
+            group.classList.toggle("show", isTempNote ? (!isLogin && authIsTemporary) : !isLogin);
+        });
+        showStep(stepForm);
+    }
+
+    function openAuth(mode, temporary){
+        authIsTemporary = !!temporary;
+        setAuthMode(mode);
+        overlay.classList.add("open");
+    }
+
+    document.querySelectorAll("[data-action='login']").forEach(el=>{
+        el.addEventListener("click", (e)=>{ e.preventDefault(); openAuth("login", false); });
+    });
+    /* Nav "SIGN UP" — the full create-ID form (email + password). */
+    document.querySelectorAll("[data-action='signup']").forEach(el=>{
+        el.addEventListener("click", (e)=>{ e.preventDefault(); openAuth("signup", false); });
+    });
+    /* Hero and final-section "CREATE YOUR ID" — the temporary-ID
+       flow: name, birthday and gender only, no email or password. */
+    document.querySelectorAll("[data-action='signup-temp']").forEach(el=>{
+        el.addEventListener("click", (e)=>{ e.preventDefault(); openAuth("signup", true); });
+    });
+
+    if(switchBtn){
+        switchBtn.addEventListener("click", ()=> openAuth(authMode === "login" ? "signup" : "login", false));
+    }
+
+    /* =====================================================
+       MOCK GOOGLE ACCOUNT PICKER — still a frontend-only demo.
+       There is no real OAuth client or backend wired up here, so
+       nothing is actually verified with Google. Picking the demo
+       account (or typing your own) just fills the email field and
+       continues through the same Name / Birthday / Gender /
+       Password steps a real Google sign-up would still ask for.
+       ===================================================== */
+    const googlePickerOverlay = document.getElementById("googlePickerOverlay");
+    const googlePickerList = document.getElementById("googlePickerList");
+    const googlePickerOther = document.getElementById("googlePickerOther");
+    const DEMO_GOOGLE_ACCOUNTS = [
+        { name:"Example Account", email:"example.user@gmail.com" }
+    ];
+
+    function renderGooglePicker(){
+        if(!googlePickerList) return;
+        googlePickerList.innerHTML = DEMO_GOOGLE_ACCOUNTS.map((acc,i) => `
+            <button type="button" class="google-picker-row" data-i="${i}">
+                <span class="google-picker-avatar">${acc.name.charAt(0)}</span>
+                <span><strong>${acc.name}</strong><small>${acc.email}</small></span>
+            </button>
+        `).join("");
+        googlePickerList.querySelectorAll("button[data-i]").forEach(btn=>{
+            btn.addEventListener("click", ()=>{
+                const acc = DEMO_GOOGLE_ACCOUNTS[Number(btn.dataset.i)];
+                useGoogleAccount(acc.email);
+            });
+        });
+    }
+    renderGooglePicker();
+
+    function useGoogleAccount(email){
+        if(googlePickerOverlay) googlePickerOverlay.classList.remove("open");
+        if(emailInput) emailInput.value = email;
+        accessIdEdited = false;
+        if(accessIdInput) accessIdInput.value = generateAccessId(email);
+
+        if(authMode === "signup"){
+            overlay.classList.add("open");
+            showStep(stepForm);
+        }else{
+            alert("Signed in with Google as " + email + " (demo account — no real OAuth behind this yet).");
+        }
+    }
+
+    if(googlePickerOther){
+        googlePickerOther.addEventListener("click", ()=>{
+            const email = prompt("Enter the Google account email to use (demo):");
+            if(email) useGoogleAccount(email.trim());
+        });
+    }
+
+    if(googleBtn){
+        googleBtn.addEventListener("click", ()=>{
+            overlay.classList.remove("open");
+            if(googlePickerOverlay) googlePickerOverlay.classList.add("open");
+        });
+    }
+
+    /* ---------- saved IDs ---------- */
+    function getSaved(){
+        try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+        catch(e){ return []; }
+    }
+    function setSaved(list){ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
+
+    function renderSaved(){
+        if(!savedList) return;
+        const list = getSaved();
+        if(!list.length){
+            savedList.innerHTML = '<div class="auth-saved-empty">No saved IDs yet on this device.</div>';
+            return;
+        }
+        savedList.innerHTML = list.map((entry,i) => `
+            <div class="auth-saved-row">
+                <div><span>${entry.name || entry.accessId || entry.email}</span><small>${entry.accessId ? entry.accessId + " · " : ""}${entry.email || "temporary ID"}</small></div>
+                <button type="button" data-i="${i}" aria-label="Delete saved ID">×</button>
+            </div>
+        `).join("");
+
+        savedList.querySelectorAll("button[data-i]").forEach(btn=>{
+            btn.addEventListener("click", ()=>{
+                const list = getSaved();
+                list.splice(Number(btn.dataset.i), 1);
+                setSaved(list);
+                renderSaved();
+            });
+        });
+    }
+
+    /* =====================================================
+       J.A.R.V.I.S. COMPANION DETECTION
+       Your Python Companion already runs a local HTTP bridge on
+       127.0.0.1:8765 (see EdithBridgeHandler / start_bridge in the
+       Python file) with a GET /state endpoint. This does a real
+       fetch against it — if your Companion is running, this
+       genuinely detects it; nothing here is simulated. If the page
+       is ever served over https, browsers will block this as
+       "mixed content" (https page calling plain http) — keep this
+       page on http:// or file:// for the local check to work, or
+       front the Companion with a local https certificate.
+       ===================================================== */
+    async function checkCompanion(){
+        try{
+            const controller = new AbortController();
+            const timeout = setTimeout(()=>controller.abort(), 2000);
+            const res = await fetch(COMPANION_URL, { signal: controller.signal, mode: "cors" });
+            clearTimeout(timeout);
+            if(!res.ok) return false;
+            const data = await res.json();
+            return !!(data && data.state);
+        }catch(e){
+            return false;
+        }
+    }
+
+    async function runCompanionCheck(){
+        showStep(stepChecking);
+        const found = await checkCompanion();
+        if(found){
+            localStorage.setItem(COMPANION_FLAG_KEY, "1");
+            showStep(stepDetected);
+        }else{
+            showStep(stepSetup);
+        }
+    }
+
+    if(connectBtn){
+        connectBtn.addEventListener("click", ()=>{
+            if(authMode === "signup"){
+                showStep(stepTerms);
+            }else{
+                finishToDashboard();
+            }
+        });
+    }
+
+    if(recheckBtn){
+        recheckBtn.addEventListener("click", runCompanionCheck);
+    }
+
+    if(installBtn){
+        installBtn.addEventListener("click", ()=>{
+            /* A browser cannot silently install software on the
+               user's PC — it can only start a download of the real
+               installer, which the person then has to run
+               themselves (same as Discord, Zoom, etc.). Wire
+               INSTALLER_DOWNLOAD_URL below to wherever the built
+               jarvis-setup.exe is actually hosted. */
+            const INSTALLER_DOWNLOAD_URL = ""; // e.g. "https://yourdomain.com/downloads/jarvis-setup.exe"
+            if(INSTALLER_DOWNLOAD_URL){
+                window.location.href = INSTALLER_DOWNLOAD_URL;
+            }
+            showStep(stepInstalling);
+            if(installStatus) installStatus.textContent = "Waiting for the installer to finish and the Companion to start...";
+            setTimeout(async ()=>{
+                const found = await checkCompanion();
+                if(found){
+                    localStorage.setItem(COMPANION_FLAG_KEY, "1");
+                    showStep(stepDetected);
+                }else{
+                    showStep(stepSetup);
+                    if(installStatus) installStatus.textContent = "Downloading the Companion installer.";
+                }
+            }, 3000);
+        });
+    }
+
+    /* ---------- terms ---------- */
+    if(termsContinueBtn){
+        termsContinueBtn.addEventListener("click", ()=>{
+            if(termsCheck && !termsCheck.checked){
+                alert("Please agree to the Terms of Service and Privacy Policy to continue.");
+                return;
+            }
+            if(!pendingEntry) return;
+
+            const list = getSaved();
+            list.push(pendingEntry);
+            setSaved(list);
+            renderSaved();
+
+            currentGreetingName = pendingEntry.accessId || pendingEntry.name || "";
+            if(finalGreeting) finalGreeting.textContent = pickGreeting(currentGreetingName);
+            showStep(stepFinal);
+        });
+    }
+
+    if(finalConnectBtn){
+        finalConnectBtn.addEventListener("click", finishToDashboard);
+    }
+
+    function finishToDashboard(){
+        if(dashboardGreeting) dashboardGreeting.textContent = pickGreeting(currentGreetingName);
+        showStep(stepDashboard);
+    }
+
+    if(dashboardContinueBtn){
+        dashboardContinueBtn.addEventListener("click", ()=>{
+            pendingEntry = null;
+            accessIdEdited = false;
+            if(form) form.reset();
+            resetBirthday();
+            if(termsCheck) termsCheck.checked = false;
+            genderPills.forEach(p => p.classList.remove("active"));
+            selectedGender = "";
+            overlay.classList.remove("open");
+            setAuthMode("login");
+        });
+    }
+
+    if(openSettingsBtn){
+        openSettingsBtn.addEventListener("click", ()=> openSettingsFor(pendingEntry));
+    }
+
+    /* ---------- settings (three-dot / gear on the dashboard) ---------- */
+    function openSettingsFor(entry){
+        const rows = document.getElementById("settingsRows");
+        const settingsOverlay = document.getElementById("settingsOverlay");
+        if(!rows || !settingsOverlay) return;
+        entry = entry || {};
+        const passwordRow = entry.password
+            ? `<div class="settings-row">Password <span id="settingsPasswordValue" data-value="${entry.password}">••••••••</span> <button type="button" id="settingsPasswordToggle" class="auth-recheck" style="margin:0;">show</button></div>`
+            : `<div class="settings-row">Password <span>— (temporary ID, no password)</span></div>`;
+        rows.innerHTML = `
+            <div class="settings-row">Name <span>${entry.name || "—"}</span></div>
+            <div class="settings-row">Gender <span>${entry.gender || "—"}</span></div>
+            <div class="settings-row">Birthday <span>${entry.birthday || "—"}</span></div>
+            ${passwordRow}
+        `;
+        const toggle = document.getElementById("settingsPasswordToggle");
+        const valueEl = document.getElementById("settingsPasswordValue");
+        if(toggle && valueEl){
+            toggle.addEventListener("click", ()=>{
+                const shown = toggle.textContent === "hide";
+                valueEl.textContent = shown ? "••••••••" : valueEl.dataset.value;
+                toggle.textContent = shown ? "show" : "hide";
+            });
+        }
+        settingsOverlay.classList.add("open");
+    }
+
+    /* ---------- 10 rotating greetings ---------- */
+    const GREETINGS_WITH_NAME = [
+        (n) => `What's the vibe, ${n}?`,
+        (n) => `Hi, how are you, ${n}?`,
+        (n) => `Good to see you, ${n}.`,
+        (n) => `Ready when you are, ${n}.`,
+        (n) => `Let's get to work, ${n}.`
+    ];
+    const GREETINGS_GENERIC = [
+        () => "What should we work on?",
+        () => "What's cooking?",
+        () => "Systems online. What's the plan?",
+        () => "Where do you want to start?",
+        () => "Your machine is listening. What's next?"
+    ];
+    function pickGreeting(name){
+        const hasName = !!(name && name.trim());
+        const pool = hasName ? GREETINGS_WITH_NAME.concat(GREETINGS_GENERIC) : GREETINGS_GENERIC;
+        const lastIndex = Number(sessionStorage.getItem("jarvisLastGreetingIndex"));
+        let index;
+        do{
+            index = Math.floor(Math.random() * pool.length);
+        }while(pool.length > 1 && index === lastIndex);
+        sessionStorage.setItem("jarvisLastGreetingIndex", String(index));
+        return pool[index](name);
+    }
+
+    /* ---------- submit ---------- */
+    if(form){
+        form.addEventListener("submit", (e)=>{
+            e.preventDefault();
+
+            if(authMode === "signup"){
+                if(authIsTemporary){
+                    /* Temporary ID: name, birthday, gender only. */
+                    pendingEntry = {
+                        name: nameInput ? nameInput.value.trim() : "",
+                        birthday: getBirthday(),
+                        gender: selectedGender,
+                        temporary: true,
+                        createdAt: new Date().toISOString()
+                    };
+                }else{
+                    const email = emailInput ? emailInput.value.trim() : "";
+                    if(!email){ alert("Please enter an email."); return; }
+                    if(isWeakPassword(passwordInput ? passwordInput.value : "")){
+                        if(passwordWarning) passwordWarning.hidden = false;
+                        alert("That password is too common — please create a stronger one.");
+                        return;
+                    }
+                    pendingEntry = {
+                        accessId: accessIdInput ? accessIdInput.value.trim() : "",
+                        email,
+                        password: passwordInput ? passwordInput.value : "",
+                        name: nameInput ? nameInput.value.trim() : "",
+                        birthday: getBirthday(),
+                        gender: selectedGender,
+                        temporary: false,
+                        createdAt: new Date().toISOString()
+                    };
+                }
+                runCompanionCheck();
+            }else{
+                const email = emailInput ? emailInput.value.trim() : "";
+                if(!email) return;
+                const list = getSaved();
+                const match = list.find(e => e.email === email);
+                pendingEntry = match || { email };
+                currentGreetingName = pendingEntry.accessId || pendingEntry.name || "";
+                runCompanionCheck();
+            }
+        });
+    }
+
+    renderSaved();
+})();
 document.querySelectorAll("[data-action='how']").forEach(a=>{
     a.addEventListener("click", (e)=>{
         e.preventDefault();
