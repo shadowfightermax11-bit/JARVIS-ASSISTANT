@@ -1,0 +1,10 @@
+edge-tts
+numpy
+pygame
+sounddevice
+soundfile
+SpeechRecognition
+scipy
+openwakeword
+google-genai
+pyinstaller
