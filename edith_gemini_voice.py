@@ -1,13 +1,15 @@
 import os
-import tempfile
+import re
+import json
 import time
+import tempfile
 import webbrowser
 import subprocess
 import asyncio
 import threading
-import json
 import ctypes
-from urllib.parse import urlparse, parse_qs
+import shutil
+from urllib.parse import urlparse, parse_qs, quote_plus
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import edge_tts
@@ -25,7 +27,7 @@ import local_responses
 
 
 # ============================================================
-# JARVIS SETTINGS
+# J.A.R.V.I.S. SETTINGS
 # ============================================================
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -41,18 +43,52 @@ END_SILENCE = 1.0
 MIN_SPEECH_TIME = 0.25
 COOLDOWN = 1.5
 
+BRIDGE_HOST = "127.0.0.1"
+BRIDGE_PORT = 8765
+
+MAX_HISTORY = 40
+
+
+# ============================================================
+# SAFE PC POLICY
+# ============================================================
+#
+# JARVIS IS INTENTIONALLY NON-DESTRUCTIVE.
+#
+# ALLOWED:
+#   open
+#   search
+#   navigate
+#   switch
+#   close current window/tab
+#   type
+#   read/search filenames
+#   media control
+#   screenshots
+#
+# NOT IMPLEMENTED:
+#   delete files
+#   overwrite files
+#   rename files
+#   move files
+#   uninstall software
+#   format drives
+#   registry modification
+#   shutdown
+#   restart
+#   factory reset
+#   credential extraction
+#   disabling security
+#   arbitrary shell commands
+#
+# ============================================================
+
 
 # ============================================================
 # CONVERSATION MEMORY
 # ============================================================
 
-# Persistent rolling memory. This is JARVIS' OWN conversation
-# history — it does not read your ChatGPT history or any other
-# assistant's chats. It lets JARVIS remember what YOU told JARVIS
-# across restarts and answer context questions from its own history.
-
 CONVERSATION_HISTORY = []
-MAX_HISTORY = 40
 
 MEMORY_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
@@ -88,10 +124,12 @@ def load_conversation_memory():
                 and isinstance(item.get("answer"), str)
             ):
 
-                history.append((
-                    item["question"],
-                    item["answer"]
-                ))
+                history.append(
+                    (
+                        item["question"],
+                        item["answer"]
+                    )
+                )
 
         print(
             f"MEMORY → LOADED {len(history)} RECENT EXCHANGES"
@@ -106,6 +144,28 @@ def load_conversation_memory():
         )
 
         return []
+
+
+def should_store_exchange(question):
+
+    sensitive_words = (
+        "password",
+        "passcode",
+        "api key",
+        "apikey",
+        "secret key",
+        "credit card",
+        "otp",
+        "one time password",
+        "private key"
+    )
+
+    text = question.lower().strip()
+
+    return not any(
+        word in text
+        for word in sensitive_words
+    )
 
 
 def save_conversation_memory():
@@ -148,31 +208,6 @@ def save_conversation_memory():
         )
 
 
-def should_store_exchange(question):
-
-    # Do not persist obvious password / secret-setting commands.
-    # This keeps JARVIS useful without turning the memory file into
-    # a place where credentials could be stored.
-
-    sensitive_words = (
-        "password",
-        "passcode",
-        "api key",
-        "apikey",
-        "secret key",
-        "credit card",
-        "otp",
-        "one time password"
-    )
-
-    text = question.lower().strip()
-
-    return not any(
-        word in text
-        for word in sensitive_words
-    )
-
-
 def remember_exchange(question, answer):
 
     if not should_store_exchange(question):
@@ -184,7 +219,10 @@ def remember_exchange(question, answer):
         return
 
     CONVERSATION_HISTORY.append(
-        (question, answer)
+        (
+            question,
+            answer
+        )
     )
 
     if len(CONVERSATION_HISTORY) > MAX_HISTORY:
@@ -242,11 +280,16 @@ def format_history_for_ai(limit=20):
     recent = CONVERSATION_HISTORY[-limit:]
 
     if not recent:
-        return "No previous JARVIS conversation is stored."
+        return (
+            "No previous JARVIS conversation is stored."
+        )
 
     lines = []
 
-    for index, (question, answer) in enumerate(recent, 1):
+    for index, (question, answer) in enumerate(
+        recent,
+        1
+    ):
 
         lines.append(
             f"{index}. User: {question}\n"
@@ -262,7 +305,7 @@ def ask_context_recall(question):
 
         return (
             "I don't have any previous JARVIS conversation "
-            "stored yet, so I can't tell what we were doing."
+            "stored yet."
         )
 
     history = format_history_for_ai(
@@ -278,17 +321,9 @@ def ask_context_recall(question):
             contents=(
                 "You are JARVIS answering a context-recall question. "
                 "Use ONLY the supplied JARVIS conversation history. "
-                "Identify the user's most recent actual task, topic, "
-                "or subject. Do not automatically say the JARVIS project. "
-                "If the recent conversation was about mathematics, say "
-                "the mathematics topic; if it was physics, coding, a "
-                "website, chemistry, etc., say that instead. "
-                "Prefer the latest substantive user task over greetings, "
-                "PC actions, or this recall question itself. "
-                "Mention the latest question/problem when it is clear. "
-                "Answer naturally in 1-3 concise sentences. "
-                "If the history does not contain enough information, say "
-                "that clearly instead of inventing a topic.\n\n"
+                "Identify the user's most recent actual task or topic. "
+                "Do not invent information. "
+                "Answer naturally in 1-3 concise sentences.\n\n"
                 "JARVIS CONVERSATION HISTORY:\n"
                 f"{history}\n\n"
                 f"CURRENT USER QUESTION: {question}"
@@ -306,21 +341,17 @@ def ask_context_recall(question):
             f"Context recall error: {e}"
         )
 
-    # Safe local fallback if Gemini is unavailable.
-    last_question, last_answer = CONVERSATION_HISTORY[-1]
+    last_question, _ = CONVERSATION_HISTORY[-1]
 
     return (
-        "The most recent thing I have in my JARVIS memory is: "
-        f"you asked, '{last_question}'."
+        "The most recent thing I have in my JARVIS memory "
+        f"is that you asked: '{last_question}'."
     )
 
 
 # ============================================================
-# WEB JARVIS BRIDGE
+# WEB BRIDGE STATE
 # ============================================================
-
-BRIDGE_HOST = "127.0.0.1"
-BRIDGE_PORT = 8765
 
 edith_state = {
     "state": "ready",
@@ -333,6 +364,7 @@ state_lock = threading.Lock()
 def set_state(state, message):
 
     with state_lock:
+
         edith_state["state"] = state
         edith_state["message"] = message
 
@@ -342,12 +374,55 @@ def set_state(state, message):
 
 
 # ============================================================
-# WINDOWS KEY CONTROL
+# WINDOWS KEYBOARD ENGINE
 # ============================================================
 
-def send_windows_key(vk_code):
+KEYEVENTF_KEYUP = 0x0002
 
-    KEYEVENTF_KEYUP = 0x0002
+VK = {
+
+    "backspace": 0x08,
+    "tab": 0x09,
+    "enter": 0x0D,
+    "shift": 0x10,
+    "ctrl": 0x11,
+    "alt": 0x12,
+    "escape": 0x1B,
+    "space": 0x20,
+
+    "left": 0x25,
+    "up": 0x26,
+    "right": 0x27,
+    "down": 0x28,
+
+    "home": 0x24,
+    "end": 0x23,
+
+    "pageup": 0x21,
+    "pagedown": 0x22,
+
+    "insert": 0x2D,
+    "delete": 0x2E,
+
+    "a": 0x41,
+    "c": 0x43,
+    "f": 0x46,
+    "l": 0x4C,
+    "r": 0x52,
+    "t": 0x54,
+    "v": 0x56,
+    "w": 0x57,
+    "x": 0x58,
+    "z": 0x5A,
+
+    "volume_down": 0xAE,
+    "volume_up": 0xAF,
+    "media_play_pause": 0xB3,
+    "snapshot": 0x2C
+}
+
+
+def key_down(vk_code):
 
     ctypes.windll.user32.keybd_event(
         vk_code,
@@ -355,6 +430,9 @@ def send_windows_key(vk_code):
         0,
         0
     )
+
+
+def key_up(vk_code):
 
     ctypes.windll.user32.keybd_event(
         vk_code,
@@ -364,47 +442,745 @@ def send_windows_key(vk_code):
     )
 
 
+def press_key(vk_code):
+
+    key_down(vk_code)
+    time.sleep(0.03)
+    key_up(vk_code)
+
+
+def hotkey(*keys):
+
+    codes = [
+        VK[key]
+        if isinstance(key, str)
+        else key
+        for key in keys
+    ]
+
+    for code in codes:
+        key_down(code)
+
+    time.sleep(0.05)
+
+    for code in reversed(codes):
+        key_up(code)
+
+
 # ============================================================
-# WINDOWS VOLUME CONTROL
+# WINDOWS VOLUME
 # ============================================================
 
 def windows_volume_up():
 
-    VK_VOLUME_UP = 0xAF
-
-    send_windows_key(
-        VK_VOLUME_UP
+    press_key(
+        VK["volume_up"]
     )
+
+    return True
 
 
 def windows_volume_down():
 
-    VK_VOLUME_DOWN = 0xAE
+    press_key(
+        VK["volume_down"]
+    )
 
-    send_windows_key(
-        VK_VOLUME_DOWN
+    return True
+
+
+# ============================================================
+# SCREENSHOT
+# ============================================================
+
+def windows_screenshot():
+
+    press_key(
+        VK["snapshot"]
+    )
+
+    print(
+        "SCREENSHOT → PRINT SCREEN"
+    )
+
+    return True
+
+
+# ============================================================
+# BROWSER NAVIGATION
+# ============================================================
+
+def browser_next_tab():
+
+    hotkey(
+        "ctrl",
+        "tab"
+    )
+
+    print(
+        "BROWSER → NEXT TAB"
+    )
+
+    return True
+
+
+def browser_previous_tab():
+
+    hotkey(
+        "ctrl",
+        "shift",
+        "tab"
+    )
+
+    print(
+        "BROWSER → PREVIOUS TAB"
+    )
+
+    return True
+
+
+def browser_new_tab():
+
+    hotkey(
+        "ctrl",
+        "t"
+    )
+
+    return True
+
+
+def browser_close_tab():
+
+    hotkey(
+        "ctrl",
+        "w"
+    )
+
+    return True
+
+
+def browser_back():
+
+    hotkey(
+        "alt",
+        "left"
+    )
+
+    return True
+
+
+def browser_forward():
+
+    hotkey(
+        "alt",
+        "right"
+    )
+
+    return True
+
+
+def browser_refresh():
+
+    hotkey(
+        "ctrl",
+        "r"
+    )
+
+    return True
+
+
+def browser_find():
+
+    hotkey(
+        "ctrl",
+        "f"
+    )
+
+    return True
+
+
+# ============================================================
+# WINDOW NAVIGATION
+# ============================================================
+
+def switch_window():
+
+    hotkey(
+        "alt",
+        "tab"
+    )
+
+    return True
+
+
+def close_current_window():
+
+    hotkey(
+        "alt",
+        "f4"
+    )
+
+    return True
+
+
+def maximize_window():
+
+    hotkey(
+        "win",
+        "up"
+    )
+
+    return True
+
+
+def minimize_window():
+
+    hotkey(
+        "win",
+        "down"
+    )
+
+    return True
+
+
+# ============================================================
+# SAFE URL HANDLING
+# ============================================================
+
+def normalize_url(url):
+
+    url = url.strip()
+
+    if not url:
+        return None
+
+    if not re.match(
+        r"^https?://",
+        url,
+        re.IGNORECASE
+    ):
+
+        url = "https://" + url
+
+    parsed = urlparse(url)
+
+    if not parsed.netloc:
+        return None
+
+    return url
+
+
+def open_url(url, browser=None):
+
+    url = normalize_url(url)
+
+    if not url:
+        return False
+
+    if browser == "chrome":
+
+        executable = find_browser_executable(
+            "chrome"
+        )
+
+        if executable:
+
+            subprocess.Popen(
+                [
+                    executable,
+                    url
+                ],
+                creationflags=getattr(
+                    subprocess,
+                    "CREATE_NO_WINDOW",
+                    0
+                )
+            )
+
+            return True
+
+    if browser == "edge":
+
+        executable = find_browser_executable(
+            "edge"
+        )
+
+        if executable:
+
+            subprocess.Popen(
+                [
+                    executable,
+                    url
+                ],
+                creationflags=getattr(
+                    subprocess,
+                    "CREATE_NO_WINDOW",
+                    0
+                )
+            )
+
+            return True
+
+    return webbrowser.open(
+        url
     )
 
 
 # ============================================================
-# WINDOWS GLOBAL MEDIA SESSION CONTROL
+# BROWSER DISCOVERY
+# ============================================================
+
+def find_browser_executable(browser):
+
+    candidates = []
+
+    if browser == "chrome":
+
+        candidates = [
+
+            os.path.expandvars(
+                r"%ProgramFiles%\Google\Chrome\Application\chrome.exe"
+            ),
+
+            os.path.expandvars(
+                r"%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe"
+            ),
+
+            os.path.expandvars(
+                r"%LocalAppData%\Google\Chrome\Application\chrome.exe"
+            )
+        ]
+
+    elif browser == "edge":
+
+        candidates = [
+
+            os.path.expandvars(
+                r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"
+            ),
+
+            os.path.expandvars(
+                r"%ProgramFiles%\Microsoft\Edge\Application\msedge.exe"
+            ),
+
+            os.path.expandvars(
+                r"%LocalAppData%\Microsoft\Edge\Application\msedge.exe"
+            )
+        ]
+
+    for path in candidates:
+
+        if os.path.isfile(path):
+
+            return path
+
+    return shutil.which(
+        "chrome.exe"
+        if browser == "chrome"
+        else "msedge.exe"
+    )
+
+
+# ============================================================
+# COMMON WEBSITES
+# ============================================================
+
+WEBSITES = {
+
+    "youtube":
+        "https://www.youtube.com",
+
+    "google":
+        "https://www.google.com",
+
+    "gmail":
+        "https://mail.google.com",
+
+    "instagram":
+        "https://www.instagram.com",
+
+    "facebook":
+        "https://www.facebook.com",
+
+    "github":
+        "https://github.com",
+
+    "chatgpt":
+        "https://chatgpt.com",
+
+    "claude":
+        "https://claude.ai"
+}
+
+
+def open_website(
+    site,
+    browser=None
+):
+
+    site = site.lower().strip()
+
+    url = WEBSITES.get(
+        site
+    )
+
+    if not url:
+
+        return False
+
+    return open_url(
+        url,
+        browser
+    )
+
+
+# ============================================================
+# SEARCH
+# ============================================================
+
+def google_search(query, browser=None):
+
+    query = query.strip()
+
+    if not query:
+        return False
+
+    url = (
+        "https://www.google.com/search?q="
+        + quote_plus(query)
+    )
+
+    return open_url(
+        url,
+        browser
+    )
+
+
+def youtube_search(query, browser=None):
+
+    query = query.strip()
+
+    if not query:
+        return False
+
+    url = (
+        "https://www.youtube.com/results?search_query="
+        + quote_plus(query)
+    )
+
+    return open_url(
+        url,
+        browser
+    )
+
+
+# ============================================================
+# SAFE APP LAUNCHING
+# ============================================================
+
+def launch_application(app):
+
+    app = app.lower().strip()
+
+    if app == "chrome":
+
+        executable = find_browser_executable(
+            "chrome"
+        )
+
+        if executable:
+
+            subprocess.Popen(
+                [executable]
+            )
+
+            return True
+
+        return False
+
+    if app == "edge":
+
+        executable = find_browser_executable(
+            "edge"
+        )
+
+        if executable:
+
+            subprocess.Popen(
+                [executable]
+            )
+
+            return True
+
+        return False
+
+    if app == "notepad":
+
+        subprocess.Popen(
+            ["notepad.exe"]
+        )
+
+        return True
+
+    if app == "calculator":
+
+        subprocess.Popen(
+            ["calc.exe"]
+        )
+
+        return True
+
+    if app in (
+        "file explorer",
+        "explorer",
+        "files"
+    ):
+
+        subprocess.Popen(
+            ["explorer.exe"]
+        )
+
+        return True
+
+    return False
+
+
+# ============================================================
+# SAFE FOLDER OPENING
+# ============================================================
+
+def open_folder(path):
+
+    path = os.path.expandvars(
+        os.path.expanduser(
+            path
+        )
+    )
+
+    if not os.path.isdir(path):
+        return False
+
+    subprocess.Popen(
+        [
+            "explorer.exe",
+            path
+        ]
+    )
+
+    return True
+
+
+def common_folder(name):
+
+    home = os.path.expanduser(
+        "~"
+    )
+
+    folders = {
+
+        "desktop":
+            os.path.join(
+                home,
+                "Desktop"
+            ),
+
+        "documents":
+            os.path.join(
+                home,
+                "Documents"
+            ),
+
+        "downloads":
+            os.path.join(
+                home,
+                "Downloads"
+            ),
+
+        "pictures":
+            os.path.join(
+                home,
+                "Pictures"
+            ),
+
+        "videos":
+            os.path.join(
+                home,
+                "Videos"
+            ),
+
+        "music":
+            os.path.join(
+                home,
+                "Music"
+            )
+    }
+
+    return folders.get(
+        name.lower()
+    )
+
+
+# ============================================================
+# SAFE FILE SEARCH
+# ============================================================
+
+def search_files(
+    query,
+    max_results=20
+):
+
+    query = query.lower().strip()
+
+    if not query:
+        return []
+
+    home = os.path.expanduser(
+        "~"
+    )
+
+    roots = [
+
+        os.path.join(
+            home,
+            "Desktop"
+        ),
+
+        os.path.join(
+            home,
+            "Documents"
+        ),
+
+        os.path.join(
+            home,
+            "Downloads"
+        ),
+
+        os.path.join(
+            home,
+            "Pictures"
+        ),
+
+        os.path.join(
+            home,
+            "Videos"
+        ),
+
+        os.path.join(
+            home,
+            "Music"
+        )
+    ]
+
+    results = []
+
+    for root in roots:
+
+        if not os.path.isdir(root):
+            continue
+
+        for current_root, dirs, files in os.walk(
+            root,
+            topdown=True
+        ):
+
+            # Never enter hidden/system-like folders.
+            dirs[:] = [
+                d for d in dirs
+                if not d.startswith(".")
+                and d.lower()
+                not in (
+                    "appdata",
+                    "node_modules",
+                    "__pycache__"
+                )
+            ]
+
+            for filename in files:
+
+                if query in filename.lower():
+
+                    results.append(
+                        os.path.join(
+                            current_root,
+                            filename
+                        )
+                    )
+
+                    if len(results) >= max_results:
+
+                        return results
+
+    return results
+
+
+def open_file(path):
+
+    path = os.path.expandvars(
+        os.path.expanduser(
+            path
+        )
+    )
+
+    if not os.path.isfile(path):
+
+        return False
+
+    os.startfile(
+        path
+    )
+
+    return True
+
+
+# ============================================================
+# FILE COMMAND EXTRACTION
+# ============================================================
+
+def extract_explicit_path(command):
+
+    quoted = re.findall(
+        r'"([^"]+)"',
+        command
+    )
+
+    for item in quoted:
+
+        expanded = os.path.expandvars(
+            os.path.expanduser(
+                item
+            )
+        )
+
+        if os.path.isfile(expanded):
+
+            return expanded
+
+    # Windows absolute path.
+    match = re.search(
+        r'([A-Za-z]:\\[^<>:"|?*\r\n]+)',
+        command
+    )
+
+    if match:
+
+        path = os.path.expandvars(
+            os.path.expanduser(
+                match.group(1).strip()
+            )
+        )
+
+        if os.path.isfile(path):
+
+            return path
+
+    return None
+
+
+# ============================================================
+# MEDIA SESSION
 # ============================================================
 
 def windows_media_session_command(action):
-
-    """
-    Controls the currently active Windows media session.
-
-    Supported:
-        pause
-        play
-
-    The function:
-        1. Finds the current media session.
-        2. Reads its playback state.
-        3. Executes the requested Play/Pause command.
-        4. Uses proper Windows Runtime async handling.
-    """
 
     action = action.lower().strip()
 
@@ -415,7 +1191,6 @@ def windows_media_session_command(action):
 
         return False
 
-
     powershell_script = r'''
 $ErrorActionPreference = "Stop"
 
@@ -423,13 +1198,17 @@ try {
 
     Add-Type -AssemblyName System.Runtime.WindowsRuntime
 
-    $managerType = [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager, Windows, ContentType=WindowsRuntime]
+    $managerType =
+        [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager,
+        Windows,
+        ContentType=WindowsRuntime]
 
     $request = $managerType::RequestAsync()
 
-    $manager = [System.WindowsRuntimeSystemExtensions]::AsTask(
-        $request
-    ).GetAwaiter().GetResult()
+    $manager =
+        [System.WindowsRuntimeSystemExtensions]::AsTask(
+            $request
+        ).GetAwaiter().GetResult()
 
     if ($null -eq $manager) {
         exit 2
@@ -441,80 +1220,37 @@ try {
         exit 2
     }
 
-    $playbackInfo = $session.GetPlaybackInfo()
-
-    if ($null -eq $playbackInfo) {
-        exit 4
-    }
-
-    $status = $playbackInfo.PlaybackStatus.ToString()
-
-    Write-Output "STATUS=$status"
-
     $operation = $null
 
     if ("ACTION" -eq "pause") {
 
-        if ($status -eq "Playing") {
-
-            $operation = $session.TryPauseAsync()
-
-        }
-        elseif (
-            $status -eq "Paused" -or
-            $status -eq "Stopped"
-        ) {
-
-            Write-Output "ALREADY_NOT_PLAYING"
-            exit 0
-
-        }
-        else {
-
-            $operation = $session.TryPauseAsync()
-        }
+        $operation = $session.TryPauseAsync()
 
     }
     elseif ("ACTION" -eq "play") {
 
-        if ($status -eq "Paused" -or $status -eq "Stopped") {
+        $operation = $session.TryPlayAsync()
 
-            $operation = $session.TryPlayAsync()
-
-        }
-        elseif ($status -eq "Playing") {
-
-            Write-Output "ALREADY_PLAYING"
-            exit 0
-
-        }
-        else {
-
-            $operation = $session.TryPlayAsync()
-        }
     }
 
     if ($null -eq $operation) {
         exit 4
     }
 
-    $result = [System.WindowsRuntimeSystemExtensions]::AsTask(
-        $operation
-    ).GetAwaiter().GetResult()
+    $result =
+        [System.WindowsRuntimeSystemExtensions]::AsTask(
+            $operation
+        ).GetAwaiter().GetResult()
 
     if ($result) {
-        Write-Output "COMMAND_SUCCESS"
         exit 0
     }
-    else {
-        Write-Output "COMMAND_FAILED"
-        exit 3
-    }
+
+    exit 3
 
 }
 catch {
 
-    Write-Error $_.Exception.Message
     exit 5
 }
 '''
@@ -524,10 +1260,10 @@ catch {
         action
     )
 
-
     try:
 
         result = subprocess.run(
+
             [
                 "powershell.exe",
                 "-NoProfile",
@@ -537,9 +1273,11 @@ catch {
                 "-Command",
                 powershell_script
             ],
+
             capture_output=True,
             text=True,
             timeout=5,
+
             creationflags=getattr(
                 subprocess,
                 "CREATE_NO_WINDOW",
@@ -547,469 +1285,869 @@ catch {
             )
         )
 
-
-        output = (
-            result.stdout.strip()
-            if result.stdout
-            else ""
-        )
-
-
-        if result.returncode == 0:
-
-            print(
-                f"WINDOWS MEDIA → {action.upper()}"
-            )
-
-            if output:
-                print(
-                    f"MEDIA STATUS → {output}"
-                )
-
-            return True
-
-
-        if result.returncode == 2:
-
-            print(
-                "No active Windows media session found."
-            )
-
-            return False
-
-
-        if result.stderr:
-
-            print(
-                "Windows media error:"
-            )
-
-            print(
-                result.stderr.strip()
-            )
-
-        elif output:
-
-            print(
-                f"Windows media response: {output}"
-            )
-
-        else:
-
-            print(
-                f"Windows could not execute "
-                f"{action.upper()}."
-            )
-
-        return False
-
-
-    except subprocess.TimeoutExpired:
-
-        print(
-            "Windows media command timed out."
-        )
-
-        return False
-
+        return result.returncode == 0
 
     except Exception as e:
 
         print(
-            f"Windows media control error: {e}"
+            f"Media session error: {e}"
         )
 
         return False
 
 
 # ============================================================
-# MEDIA KEY FALLBACK
-# ============================================================
-
-def windows_media_key_toggle():
-
-    """
-    Emergency Windows media-key fallback.
-
-    This is only used when explicitly requested by the
-    helper below. The key itself is a toggle.
-    """
-
-    try:
-
-        VK_MEDIA_PLAY_PAUSE = 0xB3
-
-        send_windows_key(
-            VK_MEDIA_PLAY_PAUSE
-        )
-
-        print(
-            "WINDOWS MEDIA KEY → PLAY/PAUSE TOGGLE"
-        )
-
-        return True
-
-    except Exception as e:
-
-        print(
-            f"Media key error: {e}"
-        )
-
-        return False
-
-
-# ============================================================
-# SCREENSHOT CONTROL
-# ============================================================
-
-def windows_screenshot():
-
-    """
-    Uses the Windows Print Screen key.
-
-    The screenshot is handled by Windows.
-    """
-
-    try:
-
-        VK_SNAPSHOT = 0x2C
-
-        send_windows_key(
-            VK_SNAPSHOT
-        )
-
-        print(
-            "SCREENSHOT → PRINT SCREEN"
-        )
-
-        return True
-
-    except Exception as e:
-
-        print(
-            f"Screenshot error: {e}"
-        )
-
-        return False
-
-
-# ============================================================
-# BROWSER TAB CONTROL
-# ============================================================
-
-def browser_next_tab():
-
-    """
-    Ctrl + Tab
-
-    RIGHT → LEFT HAND SWIPE
-    = NEXT BROWSER TAB
-    """
-
-    try:
-
-        VK_CONTROL = 0x11
-        VK_TAB = 0x09
-
-        KEYEVENTF_KEYUP = 0x0002
-
-        ctypes.windll.user32.keybd_event(
-            VK_CONTROL,
-            0,
-            0,
-            0
-        )
-
-        ctypes.windll.user32.keybd_event(
-            VK_TAB,
-            0,
-            0,
-            0
-        )
-
-        ctypes.windll.user32.keybd_event(
-            VK_TAB,
-            0,
-            KEYEVENTF_KEYUP,
-            0
-        )
-
-        ctypes.windll.user32.keybd_event(
-            VK_CONTROL,
-            0,
-            KEYEVENTF_KEYUP,
-            0
-        )
-
-        print(
-            "BROWSER → NEXT TAB"
-        )
-
-        return True
-
-    except Exception as e:
-
-        print(
-            f"Next tab error: {e}"
-        )
-
-        return False
-
-
-def browser_previous_tab():
-
-    """
-    Ctrl + Shift + Tab
-
-    LEFT → RIGHT HAND SWIPE
-    = PREVIOUS BROWSER TAB
-    """
-
-    try:
-
-        VK_CONTROL = 0x11
-        VK_SHIFT = 0x10
-        VK_TAB = 0x09
-
-        KEYEVENTF_KEYUP = 0x0002
-
-        ctypes.windll.user32.keybd_event(
-            VK_CONTROL,
-            0,
-            0,
-            0
-        )
-
-        ctypes.windll.user32.keybd_event(
-            VK_SHIFT,
-            0,
-            0,
-            0
-        )
-
-        ctypes.windll.user32.keybd_event(
-            VK_TAB,
-            0,
-            0,
-            0
-        )
-
-        ctypes.windll.user32.keybd_event(
-            VK_TAB,
-            0,
-            KEYEVENTF_KEYUP,
-            0
-        )
-
-        ctypes.windll.user32.keybd_event(
-            VK_SHIFT,
-            0,
-            KEYEVENTF_KEYUP,
-            0
-        )
-
-        ctypes.windll.user32.keybd_event(
-            VK_CONTROL,
-            0,
-            KEYEVENTF_KEYUP,
-            0
-        )
-
-        print(
-            "BROWSER → PREVIOUS TAB"
-        )
-
-        return True
-
-    except Exception as e:
-
-        print(
-            f"Previous tab error: {e}"
-        )
-
-        return False
-
-
-# ============================================================
-# MEDIA COMMAND HANDLER
+# MEDIA COMMANDS
 # ============================================================
 
 def handle_media_command(action):
 
     action = action.lower().strip()
 
+    if action == "pause":
 
-    allowed_actions = (
-        "pause",
-        "play",
-        "volume_up",
-        "volume_down",
-        "screenshot",
-        "next_tab",
-        "previous_tab"
-    )
-
-
-    if action not in allowed_actions:
-
-        return False
-
-
-    try:
-
-        # ====================================================
-        # PAUSE
-        # ====================================================
-
-        if action == "pause":
-
-            success = windows_media_session_command(
-                "pause"
-            )
-
-            if success:
-
-                print(
-                    "OPEN PALM → PAUSE ONLY"
-                )
-
-            else:
-
-                print(
-                    "OPEN PALM → PAUSE FAILED"
-                )
-
-            return success
-
-
-        # ====================================================
-        # PLAY
-        # ====================================================
-
-        elif action == "play":
-
-            success = windows_media_session_command(
-                "play"
-            )
-
-            if success:
-
-                print(
-                    "CLOSED FIST → PLAY ONLY"
-                )
-
-            else:
-
-                print(
-                    "CLOSED FIST → PLAY FAILED"
-                )
-
-            return success
-
-
-        # ====================================================
-        # VOLUME UP
-        # ====================================================
-
-        elif action == "volume_up":
-
-            windows_volume_up()
-
-            print(
-                "THUMB UP → VOLUME UP ONLY"
-            )
-
-            return True
-
-
-        # ====================================================
-        # VOLUME DOWN
-        # ====================================================
-
-        elif action == "volume_down":
-
-            windows_volume_down()
-
-            print(
-                "THUMB DOWN → VOLUME DOWN ONLY"
-            )
-
-            return True
-
-
-        # ====================================================
-        # SCREENSHOT
-        # ====================================================
-
-        elif action == "screenshot":
-
-            success = windows_screenshot()
-
-            if success:
-
-                print(
-                    "TWO FINGERS → SCREENSHOT ONLY"
-                )
-
-            return success
-
-
-        # ====================================================
-        # NEXT TAB
-        # ====================================================
-
-        elif action == "next_tab":
-
-            success = browser_next_tab()
-
-            if success:
-
-                print(
-                    "SWIPE RIGHT → LEFT → NEXT TAB"
-                )
-
-            return success
-
-
-        # ====================================================
-        # PREVIOUS TAB
-        # ====================================================
-
-        elif action == "previous_tab":
-
-            success = browser_previous_tab()
-
-            if success:
-
-                print(
-                    "SWIPE LEFT → RIGHT → PREVIOUS TAB"
-                )
-
-            return success
-
-
-    except Exception as e:
-
-        print(
-            f"Media control error: {e}"
+        return windows_media_session_command(
+            "pause"
         )
 
+    if action == "play":
+
+        return windows_media_session_command(
+            "play"
+        )
+
+    if action == "volume_up":
+
+        return windows_volume_up()
+
+    if action == "volume_down":
+
+        return windows_volume_down()
+
+    if action == "screenshot":
+
+        return windows_screenshot()
+
+    if action == "next_tab":
+
+        return browser_next_tab()
+
+    if action == "previous_tab":
+
+        return browser_previous_tab()
+
+    return False
+
+
+# ============================================================
+# TEXT TYPING
+# ============================================================
+
+def type_text(text):
+
+    if not text:
         return False
+
+    # Clipboard is deliberately avoided.
+    # This uses the Windows Unicode input API.
+    #
+    # It is slower than clipboard paste but does not
+    # permanently place the user's text into the clipboard.
+
+    user32 = ctypes.windll.user32
+
+    KEYEVENTF_UNICODE = 0x0004
+
+    for char in text:
+
+        code = ord(char)
+
+        user32.keybd_event(
+            0,
+            code,
+            KEYEVENTF_UNICODE,
+            0
+        )
+
+        user32.keybd_event(
+            0,
+            code,
+            KEYEVENTF_UNICODE | KEYEVENTF_KEYUP,
+            0
+        )
+
+        time.sleep(
+            0.003
+        )
+
+    return True
+
+
+# ============================================================
+# SAFE COMMAND ROUTER
+# ============================================================
+
+def pc_action(command):
+
+    cmd = command.lower().strip()
+
+    # --------------------------------------------------------
+    # Explicitly refuse destructive commands.
+    # --------------------------------------------------------
+
+    destructive_patterns = (
+
+        r"\bdelete\b",
+        r"\berase\b",
+        r"\bremove file\b",
+        r"\bformat\b",
+        r"\buninstall\b",
+        r"\bshutdown\b",
+        r"\brestart\b",
+        r"\breboot\b",
+        r"\bfactory reset\b",
+        r"\breset windows\b",
+        r"\bkill all\b",
+        r"\bterminate all\b",
+        r"\bdisable antivirus\b",
+        r"\bdisable defender\b",
+        r"\bchange registry\b",
+        r"\bedit registry\b"
+    )
+
+    for pattern in destructive_patterns:
+
+        if re.search(
+            pattern,
+            cmd
+        ):
+
+            speak(
+                "I won't perform destructive system actions."
+            )
+
+            return True
+
+    # --------------------------------------------------------
+    # MEDIA
+    # --------------------------------------------------------
+
+    if any(
+        phrase in cmd
+        for phrase in (
+            "pause",
+            "pause the music",
+            "pause video"
+        )
+    ):
+
+        if handle_media_command("pause"):
+
+            speak("Paused.")
+
+            return True
+
+
+    if any(
+        phrase in cmd
+        for phrase in (
+            "play",
+            "resume",
+            "resume the music",
+            "resume video"
+        )
+    ):
+
+        if handle_media_command("play"):
+
+            speak("Playing.")
+
+            return True
+
+
+    if (
+        "volume up" in cmd
+        or "increase volume" in cmd
+        or "turn volume up" in cmd
+    ):
+
+        handle_media_command(
+            "volume_up"
+        )
+
+        speak(
+            "Volume increased."
+        )
+
+        return True
+
+
+    if (
+        "volume down" in cmd
+        or "decrease volume" in cmd
+        or "turn volume down" in cmd
+    ):
+
+        handle_media_command(
+            "volume_down"
+        )
+
+        speak(
+            "Volume decreased."
+        )
+
+        return True
+
+
+    if (
+        "take a screenshot" in cmd
+        or "take screenshot" in cmd
+        or "screenshot" == cmd
+    ):
+
+        handle_media_command(
+            "screenshot"
+        )
+
+        speak(
+            "Screenshot taken."
+        )
+
+        return True
+
+    # --------------------------------------------------------
+    # BROWSER NAVIGATION
+    # --------------------------------------------------------
+
+    if (
+        "next tab" in cmd
+        or "next browser tab" in cmd
+    ):
+
+        browser_next_tab()
+
+        speak(
+            "Next tab."
+        )
+
+        return True
+
+
+    if (
+        "previous tab" in cmd
+        or "previous browser tab" in cmd
+    ):
+
+        browser_previous_tab()
+
+        speak(
+            "Previous tab."
+        )
+
+        return True
+
+
+    if (
+        "new tab" in cmd
+        or "open a new tab" in cmd
+    ):
+
+        browser_new_tab()
+
+        speak(
+            "New tab."
+        )
+
+        return True
+
+
+    if (
+        "close this tab" in cmd
+        or "close the tab" in cmd
+    ):
+
+        browser_close_tab()
+
+        speak(
+            "Tab closed."
+        )
+
+        return True
+
+
+    if (
+        cmd in (
+            "go back",
+            "back",
+            "browser back"
+        )
+    ):
+
+        browser_back()
+
+        speak(
+            "Going back."
+        )
+
+        return True
+
+
+    if (
+        cmd in (
+            "go forward",
+            "forward",
+            "browser forward"
+        )
+    ):
+
+        browser_forward()
+
+        speak(
+            "Going forward."
+        )
+
+        return True
+
+
+    if (
+        "refresh page" in cmd
+        or cmd == "refresh"
+    ):
+
+        browser_refresh()
+
+        speak(
+            "Refreshing."
+        )
+
+        return True
+
+
+    # --------------------------------------------------------
+    # WINDOW CONTROL
+    # --------------------------------------------------------
+
+    if (
+        cmd in (
+            "switch window",
+            "switch app",
+            "switch applications"
+        )
+    ):
+
+        switch_window()
+
+        speak(
+            "Switching."
+        )
+
+        return True
+
+
+    if (
+        "close this window" in cmd
+        or cmd == "close window"
+    ):
+
+        close_current_window()
+
+        speak(
+            "Window closed."
+        )
+
+        return True
+
+
+    if (
+        "maximize window" in cmd
+        or cmd == "maximize"
+    ):
+
+        maximize_window()
+
+        speak(
+            "Maximized."
+        )
+
+        return True
+
+
+    if (
+        "minimize window" in cmd
+        or cmd == "minimize"
+    ):
+
+        minimize_window()
+
+        speak(
+            "Minimized."
+        )
+
+        return True
+
+
+    # --------------------------------------------------------
+    # KEYBOARD COMMANDS
+    # --------------------------------------------------------
+
+    keyboard_actions = {
+
+        "press enter":
+            ("enter", "Enter pressed."),
+
+        "press escape":
+            ("escape", "Escape pressed."),
+
+        "press tab":
+            ("tab", "Tab pressed."),
+
+        "copy":
+            ("copy", "Copied."),
+
+        "paste":
+            ("paste", "Pasted."),
+
+        "cut":
+            ("cut", "Cut."),
+
+        "select all":
+            ("selectall", "Selected all."),
+
+        "undo":
+            ("undo", "Undone."),
+
+        "find":
+            ("find", "Find opened.")
+    }
+
+    if cmd in keyboard_actions:
+
+        action, response = keyboard_actions[
+            cmd
+        ]
+
+        if action == "enter":
+
+            press_key(
+                VK["enter"]
+            )
+
+        elif action == "escape":
+
+            press_key(
+                VK["escape"]
+            )
+
+        elif action == "tab":
+
+            press_key(
+                VK["tab"]
+            )
+
+        elif action == "copy":
+
+            hotkey(
+                "ctrl",
+                "c"
+            )
+
+        elif action == "paste":
+
+            hotkey(
+                "ctrl",
+                "v"
+            )
+
+        elif action == "cut":
+
+            hotkey(
+                "ctrl",
+                "x"
+            )
+
+        elif action == "selectall":
+
+            hotkey(
+                "ctrl",
+                "a"
+            )
+
+        elif action == "undo":
+
+            hotkey(
+                "ctrl",
+                "z"
+            )
+
+        elif action == "find":
+
+            browser_find()
+
+        speak(
+            response
+        )
+
+        return True
+
+
+    # --------------------------------------------------------
+    # TYPE TEXT
+    # --------------------------------------------------------
+
+    type_match = re.match(
+        r'^(?:type|write)\s+["\'](.+)["\']$',
+        command,
+        re.IGNORECASE
+    )
+
+    if type_match:
+
+        text = type_match.group(1)
+
+        type_text(
+            text
+        )
+
+        speak(
+            "Done."
+        )
+
+        return True
+
+
+    # --------------------------------------------------------
+    # OPEN EXACT FILE
+    # --------------------------------------------------------
+
+    explicit_path = extract_explicit_path(
+        command
+    )
+
+    if explicit_path:
+
+        if open_file(
+            explicit_path
+        ):
+
+            speak(
+                "Opening the file."
+            )
+
+        else:
+
+            speak(
+                "I couldn't open that file."
+            )
+
+        return True
+
+
+    # --------------------------------------------------------
+    # OPEN COMMON FOLDERS
+    # --------------------------------------------------------
+
+    for folder_name in (
+        "desktop",
+        "documents",
+        "downloads",
+        "pictures",
+        "videos",
+        "music"
+    ):
+
+        if (
+            folder_name in cmd
+            and (
+                "open" in cmd
+                or "show" in cmd
+                or "go to" in cmd
+            )
+        ):
+
+            path = common_folder(
+                folder_name
+            )
+
+            if path and open_folder(path):
+
+                speak(
+                    f"Opening {folder_name}."
+                )
+
+                return True
+
+
+    # --------------------------------------------------------
+    # FILE SEARCH
+    # --------------------------------------------------------
+
+    search_file_match = re.search(
+        r"(?:find|search for|look for|locate)\s+(?:my\s+)?(.+?)(?:\s+file|\s+document|\s+pdf)?$",
+        command,
+        re.IGNORECASE
+    )
+
+    if search_file_match:
+
+        query = search_file_match.group(1).strip()
+
+        results = search_files(
+            query
+        )
+
+        if not results:
+
+            speak(
+                f"I couldn't find a file matching {query}."
+            )
+
+            return True
+
+        if len(results) == 1:
+
+            speak(
+                f"I found it. Opening {os.path.basename(results[0])}."
+            )
+
+            open_file(
+                results[0]
+            )
+
+            return True
+
+        # Open the first best matching result.
+        best = results[0]
+
+        speak(
+            f"I found {len(results)} matches. "
+            f"Opening {os.path.basename(best)}."
+        )
+
+        open_file(
+            best
+        )
+
+        return True
+
+
+    # --------------------------------------------------------
+    # SEARCH GOOGLE
+    # --------------------------------------------------------
+
+    google_match = re.search(
+        r"(?:search google for|google search for|search google)\s+(.+)",
+        command,
+        re.IGNORECASE
+    )
+
+    if google_match:
+
+        query = google_match.group(1).strip()
+
+        google_search(
+            query
+        )
+
+        speak(
+            f"Searching Google for {query}."
+        )
+
+        return True
+
+
+    # --------------------------------------------------------
+    # SEARCH YOUTUBE
+    # --------------------------------------------------------
+
+    youtube_match = re.search(
+        r"(?:search youtube for|search youtube|find on youtube)\s+(.+)",
+        command,
+        re.IGNORECASE
+    )
+
+    if youtube_match:
+
+        query = youtube_match.group(1).strip()
+
+        youtube_search(
+            query
+        )
+
+        speak(
+            f"Searching YouTube for {query}."
+        )
+
+        return True
+
+
+    # --------------------------------------------------------
+    # OPEN URL
+    # --------------------------------------------------------
+
+    url_match = re.search(
+        r"(https?://[^\s]+|www\.[^\s]+)",
+        command,
+        re.IGNORECASE
+    )
+
+    if url_match:
+
+        url = url_match.group(1)
+
+        browser = None
+
+        if "edge" in cmd:
+            browser = "edge"
+
+        elif "chrome" in cmd:
+            browser = "chrome"
+
+        open_url(
+            url,
+            browser
+        )
+
+        speak(
+            "Opening the website."
+        )
+
+        return True
+
+
+    # --------------------------------------------------------
+    # OPEN SITE IN SPECIFIC BROWSER
+    # --------------------------------------------------------
+
+    for site in WEBSITES:
+
+        if site in cmd:
+
+            browser = None
+
+            if "edge" in cmd:
+                browser = "edge"
+
+            elif "chrome" in cmd:
+                browser = "chrome"
+
+            if (
+                "open" in cmd
+                or "launch" in cmd
+                or "start" in cmd
+                or "go to" in cmd
+            ):
+
+                if open_website(
+                    site,
+                    browser
+                ):
+
+                    speak(
+                        f"Opening {site}."
+                    )
+
+                    return True
+
+
+    # --------------------------------------------------------
+    # APPLICATIONS
+    # --------------------------------------------------------
+
+    app_aliases = {
+
+        "chrome": "chrome",
+        "google chrome": "chrome",
+
+        "edge": "edge",
+        "microsoft edge": "edge",
+
+        "notepad": "notepad",
+
+        "calculator": "calculator",
+        "calc": "calculator",
+
+        "file explorer": "file explorer",
+        "explorer": "file explorer",
+        "files": "file explorer"
+    }
+
+    for phrase, app in app_aliases.items():
+
+        if phrase in cmd and (
+            "open" in cmd
+            or "launch" in cmd
+            or "start" in cmd
+        ):
+
+            if launch_application(
+                app
+            ):
+
+                speak(
+                    f"Opening {phrase}."
+                )
+
+            else:
+
+                speak(
+                    f"I couldn't find {phrase} on this PC."
+                )
+
+            return True
+
+
+    # --------------------------------------------------------
+    # SCROLL
+    # --------------------------------------------------------
+
+    if (
+        "scroll down" in cmd
+        or "scroll lower" in cmd
+    ):
+
+        press_key(
+            VK["pagedown"]
+        )
+
+        speak(
+            "Scrolling down."
+        )
+
+        return True
+
+
+    if (
+        "scroll up" in cmd
+        or "scroll higher" in cmd
+    ):
+
+        press_key(
+            VK["pageup"]
+        )
+
+        speak(
+            "Scrolling up."
+        )
+
+        return True
 
 
     return False
 
 
 # ============================================================
-# WEB BRIDGE HANDLER
+# WEB BRIDGE
 # ============================================================
 
-class EdithBridgeHandler(BaseHTTPRequestHandler):
-
+class EdithBridgeHandler(
+    BaseHTTPRequestHandler
+):
 
     def do_OPTIONS(self):
 
-        self.send_response(204)
+        self.send_response(
+            204
+        )
 
         self.send_header(
             "Access-Control-Allow-Origin",
@@ -1026,7 +2164,55 @@ class EdithBridgeHandler(BaseHTTPRequestHandler):
             "*"
         )
 
+        self.send_header(
+            "Access-Control-Allow-Private-Network",
+            "true"
+        )
+
         self.end_headers()
+
+
+    def send_json(
+        self,
+        data,
+        status=200
+    ):
+
+        response = json.dumps(
+            data
+        ).encode(
+            "utf-8"
+        )
+
+        self.send_response(
+            status
+        )
+
+        self.send_header(
+            "Content-Type",
+            "application/json"
+        )
+
+        self.send_header(
+            "Access-Control-Allow-Origin",
+            "*"
+        )
+
+        self.send_header(
+            "Access-Control-Allow-Private-Network",
+            "true"
+        )
+
+        self.send_header(
+            "Cache-Control",
+            "no-store"
+        )
+
+        self.end_headers()
+
+        self.wfile.write(
+            response
+        )
 
 
     def do_GET(self):
@@ -1037,51 +2223,59 @@ class EdithBridgeHandler(BaseHTTPRequestHandler):
 
         path = parsed.path
 
-
-        # ====================================================
-        # WEB STATE
-        # ====================================================
+        # ----------------------------------------------------
+        # STATE
+        # ----------------------------------------------------
 
         if path == "/state":
 
             with state_lock:
 
-                data = json.dumps(
+                data = dict(
                     edith_state
-                ).encode(
-                    "utf-8"
                 )
 
-
-            self.send_response(200)
-
-            self.send_header(
-                "Content-Type",
-                "application/json"
-            )
-
-            self.send_header(
-                "Access-Control-Allow-Origin",
-                "*"
-            )
-
-            self.send_header(
-                "Cache-Control",
-                "no-store"
-            )
-
-            self.end_headers()
-
-            self.wfile.write(
+            self.send_json(
                 data
             )
 
             return
 
 
-        # ====================================================
-        # MEDIA CONTROL
-        # ====================================================
+        # ----------------------------------------------------
+        # STATUS
+        # ----------------------------------------------------
+
+        if path == "/status":
+
+            self.send_json({
+
+                "installed": True,
+
+                "running": True,
+
+                "version": "2.0.0",
+
+                "state":
+                    edith_state["state"],
+
+                "message":
+                    edith_state["message"],
+
+                "pc_control":
+                    True,
+
+                "destructive_actions":
+                    False
+
+            })
+
+            return
+
+
+        # ----------------------------------------------------
+        # MEDIA
+        # ----------------------------------------------------
 
         if path == "/media":
 
@@ -1094,8 +2288,7 @@ class EdithBridgeHandler(BaseHTTPRequestHandler):
                 [""]
             )[0].lower().strip()
 
-
-            allowed_actions = (
+            allowed = (
                 "pause",
                 "play",
                 "volume_up",
@@ -1105,125 +2298,47 @@ class EdithBridgeHandler(BaseHTTPRequestHandler):
                 "previous_tab"
             )
 
+            if action not in allowed:
 
-            # ------------------------------------------------
-            # VALIDATE ACTION
-            # ------------------------------------------------
-
-            if action not in allowed_actions:
-
-                response = json.dumps({
-                    "ok": False,
-                    "error": "Invalid media action"
-                }).encode(
-                    "utf-8"
-                )
-
-
-                self.send_response(
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "Invalid action"
+                    },
                     400
                 )
 
-                self.send_header(
-                    "Content-Type",
-                    "application/json"
-                )
-
-                self.send_header(
-                    "Access-Control-Allow-Origin",
-                    "*"
-                )
-
-                self.send_header(
-                    "Cache-Control",
-                    "no-store"
-                )
-
-                self.end_headers()
-
-                self.wfile.write(
-                    response
-                )
-
                 return
-
-
-            # ------------------------------------------------
-            # EXECUTE MEDIA COMMAND
-            # ------------------------------------------------
 
             success = handle_media_command(
                 action
             )
 
+            self.send_json({
 
-            if success:
+                "ok":
+                    success,
 
-                response = json.dumps({
-                    "ok": True,
-                    "action": action
-                }).encode(
-                    "utf-8"
-                )
+                "action":
+                    action
 
-                self.send_response(
-                    200
-                )
-
-
-            else:
-
-                response = json.dumps({
-                    "ok": False,
-                    "action": action,
-                    "error": "Media command failed"
-                }).encode(
-                    "utf-8"
-                )
-
-                self.send_response(
-                    500
-                )
-
-
-            self.send_header(
-                "Content-Type",
-                "application/json"
-            )
-
-            self.send_header(
-                "Access-Control-Allow-Origin",
-                "*"
-            )
-
-            self.send_header(
-                "Cache-Control",
-                "no-store"
-            )
-
-            self.end_headers()
-
-            self.wfile.write(
-                response
-            )
+            }, 200 if success else 500)
 
             return
 
 
-        # ====================================================
-        # UNKNOWN REQUEST
-        # ====================================================
+        # ----------------------------------------------------
+        # UNKNOWN
+        # ----------------------------------------------------
 
-        self.send_response(
+        self.send_json(
+            {
+                "ok": False,
+                "error": "Not found"
+            },
             404
         )
-
-        self.send_header(
-            "Access-Control-Allow-Origin",
-            "*"
-        )
-
-        self.end_headers()
 
 
     def log_message(
@@ -1236,7 +2351,7 @@ class EdithBridgeHandler(BaseHTTPRequestHandler):
 
 
 # ============================================================
-# START WEB BRIDGE
+# START BRIDGE
 # ============================================================
 
 def start_bridge():
@@ -1251,15 +2366,12 @@ def start_bridge():
             EdithBridgeHandler
         )
 
-
         print(
             f"JARVIS WEB BRIDGE: "
             f"http://{BRIDGE_HOST}:{BRIDGE_PORT}"
         )
 
-
         server.serve_forever()
-
 
     except Exception as e:
 
@@ -1321,25 +2433,21 @@ def find_microphone():
 
     candidates = []
 
-
-    for index, device in enumerate(devices):
+    for index, device in enumerate(
+        devices
+    ):
 
         if device["max_input_channels"] <= 0:
-
             continue
-
 
         name = device["name"].lower()
 
         score = 0
 
-
         for word in preferred:
 
             if word in name:
-
                 score += 1
-
 
         candidates.append(
             (
@@ -1349,19 +2457,16 @@ def find_microphone():
             )
         )
 
-
     if not candidates:
 
         raise RuntimeError(
             "No microphone found."
         )
 
-
     candidates.sort(
         key=lambda x: x[0],
         reverse=True
     )
-
 
     _, index, device = candidates[0]
 
@@ -1393,12 +2498,10 @@ def speak(text):
         f"\nJARVIS: {text}\n"
     )
 
-
     filename = tempfile.NamedTemporaryFile(
         suffix=".mp3",
         delete=False
     ).name
-
 
     try:
 
@@ -1409,13 +2512,11 @@ def speak(text):
             )
         )
 
-
         pygame.mixer.music.load(
             filename
         )
 
         pygame.mixer.music.play()
-
 
         while pygame.mixer.music.get_busy():
 
@@ -1423,9 +2524,13 @@ def speak(text):
                 0.02
             )
 
-
         pygame.mixer.music.unload()
 
+    except Exception as e:
+
+        print(
+            f"TTS error: {e}"
+        )
 
     finally:
 
@@ -1435,18 +2540,17 @@ def speak(text):
                 filename
             )
 
-        except:
-
+        except Exception:
             pass
 
 
 # ============================================================
-# PREPARE YES VOICE
+# YES VOICE
 # ============================================================
 
 YES_FILE = os.path.join(
     tempfile.gettempdir(),
-    "edith_yes.mp3"
+    "jarvis_yes.mp3"
 )
 
 
@@ -1483,7 +2587,6 @@ def say_yes():
         "\nJARVIS: Yes?\n"
     )
 
-
     try:
 
         pygame.mixer.music.load(
@@ -1492,16 +2595,13 @@ def say_yes():
 
         pygame.mixer.music.play()
 
-
         while pygame.mixer.music.get_busy():
 
             time.sleep(
                 0.02
             )
 
-
         pygame.mixer.music.unload()
-
 
     except Exception:
 
@@ -1518,11 +2618,9 @@ def listen_for_command():
 
     mic_index, mic_info = find_microphone()
 
-
     sample_rate = int(
         mic_info["default_samplerate"]
     )
-
 
     channels = (
         2
@@ -1530,12 +2628,10 @@ def listen_for_command():
         else 1
     )
 
-
     print(
         f"Listening for your command "
         f"(up to {MAX_COMMAND_TIME:.0f} seconds)..."
     )
-
 
     try:
 
@@ -1551,7 +2647,6 @@ def listen_for_command():
 
         sd.wait()
 
-
         if channels > 1:
 
             calibration = calibration.mean(
@@ -1562,7 +2657,6 @@ def listen_for_command():
 
             calibration = calibration[:, 0]
 
-
         noise_rms = float(
             np.sqrt(
                 np.mean(
@@ -1570,7 +2664,6 @@ def listen_for_command():
                 )
             )
         )
-
 
     except Exception as e:
 
@@ -1586,9 +2679,7 @@ def listen_for_command():
         noise_rms * 2.5
     )
 
-
     chunk_time = 0.05
-
 
     chunk_size = max(
         1,
@@ -1598,12 +2689,10 @@ def listen_for_command():
         )
     )
 
-
     maximum_chunks = int(
         MAX_COMMAND_TIME /
         chunk_time
     )
-
 
     silence_chunks_needed = max(
         1,
@@ -1613,7 +2702,6 @@ def listen_for_command():
         )
     )
 
-
     minimum_speech_chunks = max(
         1,
         int(
@@ -1622,7 +2710,6 @@ def listen_for_command():
         )
     )
 
-
     recorded = []
 
     speech_started = False
@@ -1630,7 +2717,6 @@ def listen_for_command():
     speech_chunks = 0
 
     silent_chunks = 0
-
 
     try:
 
@@ -1642,20 +2728,17 @@ def listen_for_command():
             blocksize=chunk_size
         ) as stream:
 
-
             for _ in range(
                 maximum_chunks
             ):
 
-                data, overflow = stream.read(
+                data, _ = stream.read(
                     chunk_size
                 )
-
 
                 data = np.asarray(
                     data
                 )
-
 
                 if channels > 1:
 
@@ -1667,7 +2750,6 @@ def listen_for_command():
 
                     mono = data[:, 0]
 
-
                 volume = float(
                     np.sqrt(
                         np.mean(
@@ -1675,7 +2757,6 @@ def listen_for_command():
                         )
                     )
                 )
-
 
                 if not speech_started:
 
@@ -1693,13 +2774,11 @@ def listen_for_command():
 
                     continue
 
-
                 recorded.append(
                     mono.copy()
                 )
 
                 speech_chunks += 1
-
 
                 if volume >= threshold:
 
@@ -1708,7 +2787,6 @@ def listen_for_command():
                 else:
 
                     silent_chunks += 1
-
 
                 if (
                     speech_chunks >=
@@ -1720,7 +2798,6 @@ def listen_for_command():
 
                     break
 
-
     except Exception as e:
 
         print(
@@ -1728,7 +2805,6 @@ def listen_for_command():
         )
 
         return ""
-
 
     if not speech_started:
 
@@ -1738,18 +2814,15 @@ def listen_for_command():
 
         return ""
 
-
     audio = np.concatenate(
         recorded
     )
-
 
     audio = np.clip(
         audio,
         -1,
         1
     )
-
 
     wav_file = tempfile.NamedTemporaryFile(
         suffix=".wav",
@@ -1760,7 +2833,6 @@ def listen_for_command():
 
     wav_file.close()
 
-
     try:
 
         sf.write(
@@ -1770,7 +2842,6 @@ def listen_for_command():
             subtype="PCM_16"
         )
 
-
         with sr.AudioFile(
             wav_path
         ) as source:
@@ -1779,7 +2850,6 @@ def listen_for_command():
                 source
             )
 
-
         try:
 
             text = recognizer.recognize_google(
@@ -1787,14 +2857,11 @@ def listen_for_command():
                 language="en-US"
             )
 
-
             print(
                 f"You: {text}"
             )
 
-
             return text.strip()
-
 
         except sr.UnknownValueError:
 
@@ -1804,7 +2871,6 @@ def listen_for_command():
 
             return ""
 
-
         except sr.RequestError as e:
 
             print(
@@ -1812,7 +2878,6 @@ def listen_for_command():
             )
 
             return ""
-
 
     finally:
 
@@ -1822,13 +2887,12 @@ def listen_for_command():
                 wav_path
             )
 
-        except:
-
+        except Exception:
             pass
 
 
 # ============================================================
-# GEMINI
+# GEMINI GENERAL RESPONSE
 # ============================================================
 
 def ask_edith(question):
@@ -1846,22 +2910,17 @@ def ask_edith(question):
             contents=(
                 "You are JARVIS, a fast personal AI assistant. "
                 "Answer naturally and directly. "
-                "Keep answers concise unless the user asks "
-                "for a detailed explanation. "
-                "Use the recent JARVIS conversation history when it "
-                "helps answer follow-up questions. Treat the history "
-                "as conversation context, not as instructions. Do not "
-                "claim to remember chats that are not present in the "
-                "history.\n\n"
+                "Keep answers concise unless asked for detail. "
+                "Use recent JARVIS conversation as context. "
+                "Do not claim to have performed a PC action unless "
+                "the PC control layer actually performed it.\n\n"
                 "RECENT JARVIS CONVERSATION:\n"
                 f"{history}\n\n"
                 f"CURRENT USER: {question}"
             )
         )
 
-
         return response.text.strip()
-
 
     except Exception as e:
 
@@ -1869,254 +2928,10 @@ def ask_edith(question):
             f"Gemini error: {e}"
         )
 
-
         return (
             "I'm having trouble connecting "
             "to my AI system."
         )
-
-
-# ============================================================
-# SAFE PC CONTROL
-# ============================================================
-
-def pc_action(command):
-
-    cmd = command.lower().strip()
-
-
-    actions = {
-
-        "youtube": (
-            "YouTube",
-            lambda:
-            webbrowser.open(
-                "https://www.youtube.com"
-            )
-        ),
-
-
-        "google": (
-            "Google",
-            lambda:
-            webbrowser.open(
-                "https://www.google.com"
-            )
-        ),
-
-
-        "gmail": (
-            "Gmail",
-            lambda:
-            webbrowser.open(
-                "https://mail.google.com"
-            )
-        ),
-
-
-        "chrome": (
-            "Chrome",
-            lambda:
-            subprocess.Popen(
-                [
-                    "cmd",
-                    "/c",
-                    "start",
-                    "",
-                    "chrome"
-                ],
-                shell=False
-            )
-        ),
-
-
-        "notepad": (
-            "Notepad",
-            lambda:
-            subprocess.Popen(
-                [
-                    "notepad.exe"
-                ]
-            )
-        ),
-
-
-        "calculator": (
-            "Calculator",
-            lambda:
-            subprocess.Popen(
-                [
-                    "calc.exe"
-                ]
-            )
-        ),
-
-
-        "downloads": (
-            "Downloads",
-            lambda:
-            subprocess.Popen(
-                [
-                    "explorer.exe",
-                    os.path.expanduser(
-                        "~/Downloads"
-                    )
-                ]
-            )
-        ),
-
-
-        "documents": (
-            "Documents",
-            lambda:
-            subprocess.Popen(
-                [
-                    "explorer.exe",
-                    os.path.expanduser(
-                        "~/Documents"
-                    )
-                ]
-            )
-        ),
-
-
-        "desktop": (
-            "Desktop",
-            lambda:
-            subprocess.Popen(
-                [
-                    "explorer.exe",
-                    os.path.expanduser(
-                        "~/Desktop"
-                    )
-                ]
-            )
-        ),
-    }
-
-
-    if "youtube" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["youtube"]
-
-
-    elif "google" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["google"]
-
-
-    elif "gmail" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["gmail"]
-
-
-    elif "chrome" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["chrome"]
-
-
-    elif "notepad" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["notepad"]
-
-
-    elif "calculator" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["calculator"]
-
-
-    elif "downloads" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["downloads"]
-
-
-    elif "documents" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["documents"]
-
-
-    elif "desktop" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["desktop"]
-
-
-    else:
-
-        return False
-
-
-    try:
-
-        speak(
-            f"Opening {name}."
-        )
-
-
-        action()
-
-
-        time.sleep(
-            0.5
-        )
-
-
-        speak(
-            f"{name} opened."
-        )
-
-
-        return True
-
-
-    except Exception as e:
-
-        print(
-            f"Could not open {name}: {e}"
-        )
-
-
-        speak(
-            f"I couldn't open {name}."
-        )
-
-
-        return True
 
 
 # ============================================================
@@ -2127,18 +2942,15 @@ def wait_for_jarvis():
 
     mic_index, mic_info = find_microphone()
 
-
     mic_rate = int(
         mic_info["default_samplerate"]
     )
-
 
     channels = (
         2
         if mic_info["max_input_channels"] >= 2
         else 1
     )
-
 
     wake_model = Model(
         wakeword_models=[
@@ -2147,9 +2959,7 @@ def wait_for_jarvis():
         inference_framework="onnx"
     )
 
-
     detected = False
-
 
     def callback(
         indata,
@@ -2160,21 +2970,16 @@ def wait_for_jarvis():
 
         nonlocal detected
 
-
         if detected:
-
             return
 
-
         audio = indata
-
 
         if audio.ndim > 1:
 
             audio = audio.mean(
                 axis=1
             )
-
 
         if mic_rate != 16000:
 
@@ -2184,13 +2989,11 @@ def wait_for_jarvis():
                 mic_rate
             )
 
-
         audio = np.clip(
             audio,
             -1,
             1
         )
-
 
         audio = (
             audio * 32767
@@ -2198,22 +3001,18 @@ def wait_for_jarvis():
             np.int16
         )
 
-
         prediction = wake_model.predict(
             audio
         )
-
 
         score = prediction.get(
             WAKE_WORD,
             0
         )
 
-
         if score >= WAKE_THRESHOLD:
 
             detected = True
-
 
     try:
 
@@ -2232,27 +3031,23 @@ def wait_for_jarvis():
                     20
                 )
 
-
     except Exception as e:
 
         print(
             f"\nWake detector error: {e}"
         )
 
-
         time.sleep(
             1
         )
 
-
         return False
-
 
     return True
 
 
 # ============================================================
-# START JARVIS
+# STARTUP
 # ============================================================
 
 print()
@@ -2286,7 +3081,7 @@ print(
 )
 
 print(
-    "Command window: 7 SECONDS MAX"
+    "COMMAND WINDOW: 7 SECONDS MAX"
 )
 
 print(
@@ -2294,51 +3089,31 @@ print(
 )
 
 print(
-    "PC CONTROL: ACTIVE"
+    "ADVANCED PC CONTROL: ACTIVE"
+)
+
+print(
+    "SAFE / NON-DESTRUCTIVE MODE: ACTIVE"
+)
+
+print(
+    "BROWSER CONTROL: ACTIVE"
+)
+
+print(
+    "FILE SEARCH / OPEN: ACTIVE"
+)
+
+print(
+    "WINDOW NAVIGATION: ACTIVE"
+)
+
+print(
+    "KEYBOARD CONTROL: ACTIVE"
 )
 
 print(
     "EXTERNAL MEDIA CONTROL: ACTIVE"
-)
-
-print(
-    "   OPEN PALM → PAUSE ONLY"
-)
-
-print(
-    "   CLOSED FIST → PLAY ONLY"
-)
-
-print(
-    "   THUMB UP → VOLUME UP ONLY"
-)
-
-print(
-    "   THUMB DOWN → VOLUME DOWN ONLY"
-)
-
-print(
-    "   TWO FINGERS → SCREENSHOT ONLY"
-)
-
-print(
-    "   SWIPE RIGHT → LEFT → NEXT TAB"
-)
-
-print(
-    "   SWIPE LEFT → RIGHT → PREVIOUS TAB"
-)
-
-print(
-    "   1 / 3 / 4 FINGERS → NO ACTION"
-)
-
-print(
-    "AIR MOUSE: DISABLED"
-)
-
-print(
-    "PINCH CLICK: DISABLED"
 )
 
 print(
@@ -2354,7 +3129,7 @@ print(
 )
 
 print(
-    f"MEMORY FILE: {MEMORY_FILE}"
+    "DESTRUCTIVE ACTIONS: BLOCKED"
 )
 
 print(
@@ -2366,12 +3141,10 @@ print()
 
 prepare_yes_voice()
 
-
 set_state(
     "ready",
     "JARVIS CORE // ONLINE"
 )
-
 
 print(
     "JARVIS is sleeping."
@@ -2392,69 +3165,39 @@ while True:
 
     try:
 
-        # ====================================================
-        # SLEEP / WAKE WORD
-        # ====================================================
-
         set_state(
             "ready",
             "JARVIS CORE // ONLINE"
         )
 
-
         woke_up = wait_for_jarvis()
 
-
         if not woke_up:
-
             continue
-
 
         print(
             "\nHEY JARVIS detected!"
         )
-
-
-        # ====================================================
-        # JARVIS SAYS YES
-        # ====================================================
 
         set_state(
             "listening",
             "VOICE INPUT // ACTIVE"
         )
 
-
         say_yes()
 
-
-        # ====================================================
-        # CONTINUOUS CONVERSATION
-        # ====================================================
-
         while True:
-
-            # ------------------------------------------------
-            # LISTEN FOR COMMAND
-            # ------------------------------------------------
 
             set_state(
                 "listening",
                 "VOICE INPUT // ACTIVE"
             )
 
-
             print(
                 "\nListening..."
             )
 
-
             command = listen_for_command()
-
-
-            # ------------------------------------------------
-            # NO COMMAND
-            # ------------------------------------------------
 
             if not command:
 
@@ -2463,11 +3206,9 @@ while True:
                     "JARVIS CORE // ONLINE"
                 )
 
-
                 time.sleep(
                     COOLDOWN
                 )
-
 
                 print(
                     "\nJARVIS is sleeping."
@@ -2481,25 +3222,18 @@ while True:
 
                 break
 
-
-            # ------------------------------------------------
-            # THINKING
-            # ------------------------------------------------
-
             set_state(
                 "thinking",
                 "NEURAL PROCESSING // ACTIVE"
             )
 
-
             # ------------------------------------------------
-            # 1) CONTEXT RECALL
+            # CONTEXT RECALL
             # ------------------------------------------------
-            # This is checked BEFORE local_responses so an old
-            # hard-coded reply can never override the real recent
-            # conversation context.
 
-            if is_context_recall_question(command):
+            if is_context_recall_question(
+                command
+            ):
 
                 answer = ask_context_recall(
                     command
@@ -2519,18 +3253,16 @@ while True:
                     answer
                 )
 
-
-            # ------------------------------------------------
-            # 2) INSTANT LOCAL REPLY (no API call — fastest)
-            # ------------------------------------------------
-
             else:
+
+                # --------------------------------------------
+                # LOCAL RESPONSE
+                # --------------------------------------------
 
                 local_answer = local_responses.get_response(
                     command,
                     CONVERSATION_HISTORY
                 )
-
 
                 if local_answer is not None:
 
@@ -2539,44 +3271,36 @@ while True:
                         "JARVIS RESPONSE // ACTIVE"
                     )
 
-
                     speak(
                         local_answer
                     )
 
-
                     remember_exchange(
                         command,
                         local_answer
                     )
 
+                # --------------------------------------------
+                # PC CONTROL
+                # --------------------------------------------
 
-                # ------------------------------------------------
-                # 2) PC COMMAND
-                # ------------------------------------------------
-
-                elif pc_action(command):
+                elif pc_action(
+                    command
+                ):
 
                     set_state(
                         "responding",
-                        "JARVIS RESPONSE // ACTIVE"
+                        "PC ACTION // COMPLETE"
                     )
-
-
-                    time.sleep(
-                        0.3
-                    )
-
 
                     remember_exchange(
                         command,
-                        "(performed a PC action)"
+                        "(performed a safe PC action)"
                     )
 
-
-                # ------------------------------------------------
-                # 3) FALL BACK TO THE CONNECTED AI (Gemini)
-                # ------------------------------------------------
+                # --------------------------------------------
+                # GEMINI
+                # --------------------------------------------
 
                 else:
 
@@ -2584,56 +3308,36 @@ while True:
                         "\nJARVIS is thinking..."
                     )
 
-
                     answer = ask_edith(
                         command
                     )
-
 
                     set_state(
                         "responding",
                         "JARVIS RESPONSE // ACTIVE"
                     )
 
-
                     speak(
                         answer
                     )
-
 
                     remember_exchange(
                         command,
                         answer
                     )
 
-
-            # ------------------------------------------------
-            # RESPONSE FINISHED
-            # ------------------------------------------------
-
             set_state(
                 "ready",
                 "JARVIS CORE // ONLINE"
             )
 
-
             time.sleep(
                 COOLDOWN
             )
 
-
-            # ------------------------------------------------
-            # CONTINUOUS CONVERSATION
-            # ------------------------------------------------
-
             print(
                 "\nJARVIS ready for your next command..."
             )
-
-
-    # ========================================================
-    # CTRL + C
-    # ========================================================
 
     except KeyboardInterrupt:
 
@@ -2642,18 +3346,11 @@ while True:
             "JARVIS CORE // OFFLINE"
         )
 
-
         print(
             "\n\nJARVIS shutting down..."
         )
 
-
         break
-
-
-    # ========================================================
-    # ERROR PROTECTION
-    # ========================================================
 
     except Exception as e:
 
@@ -2661,12 +3358,10 @@ while True:
             f"\nUnexpected error: {e}"
         )
 
-
         set_state(
             "ready",
             "JARVIS CORE // ONLINE"
         )
-
 
         time.sleep(
             1
