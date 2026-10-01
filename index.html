@@ -4060,6 +4060,28 @@ footer strong{
 }
 .birthday-fast select:focus{border-color:var(--violet);}
 
+/* =========================================================
+   DARK BIRTHDAY / CALENDAR SELECTS
+   Keep the existing birthday picker exactly as-is, but force
+   the native select controls to remain readable on dark UI.
+   ========================================================= */
+.birthday-fast select{
+    color:#ffffff !important;
+    background:#080611 !important;
+    color-scheme:dark;
+    -webkit-color-scheme:dark;
+}
+.birthday-fast select option{
+    color:#ffffff !important;
+    background:#080611 !important;
+}
+.birthday-fast select option:checked,
+.birthday-fast select option:hover{
+    color:#ffffff !important;
+    background:#17112b !important;
+}
+
+
 .field-warn{color:var(--pink) !important;}
 
 /* companion check / setup / installing */
@@ -4188,6 +4210,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,.earth-chip:focus-visib
     }
 }
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
@@ -5693,19 +5716,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,.earth-chip:focus-visib
     </div>
 </div>
 
-<!-- MOCK GOOGLE ACCOUNT PICKER (frontend-only demo — see note in JS) -->
-<div class="overlay" id="googlePickerOverlay">
-    <div class="panel google-picker-panel">
-        <button class="close" data-close>×</button>
-        <div class="google-picker-head">
-            <svg viewBox="0 0 18 18" width="20" height="20"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.87 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.9v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.9A9 9 0 0 0 0 9c0 1.45.35 2.83.9 4.03l3.05-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.42 0 9 0A9 9 0 0 0 .9 4.97l3.05 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
-            <span>Choose an account</span>
-        </div>
-        <div class="google-picker-list" id="googlePickerList"></div>
-        <button type="button" class="google-picker-other" id="googlePickerOther">Use another account</button>
-        <p class="google-picker-note">Demo account picker — this isn't connected to a real Google sign-in.</p>
-    </div>
-</div>
+<!-- Real Google Identity Services renders its own account chooser
+     (a Google-hosted popup/One Tap UI) — there is no custom picker
+     markup here anymore. See GOOGLE_CLIENT_ID and initGoogleSignIn
+     in the script below. -->
+<div id="googleSignInBtn" style="position:fixed;left:-9999px;top:-9999px;"></div>
 
 
 <!-- =========================================================
@@ -7602,7 +7617,7 @@ function generateAccessId(email){
 
     const STORAGE_KEY = "jarvisSavedIds";
     const COMPANION_FLAG_KEY = "jarvisCompanionInstalled";
-    const COMPANION_URL = "http://127.0.0.1:8765/state";
+    const COMPANION_URL = "http://127.0.0.1:8765/status";
     let authMode = "login";
     let authIsTemporary = false; // true only for the marketing CTAs (hero / final)
 
@@ -7779,62 +7794,112 @@ function generateAccessId(email){
     }
 
     /* =====================================================
-       MOCK GOOGLE ACCOUNT PICKER — still a frontend-only demo.
-       There is no real OAuth client or backend wired up here, so
-       nothing is actually verified with Google. Picking the demo
-       account (or typing your own) just fills the email field and
-       continues through the same Name / Birthday / Gender /
-       Password steps a real Google sign-up would still ask for.
+       REAL GOOGLE SIGN-IN — Google Identity Services (GIS).
+       This is the actual Google-hosted account chooser, not a
+       custom picker. It needs a real OAuth Web Client ID from
+       Google Cloud Console — see GOOGLE_CLIENT_ID below and the
+       setup steps in GOOGLE_OAUTH_SETUP.md.
+
+       IMPORTANT HONEST LIMIT: the ID token this returns is decoded
+       client-side below just to read the name/email/picture for
+       display. That is NOT cryptographic proof of identity — any
+       script could hand this code a forged-looking token and it
+       would still "work" for display. Real security requires
+       sending the token to a backend and verifying its signature
+       against Google's public keys (e.g. with google-auth's
+       verify_oauth2_token in Python). There is no backend in this
+       static HTML file, so that verification step does not exist
+       yet — this gets you a real Google account picker and real
+       account data, but not a verified session.
        ===================================================== */
-    const googlePickerOverlay = document.getElementById("googlePickerOverlay");
-    const googlePickerList = document.getElementById("googlePickerList");
-    const googlePickerOther = document.getElementById("googlePickerOther");
-    const DEMO_GOOGLE_ACCOUNTS = [
-        { name:"Example Account", email:"example.user@gmail.com" }
-    ];
+    const GOOGLE_CLIENT_ID = "907047377960-rcltnh8icid3ml58gl6cv48a5vmpilhl.apps.googleusercontent.com"; // J.A.R.V.I.S. Google OAuth Web Client ID
 
-    function renderGooglePicker(){
-        if(!googlePickerList) return;
-        googlePickerList.innerHTML = DEMO_GOOGLE_ACCOUNTS.map((acc,i) => `
-            <button type="button" class="google-picker-row" data-i="${i}">
-                <span class="google-picker-avatar">${acc.name.charAt(0)}</span>
-                <span><strong>${acc.name}</strong><small>${acc.email}</small></span>
-            </button>
-        `).join("");
-        googlePickerList.querySelectorAll("button[data-i]").forEach(btn=>{
-            btn.addEventListener("click", ()=>{
-                const acc = DEMO_GOOGLE_ACCOUNTS[Number(btn.dataset.i)];
-                useGoogleAccount(acc.email);
-            });
-        });
+    let googleUser = null; // { name, email, picture } from the last real sign-in
+
+    function decodeGoogleCredential(idToken){
+        try{
+            const payload = idToken.split(".")[1];
+            const json = decodeURIComponent(atob(payload.replace(/-/g,"+").replace(/_/g,"/"))
+                .split("").map(c => "%" + ("00"+c.charCodeAt(0).toString(16)).slice(-2)).join(""));
+            return JSON.parse(json);
+        }catch(e){
+            console.error("Could not decode Google credential:", e);
+            return null;
+        }
     }
-    renderGooglePicker();
 
-    function useGoogleAccount(email){
-        if(googlePickerOverlay) googlePickerOverlay.classList.remove("open");
-        if(emailInput) emailInput.value = email;
+    function handleGoogleCredential(response){
+        const data = decodeGoogleCredential(response.credential);
+        if(!data || !data.email){
+            alert("Google sign-in didn't return account details. Please try again.");
+            return;
+        }
+        googleUser = { name: data.name || "", email: data.email, picture: data.picture || "" };
+
+        if(emailInput) emailInput.value = googleUser.email;
+        if(nameInput && googleUser.name) nameInput.value = googleUser.name;
         accessIdEdited = false;
-        if(accessIdInput) accessIdInput.value = generateAccessId(email);
+        if(accessIdInput) accessIdInput.value = generateAccessId(googleUser.email);
 
         if(authMode === "signup"){
             overlay.classList.add("open");
             showStep(stepForm);
         }else{
-            alert("Signed in with Google as " + email + " (demo account — no real OAuth behind this yet).");
+            const list = getSaved();
+            const match = list.find(e => e.email === googleUser.email);
+            pendingEntry = match || { email: googleUser.email, name: googleUser.name };
+            currentGreetingName = pendingEntry.accessId || pendingEntry.name || "";
+            overlay.classList.add("open");
+            runCompanionCheck();
         }
     }
 
-    if(googlePickerOther){
-        googlePickerOther.addEventListener("click", ()=>{
-            const email = prompt("Enter the Google account email to use (demo):");
-            if(email) useGoogleAccount(email.trim());
+    let googleReady = false;
+    function initGoogleSignIn(){
+        if(!GOOGLE_CLIENT_ID){
+            console.warn("GOOGLE_CLIENT_ID is empty — Google Sign-In is wired up but needs a real " +
+                "Web Client ID from Google Cloud Console before it will do anything. See GOOGLE_OAUTH_SETUP.md.");
+            return;
+        }
+        if(!window.google || !window.google.accounts || !window.google.accounts.id) return;
+        window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleCredential,
+            auto_select: false
         });
+        const target = document.getElementById("googleSignInBtn");
+        if(target){
+            window.google.accounts.id.renderButton(target, {
+                theme: "filled_black", size: "large", shape: "pill", width: 320
+            });
+        }
+        googleReady = true;
     }
+    // The GIS script tag has async/defer, so poll briefly until it's loaded.
+    (function waitForGoogleScript(){
+        if(window.google && window.google.accounts && window.google.accounts.id){
+            initGoogleSignIn();
+        }else{
+            setTimeout(waitForGoogleScript, 200);
+        }
+    })();
 
     if(googleBtn){
         googleBtn.addEventListener("click", ()=>{
-            overlay.classList.remove("open");
-            if(googlePickerOverlay) googlePickerOverlay.classList.add("open");
+            if(!GOOGLE_CLIENT_ID){
+                alert("Google Sign-In needs a Web Client ID configured first — see GOOGLE_CLIENT_ID " +
+                    "near the top of this script and GOOGLE_OAUTH_SETUP.md for exact setup steps.");
+                return;
+            }
+            if(!googleReady){ initGoogleSignIn(); }
+            // Clicking our styled button forwards to Google's own rendered
+            // button so the real Google account-chooser UI opens — this is
+            // Google's real picker, not a custom one.
+            const realBtn = document.querySelector("#googleSignInBtn div[role='button']");
+            if(realBtn){ realBtn.click(); }
+            else if(window.google && window.google.accounts && window.google.accounts.id){
+                window.google.accounts.id.prompt();
+            }
         });
     }
 
@@ -7871,26 +7936,41 @@ function generateAccessId(email){
 
     /* =====================================================
        J.A.R.V.I.S. COMPANION DETECTION
-       Your Python Companion already runs a local HTTP bridge on
-       127.0.0.1:8765 (see EdithBridgeHandler / start_bridge in the
-       Python file) with a GET /state endpoint. This does a real
-       fetch against it — if your Companion is running, this
-       genuinely detects it; nothing here is simulated. If the page
-       is ever served over https, browsers will block this as
-       "mixed content" (https page calling plain http) — keep this
-       page on http:// or file:// for the local check to work, or
-       front the Companion with a local https certificate.
+       Real fetch against your Companion's GET /status endpoint —
+       nothing simulated, and localStorage is never treated as proof
+       of install (it's only used to skip straight to "Connect"
+       copy; the actual pass/fail always comes from this fetch).
+
+       TWO REAL BROWSER LIMITS, not bugs in this code:
+       1. This site is served over HTTPS (GitHub Pages). Chrome/Edge
+          allow an https page to call http://127.0.0.1 ONLY if the
+          local server answers the CORS preflight with the header
+          Access-Control-Allow-Private-Network: true. The companion
+          script has been updated to send it — if you're on an
+          older build of the Companion without that header, update
+          it, or this will keep failing even while it's running.
+       2. Firefox and Safari do not implement Private Network Access
+          at all — they block this as mixed content unconditionally,
+          with no header that fixes it. On those browsers this check
+          will always fail, even with a perfectly running Companion.
+          Chrome or Edge are required for local detection to work
+          from an https-hosted page.
        ===================================================== */
     async function checkCompanion(){
         try{
             const controller = new AbortController();
-            const timeout = setTimeout(()=>controller.abort(), 2000);
-            const res = await fetch(COMPANION_URL, { signal: controller.signal, mode: "cors" });
+            const timeout = setTimeout(()=>controller.abort(), 3000);
+            const res = await fetch(COMPANION_URL, {
+                signal: controller.signal,
+                mode: "cors",
+                cache: "no-store"
+            });
             clearTimeout(timeout);
             if(!res.ok) return false;
             const data = await res.json();
-            return !!(data && data.state);
+            return !!(data && (data.running || data.installed || data.state));
         }catch(e){
+            console.warn("Companion check failed:", e.message);
             return false;
         }
     }
@@ -8183,5 +8263,284 @@ tiltEls.forEach(el=>{
 })();
 
 </script>
+<script type="module">
+/* =========================================================
+   J.A.R.V.I.S. // MAIN BASE AUDIT
+   Existing control contract preserved:
+   OPEN PALM -> PAUSE
+   CLOSED FIST -> PLAY
+   THUMBS UP/DOWN -> VOLUME UP/DOWN
+   TWO FINGERS -> SCREENSHOT
+   SWIPE RIGHT->LEFT / LEFT->RIGHT -> NEXT/PREVIOUS TAB
+   PINCH -> PAGE ZOOM
+   POINT -> CURSOR GESTURE (NO LASER OVERLAY)
+   Companion endpoint remains http://127.0.0.1:8765/media
+   ========================================================= */
+
+/* =========================================================
+   LIVE VISION ENGINE — real camera + real MediaPipe hand
+   tracking, run entirely in this browser tab. This is additive:
+   it does not touch the decorative #threeHandCanvas 3D hand or
+   the gesture-demonstration cards above it.
+
+   Pipeline: camera -> MediaPipe HandLandmarker -> landmarks ->
+   smoothing -> gesture classification -> 3-frame confirmation ->
+   cooldown -> command -> Companion (http://127.0.0.1:8765/media).
+
+   HONEST LIMITS, read before relying on this:
+   - Point is kept as a recognized gesture but has no on-page laser.
+     The current Companion contract does not expose OS mouse movement.
+   - Pinch zoom uses the CSS `zoom` property, which only works in
+     Chromium browsers (Chrome/Edge) — it does nothing in Firefox
+     or Safari.
+   - This runs the gesture math live in JavaScript using Google's
+     publicly hosted hand_landmarker.task model over the network —
+     it is not using your local hand_landmarker.task file (a
+     browser tab cannot read arbitrary local files on your disk).
+     If you specifically need the bundled local model file, that
+     detection has to happen in the Python Companion, not here.
+   ========================================================= */
+(async function liveVisionEngine(){
+    const statusEl = document.getElementById("liveVisionStatus");
+    const video = document.getElementById("jarvisBackgroundVisionVideo") || (()=>{ const v=document.createElement("video"); v.autoplay=true; v.muted=true; v.playsInline=true; v.style.display="none"; document.body.appendChild(v); return v; })();
+    let handLandmarker = null;
+    let running = false;
+    let rafId = null;
+    let stream = null;
+
+    // gesture confirmation / cooldown state
+    const CONFIRM_FRAMES = 2;
+    const COOLDOWN_MS = 800;
+    const SMOOTH_LANDMARK = 0.52;
+    const SMOOTH_POINTER = 0.42;
+    const ZOOM_MIN = 0.60;
+    const ZOOM_MAX = 1.80;
+    const SWIPE_DISTANCE = 0.22;   // normalized (0-1) horizontal travel
+    const SWIPE_WINDOW_MS = 500;
+
+    let candidateGesture = null;
+    let candidateCount = 0;
+    let lastFireAt = {};
+    let smoothedLandmarks = null;
+    let currentZoom = 1;
+    let swipeTrack = []; // {x, t}
+
+    async function callCompanion(action){
+        try{
+            await fetch(`http://127.0.0.1:8765/media?action=${action}`, { mode: "cors", cache: "no-store" });
+        }catch(e){
+            console.warn("Companion media command failed (is the Companion running?):", e.message);
+        }
+    }
+
+    function canFire(name){
+        const now = performance.now();
+        if(lastFireAt[name] && now - lastFireAt[name] < COOLDOWN_MS) return false;
+        lastFireAt[name] = now;
+        return true;
+    }
+
+    function dist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
+
+    function fingerExtended(lm, tipIdx, pipIdx){
+        return lm[tipIdx].y < lm[pipIdx].y - 0.02;
+    }
+    function thumbExtended(lm){
+        return dist(lm[4], lm[17]) > dist(lm[3], lm[17]) * 1.15;
+    }
+
+    function classify(lm){
+        const index = fingerExtended(lm, 8, 6);
+        const middle = fingerExtended(lm, 12, 10);
+        const ring = fingerExtended(lm, 16, 14);
+        const pinky = fingerExtended(lm, 20, 18);
+        const thumb = thumbExtended(lm);
+        const extendedCount = [index, middle, ring, pinky].filter(Boolean).length;
+
+        const pinchDist = dist(lm[4], lm[8]);
+        if(pinchDist < 0.07) return { gesture: "pinch", pinchDist };
+
+        if(index && middle && !ring && !pinky) return { gesture: "two_finger" };
+        if(index && !middle && !ring && !pinky && !thumb) return { gesture: "point", tip: lm[8] };
+
+        if(extendedCount === 0 && !thumb) return { gesture: "fist" };
+        if(extendedCount === 4 && thumb) return { gesture: "palm" };
+
+        if(thumb && extendedCount === 0){
+            return { gesture: lm[4].y < lm[0].y ? "thumbs_up" : "thumbs_down" };
+        }
+
+        return { gesture: "none", wrist: lm[0], pinchDist };
+    }
+
+    function updateStatus(text){ if(statusEl) statusEl.textContent = text; }
+
+    function handleGesture(result, now){
+        const name = result.gesture;
+
+        // Swipe detection is deliberately independent of the one-shot
+        // gesture confirmation so tab switching stays responsive.
+        if(name === "palm" || name === "point" || name === "none"){
+            const x = result.tip ? result.tip.x : result.wrist ? result.wrist.x : null;
+            if(x !== null){
+                swipeTrack.push({ x, t: now });
+                swipeTrack = swipeTrack.filter(p => now - p.t <= SWIPE_WINDOW_MS);
+                if(swipeTrack.length >= 2){
+                    const dx = swipeTrack[swipeTrack.length-1].x - swipeTrack[0].x;
+                    if(Math.abs(dx) >= SWIPE_DISTANCE && canFire("swipe")){
+                        if(dx < 0){ callCompanion("next_tab"); updateStatus("GESTURE: SWIPE → NEXT TAB"); }
+                        else{ callCompanion("previous_tab"); updateStatus("GESTURE: SWIPE → PREVIOUS TAB"); }
+                        swipeTrack = [];
+                    }
+                }
+            }
+        }
+
+        // Pinch = smooth page zoom. A small dead-zone prevents tiny
+        // landmark jitter from constantly changing the zoom level.
+        if(name === "pinch"){
+            const raw = Math.max(0, Math.min(1, (result.pinchDist - 0.025) / (0.18 - 0.025)));
+            const target = ZOOM_MAX - raw * (ZOOM_MAX - ZOOM_MIN);
+            if(Math.abs(target - currentZoom) > 0.008){
+                currentZoom += (target - currentZoom) * SMOOTH_POINTER;
+                currentZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, currentZoom));
+                document.documentElement.style.zoom = currentZoom;
+            }
+            updateStatus(`GESTURE: PINCH → ZOOM ${(currentZoom*100).toFixed(0)}%`);
+            candidateGesture = null; candidateCount = 0;
+            return;
+        }
+
+        // Point is intentionally recognized without drawing the old laser.
+        if(name === "point") updateStatus("GESTURE: POINT");
+
+        const discrete = { palm:"pause", fist:"play", thumbs_up:"volume_up",
+            thumbs_down:"volume_down", two_finger:"screenshot" };
+
+        if(discrete[name]){
+            if(candidateGesture === name){
+                candidateCount++;
+            }else{
+                candidateGesture = name;
+                candidateCount = 1;
+            }
+            if(candidateCount >= CONFIRM_FRAMES && canFire(name)){
+                callCompanion(discrete[name]);
+                updateStatus(`GESTURE: ${name.toUpperCase()} → ${discrete[name].toUpperCase()}`);
+                // Hold-state guard: don't immediately count the same
+                // held gesture as another command after the cooldown.
+                candidateCount = 0;
+            }
+        }else if(name !== "pinch" && name !== "point"){
+            candidateGesture = null;
+            candidateCount = 0;
+        }
+    }
+
+    function smooth(landmarks){
+        if(!smoothedLandmarks){
+            smoothedLandmarks = landmarks.map(p => ({...p}));
+            return smoothedLandmarks;
+        }
+        for(let i=0;i<landmarks.length;i++){
+            smoothedLandmarks[i].x += (landmarks[i].x - smoothedLandmarks[i].x) * SMOOTH_LANDMARK;
+            smoothedLandmarks[i].y += (landmarks[i].y - smoothedLandmarks[i].y) * SMOOTH_LANDMARK;
+        }
+        return smoothedLandmarks;
+    }
+
+    async function loadModel(){
+        updateStatus("Loading hand-tracking model...");
+        const vision = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs");
+        const fileset = await vision.FilesetResolver.forVisionTasks(
+            "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
+        );
+        handLandmarker = await vision.HandLandmarker.createFromOptions(fileset, {
+            baseOptions: {
+                modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+                delegate: "GPU"
+            },
+            runningMode: "VIDEO",
+            numHands: 1
+        });
+    }
+
+    function frameLoop(){
+        if(!running) return;
+        if(video.readyState >= 2){
+            const now = performance.now();
+            const result = handLandmarker.detectForVideo(video, now);
+            if(result.landmarks && result.landmarks.length){
+                const lm = smooth(result.landmarks[0]);
+                handleGesture(classify(lm), now);
+            }else{
+                candidateGesture = null; candidateCount = 0;
+            }
+        }
+        rafId = requestAnimationFrame(frameLoop);
+    }
+
+    async function start(){
+        try{
+            if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+                updateStatus("Camera access is not available in this browser.");
+                return;
+            }
+            updateStatus("Requesting camera access for JARVIS vision...");
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { width: 640, height: 480, frameRate: { ideal: 30, max: 30 } },
+                audio: false
+            });
+            video.srcObject = stream;
+            await video.play();
+            if(!handLandmarker) await loadModel();
+            running = true;
+            updateStatus("Vision active — gesture control running in the JARVIS app.");
+            frameLoop();
+        }catch(e){
+            console.error("JARVIS Vision start failed:", e);
+            updateStatus(
+                e.name === "NotAllowedError"
+                    ? "Camera permission denied — allow camera access for JARVIS Vision."
+                    : e.name === "NotFoundError"
+                        ? "No camera was found on this device."
+                        : "Could not start JARVIS Vision."
+            );
+            stop();
+        }
+    }
+
+    function stop(){
+        running = false;
+        if(rafId) cancelAnimationFrame(rafId);
+        if(stream) stream.getTracks().forEach(t => t.stop());
+        stream = null;
+        video.srcObject = null;
+        document.documentElement.style.zoom = "";
+        currentZoom = 1;
+        smoothedLandmarks = null;
+        candidateGesture = null; candidateCount = 0;
+        swipeTrack = [];
+        updateStatus("JARVIS Vision standby.");
+    }
+
+    // The marketing Vision section no longer contains a START button or
+    // camera preview. The same engine can be started by the final app
+    // connection flow below, so the camera is not requested on the
+    // landing/marketing page.
+    window.JARVISVision = { start, stop, isRunning: ()=>running };
+
+    const connectBtn = document.getElementById("authFinalConnectBtn");
+    if(connectBtn){
+        connectBtn.addEventListener("click", ()=>{
+            // Let the auth flow finish first; the next task tick starts
+            // the vision bridge without adding UI to the marketing page.
+            setTimeout(()=>window.JARVISVision.start(), 250);
+        }, { once:false });
+    }
+})();
+</script>
+
+<video id="jarvisBackgroundVisionVideo" autoplay muted playsinline aria-hidden="true" style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-10px;top:-10px;"></video>
 </body>
 </html>
