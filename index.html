@@ -8008,22 +8008,60 @@ function generateAccessId(email){
                themselves (same as Discord, Zoom, etc.). Wire
                INSTALLER_DOWNLOAD_URL below to wherever the built
                jarvis-setup.exe is actually hosted. */
-            const INSTALLER_DOWNLOAD_URL = ""; // e.g. "https://yourdomain.com/downloads/jarvis-setup.exe"
-            if(INSTALLER_DOWNLOAD_URL){
-                window.location.href = INSTALLER_DOWNLOAD_URL;
-            }
+            /*
+               REAL WINDOWS INSTALLER
+               ----------------------
+               Put JARVIS-Setup.exe in the SAME GitHub Pages folder as this
+               HTML file. The button below then downloads the real installer
+               directly from the deployed JARVIS site.
+
+               If you later host the installer somewhere else, replace this
+               relative path with its full HTTPS URL.
+            */
+            const INSTALLER_DOWNLOAD_URL = "./JARVIS-Setup.exe";
+
             showStep(stepInstalling);
-            if(installStatus) installStatus.textContent = "Waiting for the installer to finish and the Companion to start...";
-            setTimeout(async ()=>{
+            if(installStatus){
+                installStatus.textContent = "Starting the JARVIS Windows installer...";
+            }
+
+            /* Open/download the actual installer. Browsers still require the
+               user to approve and run the .exe; a webpage cannot silently
+               install Windows software. */
+            const downloadLink = document.createElement("a");
+            downloadLink.href = INSTALLER_DOWNLOAD_URL;
+            downloadLink.download = "JARVIS-Setup.exe";
+            downloadLink.rel = "noopener";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            downloadLink.remove();
+
+            if(installStatus){
+                installStatus.textContent =
+                    "JARVIS-Setup.exe downloaded. Run it, finish installation, then JARVIS will detect the Companion automatically.";
+            }
+
+            let attempts = 0;
+            const maxAttempts = 120;
+            const pollCompanion = async ()=>{
                 const found = await checkCompanion();
                 if(found){
                     localStorage.setItem(COMPANION_FLAG_KEY, "1");
                     showStep(stepDetected);
-                }else{
-                    showStep(stepSetup);
-                    if(installStatus) installStatus.textContent = "Downloading the Companion installer.";
+                    return;
                 }
-            }, 3000);
+                attempts++;
+                if(attempts >= maxAttempts){
+                    showStep(stepSetup);
+                    if(installStatus){
+                        installStatus.textContent =
+                            "Installer downloaded. Run JARVIS-Setup.exe, then choose “I've already installed it — check again”.";
+                    }
+                    return;
+                }
+                setTimeout(pollCompanion, 1500);
+            };
+            setTimeout(pollCompanion, 1500);
         });
     }
 
