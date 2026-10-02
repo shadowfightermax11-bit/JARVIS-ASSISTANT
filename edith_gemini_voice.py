@@ -9,6 +9,8 @@ import asyncio
 import threading
 import ctypes
 import shutil
+import urllib.request
+import urllib.error
 from urllib.parse import urlparse, parse_qs, quote_plus
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
@@ -30,9 +32,12 @@ import local_responses
 # J.A.R.V.I.S. SETTINGS
 # ============================================================
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+APP_NAME = "JARVIS Companion"
+APP_VERSION = "3.0.0"
 
-MODEL = "gemini-3.5-flash-lite"
+BRIDGE_HOST = "127.0.0.1"
+BRIDGE_PORT = 8765
+
 VOICE = "en-US-AndrewNeural"
 
 WAKE_WORD = "hey_jarvis"
@@ -43,10 +48,343 @@ END_SILENCE = 1.0
 MIN_SPEECH_TIME = 0.25
 COOLDOWN = 1.5
 
-BRIDGE_HOST = "127.0.0.1"
-BRIDGE_PORT = 8765
-
 MAX_HISTORY = 40
+
+
+# ============================================================
+# JARVIS USER DATA DIRECTORY
+# ============================================================
+#
+# IMPORTANT:
+# The installed program should not write user data beside
+# the executable.
+#
+# This directory will eventually contain:
+#
+#   config.json
+#   jarvis_conversation_memory.json
+#
+# The installer will create/configure config.json.
+#
+# ============================================================
+
+APP_DATA_DIR = os.path.join(
+    os.environ.get(
+        "APPDATA",
+        os.path.expanduser("~")
+    ),
+    "JARVIS"
+)
+
+os.makedirs(
+    APP_DATA_DIR,
+    exist_ok=True
+)
+
+
+CONFIG_FILE = os.path.join(
+    APP_DATA_DIR,
+    "config.json"
+)
+
+MEMORY_FILE = os.path.join(
+    APP_DATA_DIR,
+    "jarvis_conversation_memory.json"
+)
+
+
+# ============================================================
+# AI PROVIDER CONFIGURATION
+# ============================================================
+
+SUPPORTED_PROVIDERS = (
+    "gemini",
+    "openai",
+    "anthropic",
+    "openrouter",
+    "custom"
+)
+
+
+DEFAULT_AI_CONFIG = {
+
+    "provider": "gemini",
+
+    "api_key": "",
+
+    "model": "gemini-2.5-flash",
+
+    "base_url": "",
+
+    "enabled": True
+}
+
+
+AI_CONFIG = {}
+
+
+def load_ai_config():
+
+    config = dict(
+        DEFAULT_AI_CONFIG
+    )
+
+    # --------------------------------------------------------
+    # Local configuration
+    # --------------------------------------------------------
+
+    try:
+
+        if os.path.isfile(CONFIG_FILE):
+
+            with open(
+                CONFIG_FILE,
+                "r",
+                encoding="utf-8"
+            ) as f:
+
+                data = json.load(f)
+
+            if isinstance(data, dict):
+
+                ai = data.get(
+                    "ai",
+                    {}
+                )
+
+                if isinstance(ai, dict):
+
+                    config.update(
+                        ai
+                    )
+
+    except Exception as e:
+
+        print(
+            f"AI config load warning: {e}"
+        )
+
+
+    # --------------------------------------------------------
+    # Environment-variable fallback
+    #
+    # Useful for development.
+    # The public installer will use config.json.
+    # --------------------------------------------------------
+
+    provider_env = os.getenv(
+        "JARVIS_AI_PROVIDER"
+    )
+
+    if provider_env:
+
+        config["provider"] = (
+            provider_env.strip().lower()
+        )
+
+
+    api_key_env = os.getenv(
+        "JARVIS_AI_API_KEY"
+    )
+
+    if api_key_env:
+
+        config["api_key"] = api_key_env
+
+
+    # Backward compatibility with your
+    # existing Gemini setup.
+    if (
+        not config.get("api_key")
+        and config.get("provider") == "gemini"
+    ):
+
+        old_key = os.getenv(
+            "GEMINI_API_KEY"
+        )
+
+        if old_key:
+
+            config["api_key"] = old_key
+
+
+    model_env = os.getenv(
+        "JARVIS_AI_MODEL"
+    )
+
+    if model_env:
+
+        config["model"] = model_env
+
+
+    base_url_env = os.getenv(
+        "JARVIS_AI_BASE_URL"
+    )
+
+    if base_url_env:
+
+        config["base_url"] = base_url_env
+
+
+    provider = str(
+        config.get(
+            "provider",
+            "gemini"
+        )
+    ).strip().lower()
+
+
+    if provider not in SUPPORTED_PROVIDERS:
+
+        provider = "gemini"
+
+
+    config["provider"] = provider
+
+
+    return config
+
+
+AI_CONFIG = load_ai_config()
+
+
+def save_ai_config(
+    provider,
+    api_key,
+    model,
+    base_url=""
+):
+
+    provider = str(
+        provider
+    ).strip().lower()
+
+
+    if provider not in SUPPORTED_PROVIDERS:
+
+        raise ValueError(
+            f"Unsupported AI provider: {provider}"
+        )
+
+
+    config = {
+
+        "provider": provider,
+
+        "api_key": api_key.strip(),
+
+        "model": model.strip(),
+
+        "base_url": base_url.strip(),
+
+        "enabled": True
+    }
+
+
+    root_config = {}
+
+    if os.path.isfile(CONFIG_FILE):
+
+        try:
+
+            with open(
+                CONFIG_FILE,
+                "r",
+                encoding="utf-8"
+            ) as f:
+
+                root_config = json.load(f)
+
+            if not isinstance(
+                root_config,
+                dict
+            ):
+
+                root_config = {}
+
+        except Exception:
+
+            root_config = {}
+
+
+    root_config["ai"] = config
+
+
+    temp_file = CONFIG_FILE + ".tmp"
+
+
+    with open(
+        temp_file,
+        "w",
+        encoding="utf-8"
+    ) as f:
+
+        json.dump(
+            root_config,
+            f,
+            ensure_ascii=False,
+            indent=2
+        )
+
+
+    os.replace(
+        temp_file,
+        CONFIG_FILE
+    )
+
+
+    global AI_CONFIG
+
+    AI_CONFIG = config
+
+
+def ai_provider():
+
+    return str(
+        AI_CONFIG.get(
+            "provider",
+            ""
+        )
+    ).lower().strip()
+
+
+def ai_model():
+
+    return str(
+        AI_CONFIG.get(
+            "model",
+            ""
+        )
+    ).strip()
+
+
+def ai_api_key():
+
+    return str(
+        AI_CONFIG.get(
+            "api_key",
+            ""
+        )
+    ).strip()
+
+
+def ai_base_url():
+
+    return str(
+        AI_CONFIG.get(
+            "base_url",
+            ""
+        )
+    ).strip()
+
+
+def ai_is_configured():
+
+    return bool(
+        ai_provider()
+        and ai_model()
+        and ai_api_key()
+    )
 
 
 # ============================================================
@@ -90,18 +428,17 @@ MAX_HISTORY = 40
 
 CONVERSATION_HISTORY = []
 
-MEMORY_FILE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    "jarvis_conversation_memory.json"
-)
-
 
 def load_conversation_memory():
 
     try:
 
-        if not os.path.exists(MEMORY_FILE):
+        if not os.path.exists(
+            MEMORY_FILE
+        ):
+
             return []
+
 
         with open(
             MEMORY_FILE,
@@ -111,17 +448,30 @@ def load_conversation_memory():
 
             data = json.load(f)
 
-        if not isinstance(data, list):
+
+        if not isinstance(
+            data,
+            list
+        ):
+
             return []
 
+
         history = []
+
 
         for item in data[-MAX_HISTORY:]:
 
             if (
                 isinstance(item, dict)
-                and isinstance(item.get("question"), str)
-                and isinstance(item.get("answer"), str)
+                and isinstance(
+                    item.get("question"),
+                    str
+                )
+                and isinstance(
+                    item.get("answer"),
+                    str
+                )
             ):
 
                 history.append(
@@ -131,11 +481,15 @@ def load_conversation_memory():
                     )
                 )
 
+
         print(
-            f"MEMORY → LOADED {len(history)} RECENT EXCHANGES"
+            f"MEMORY → LOADED "
+            f"{len(history)} RECENT EXCHANGES"
         )
 
+
         return history
+
 
     except Exception as e:
 
@@ -149,6 +503,7 @@ def load_conversation_memory():
 def should_store_exchange(question):
 
     sensitive_words = (
+
         "password",
         "passcode",
         "api key",
@@ -160,7 +515,9 @@ def should_store_exchange(question):
         "private key"
     )
 
+
     text = question.lower().strip()
+
 
     return not any(
         word in text
@@ -174,14 +531,21 @@ def save_conversation_memory():
 
         data = []
 
-        for question, answer in CONVERSATION_HISTORY[-MAX_HISTORY:]:
+
+        for question, answer in (
+            CONVERSATION_HISTORY[-MAX_HISTORY:]
+        ):
 
             data.append({
+
                 "question": question,
+
                 "answer": answer
             })
 
+
         temp_file = MEMORY_FILE + ".tmp"
+
 
         with open(
             temp_file,
@@ -196,10 +560,12 @@ def save_conversation_memory():
                 indent=2
             )
 
+
         os.replace(
             temp_file,
             MEMORY_FILE
         )
+
 
     except Exception as e:
 
@@ -208,15 +574,21 @@ def save_conversation_memory():
         )
 
 
-def remember_exchange(question, answer):
+def remember_exchange(
+    question,
+    answer
+):
 
-    if not should_store_exchange(question):
+    if not should_store_exchange(
+        question
+    ):
 
         print(
             "MEMORY → SENSITIVE COMMAND NOT STORED"
         )
 
         return
+
 
     CONVERSATION_HISTORY.append(
         (
@@ -225,14 +597,540 @@ def remember_exchange(question, answer):
         )
     )
 
-    if len(CONVERSATION_HISTORY) > MAX_HISTORY:
+
+    if len(
+        CONVERSATION_HISTORY
+    ) > MAX_HISTORY:
 
         CONVERSATION_HISTORY.pop(0)
+
 
     save_conversation_memory()
 
 
-CONVERSATION_HISTORY = load_conversation_memory()
+CONVERSATION_HISTORY = (
+    load_conversation_memory()
+)
+
+
+# ============================================================
+# AI REQUEST HELPERS
+# ============================================================
+
+def clean_ai_text(text):
+
+    if text is None:
+
+        return ""
+
+
+    text = str(
+        text
+    ).strip()
+
+
+    return text
+
+
+def http_json_request(
+    url,
+    headers,
+    payload,
+    timeout=60
+):
+
+    data = json.dumps(
+        payload
+    ).encode(
+        "utf-8"
+    )
+
+
+    request = urllib.request.Request(
+
+        url,
+
+        data=data,
+
+        headers={
+            **headers,
+            "Content-Type":
+                "application/json"
+        },
+
+        method="POST"
+    )
+
+
+    try:
+
+        with urllib.request.urlopen(
+            request,
+            timeout=timeout
+        ) as response:
+
+            raw = response.read().decode(
+                "utf-8"
+            )
+
+            return json.loads(
+                raw
+            )
+
+
+    except urllib.error.HTTPError as e:
+
+        try:
+
+            error_body = e.read().decode(
+                "utf-8",
+                errors="replace"
+            )
+
+        except Exception:
+
+            error_body = str(e)
+
+
+        raise RuntimeError(
+            f"HTTP {e.code}: {error_body}"
+        )
+
+
+    except urllib.error.URLError as e:
+
+        raise RuntimeError(
+            f"Connection error: {e}"
+        )
+
+
+def openai_compatible_response(
+    base_url,
+    api_key,
+    model,
+    messages
+):
+
+    base_url = base_url.rstrip(
+        "/"
+    )
+
+
+    if not base_url.endswith(
+        "/chat/completions"
+    ):
+
+        if base_url.endswith(
+            "/v1"
+        ):
+
+            base_url += (
+                "/chat/completions"
+            )
+
+        else:
+
+            base_url += (
+                "/v1/chat/completions"
+            )
+
+
+    payload = {
+
+        "model": model,
+
+        "messages": messages
+    }
+
+
+    data = http_json_request(
+
+        base_url,
+
+        {
+            "Authorization":
+                f"Bearer {api_key}"
+        },
+
+        payload
+    )
+
+
+    try:
+
+        return clean_ai_text(
+            data["choices"][0]["message"]["content"]
+        )
+
+    except Exception:
+
+        raise RuntimeError(
+            "The AI provider returned an unexpected response."
+        )
+
+
+# ============================================================
+# GEMINI
+# ============================================================
+
+def ask_gemini(
+    messages,
+    model
+):
+
+    client = genai.Client(
+        api_key=ai_api_key()
+    )
+
+
+    # Gemini's generate_content API accepts
+    # a combined text prompt.
+    #
+    # We intentionally keep the existing
+    # JARVIS behavior simple and portable.
+
+    parts = []
+
+
+    for message in messages:
+
+        role = message.get(
+            "role",
+            "user"
+        )
+
+        content = message.get(
+            "content",
+            ""
+        )
+
+
+        if role == "system":
+
+            parts.append(
+                "SYSTEM:\n"
+                + content
+            )
+
+        elif role == "assistant":
+
+            parts.append(
+                "JARVIS:\n"
+                + content
+            )
+
+        else:
+
+            parts.append(
+                "USER:\n"
+                + content
+            )
+
+
+    prompt = "\n\n".join(
+        parts
+    )
+
+
+    response = client.models.generate_content(
+
+        model=model,
+
+        contents=prompt
+    )
+
+
+    return clean_ai_text(
+        response.text
+    )
+
+
+# ============================================================
+# OPENAI
+# ============================================================
+
+def ask_openai(
+    messages,
+    model
+):
+
+    return openai_compatible_response(
+
+        "https://api.openai.com/v1",
+
+        ai_api_key(),
+
+        model,
+
+        messages
+    )
+
+
+# ============================================================
+# OPENROUTER
+# ============================================================
+
+def ask_openrouter(
+    messages,
+    model
+):
+
+    return openai_compatible_response(
+
+        "https://openrouter.ai/api/v1",
+
+        ai_api_key(),
+
+        model,
+
+        messages
+    )
+
+
+# ============================================================
+# ANTHROPIC CLAUDE
+# ============================================================
+
+def ask_anthropic(
+    messages,
+    model
+):
+
+    system_messages = []
+
+    normal_messages = []
+
+
+    for message in messages:
+
+        role = message.get(
+            "role",
+            "user"
+        )
+
+        content = message.get(
+            "content",
+            ""
+        )
+
+
+        if role == "system":
+
+            system_messages.append(
+                content
+            )
+
+        elif role in (
+            "user",
+            "assistant"
+        ):
+
+            normal_messages.append({
+
+                "role": role,
+
+                "content": content
+            })
+
+
+    payload = {
+
+        "model": model,
+
+        "max_tokens": 2048,
+
+        "messages": normal_messages
+    }
+
+
+    if system_messages:
+
+        payload["system"] = (
+            "\n\n".join(
+                system_messages
+            )
+        )
+
+
+    data = http_json_request(
+
+        "https://api.anthropic.com/v1/messages",
+
+        {
+            "x-api-key":
+                ai_api_key(),
+
+            "anthropic-version":
+                "2023-06-01"
+        },
+
+        payload
+    )
+
+
+    try:
+
+        content = data.get(
+            "content",
+            []
+        )
+
+
+        texts = []
+
+
+        for item in content:
+
+            if (
+                isinstance(item, dict)
+                and item.get("type") == "text"
+            ):
+
+                texts.append(
+                    item.get(
+                        "text",
+                        ""
+                    )
+                )
+
+
+        return clean_ai_text(
+            "\n".join(texts)
+        )
+
+
+    except Exception:
+
+        raise RuntimeError(
+            "Claude returned an unexpected response."
+        )
+
+
+# ============================================================
+# CUSTOM / OPENAI-COMPATIBLE API
+# ============================================================
+
+def ask_custom(
+    messages,
+    model
+):
+
+    base_url = ai_base_url()
+
+
+    if not base_url:
+
+        raise RuntimeError(
+            "Custom AI provider has no API endpoint configured."
+        )
+
+
+    return openai_compatible_response(
+
+        base_url,
+
+        ai_api_key(),
+
+        model,
+
+        messages
+    )
+
+
+# ============================================================
+# UNIVERSAL AI ENGINE
+# ============================================================
+
+def ask_ai(
+    messages
+):
+
+    provider = ai_provider()
+
+    model = ai_model()
+
+    key = ai_api_key()
+
+
+    if not provider:
+
+        return (
+            "No AI provider has been configured yet."
+        )
+
+
+    if not key:
+
+        return (
+            "No AI API key has been configured yet."
+        )
+
+
+    if not model:
+
+        return (
+            "No AI model has been configured yet."
+        )
+
+
+    try:
+
+        if provider == "gemini":
+
+            return ask_gemini(
+                messages,
+                model
+            )
+
+
+        if provider == "openai":
+
+            return ask_openai(
+                messages,
+                model
+            )
+
+
+        if provider == "anthropic":
+
+            return ask_anthropic(
+                messages,
+                model
+            )
+
+
+        if provider == "openrouter":
+
+            return ask_openrouter(
+                messages,
+                model
+            )
+
+
+        if provider == "custom":
+
+            return ask_custom(
+                messages,
+                model
+            )
+
+
+        return (
+            "The configured AI provider is not supported."
+        )
+
+
+    except Exception as e:
+
+        print(
+            f"AI error [{provider}]: {e}"
+        )
+
+
+        return (
+            "I'm having trouble connecting "
+            "to my AI system."
+        )
 
 
 # ============================================================
@@ -240,6 +1138,7 @@ CONVERSATION_HISTORY = load_conversation_memory()
 # ============================================================
 
 CONTEXT_RECALL_PHRASES = (
+
     "remember what we were doing",
     "remember what we were working on",
     "what were we doing",
@@ -263,11 +1162,14 @@ CONTEXT_RECALL_PHRASES = (
 )
 
 
-def is_context_recall_question(question):
+def is_context_recall_question(
+    question
+):
 
     text = " ".join(
         question.lower().strip().split()
     )
+
 
     return any(
         phrase in text
@@ -275,77 +1177,108 @@ def is_context_recall_question(question):
     )
 
 
-def format_history_for_ai(limit=20):
+def format_history_for_ai(
+    limit=20
+):
 
-    recent = CONVERSATION_HISTORY[-limit:]
+    recent = (
+        CONVERSATION_HISTORY[-limit:]
+    )
+
 
     if not recent:
+
         return (
             "No previous JARVIS conversation is stored."
         )
 
+
     lines = []
 
-    for index, (question, answer) in enumerate(
+
+    for index, (
+        question,
+        answer
+    ) in enumerate(
         recent,
         1
     ):
 
         lines.append(
+
             f"{index}. User: {question}\n"
             f"   JARVIS: {answer}"
         )
 
-    return "\n".join(lines)
+
+    return "\n".join(
+        lines
+    )
 
 
-def ask_context_recall(question):
+def ask_context_recall(
+    question
+):
 
     if not CONVERSATION_HISTORY:
 
         return (
-            "I don't have any previous JARVIS conversation "
-            "stored yet."
+            "I don't have any previous JARVIS "
+            "conversation stored yet."
         )
+
 
     history = format_history_for_ai(
         limit=20
     )
 
-    try:
 
-        response = client.models.generate_content(
+    messages = [
 
-            model=MODEL,
+        {
+            "role": "system",
 
-            contents=(
-                "You are JARVIS answering a context-recall question. "
-                "Use ONLY the supplied JARVIS conversation history. "
-                "Identify the user's most recent actual task or topic. "
+            "content": (
+                "You are JARVIS answering a "
+                "context-recall question. "
+                "Use ONLY the supplied JARVIS "
+                "conversation history. "
+                "Identify the user's most recent "
+                "actual task or topic. "
                 "Do not invent information. "
                 "Answer naturally in 1-3 concise sentences.\n\n"
                 "JARVIS CONVERSATION HISTORY:\n"
-                f"{history}\n\n"
-                f"CURRENT USER QUESTION: {question}"
+                f"{history}"
             )
-        )
+        },
 
-        answer = response.text.strip()
+        {
+            "role": "user",
 
-        if answer:
-            return answer
+            "content": question
+        }
+    ]
 
-    except Exception as e:
 
-        print(
-            f"Context recall error: {e}"
-        )
+    answer = ask_ai(
+        messages
+    )
 
-    last_question, _ = CONVERSATION_HISTORY[-1]
+
+    if answer:
+
+        return answer
+
+
+    last_question, _ = (
+        CONVERSATION_HISTORY[-1]
+    )
+
 
     return (
-        "The most recent thing I have in my JARVIS memory "
-        f"is that you asked: '{last_question}'."
+        "The most recent thing I have in "
+        "my JARVIS memory is that you asked: "
+        f"'{last_question}'."
     )
 
 
@@ -354,22 +1287,32 @@ def ask_context_recall(question):
 # ============================================================
 
 edith_state = {
+
     "state": "ready",
-    "message": "JARVIS CORE // ONLINE"
+
+    "message":
+        "JARVIS CORE // ONLINE"
 }
+
 
 state_lock = threading.Lock()
 
 
-def set_state(state, message):
+def set_state(
+    state,
+    message
+):
 
     with state_lock:
 
         edith_state["state"] = state
+
         edith_state["message"] = message
 
+
     print(
-        f"WEB STATE → {state.upper()} | {message}"
+        f"WEB STATE → "
+        f"{state.upper()} | {message}"
     )
 
 
@@ -379,50 +1322,80 @@ def set_state(state, message):
 
 KEYEVENTF_KEYUP = 0x0002
 
+
 VK = {
 
     "backspace": 0x08,
+
     "tab": 0x09,
+
     "enter": 0x0D,
+
     "shift": 0x10,
+
     "ctrl": 0x11,
+
     "alt": 0x12,
+
     "escape": 0x1B,
+
     "space": 0x20,
 
     "left": 0x25,
+
     "up": 0x26,
+
     "right": 0x27,
+
     "down": 0x28,
 
     "home": 0x24,
+
     "end": 0x23,
 
     "pageup": 0x21,
+
     "pagedown": 0x22,
 
     "insert": 0x2D,
+
     "delete": 0x2E,
 
     "a": 0x41,
+
     "c": 0x43,
+
     "f": 0x46,
+
     "l": 0x4C,
+
     "r": 0x52,
+
     "t": 0x54,
+
     "v": 0x56,
+
     "w": 0x57,
+
     "x": 0x58,
+
     "z": 0x5A,
 
+    "win": 0x5B,
+
     "volume_down": 0xAE,
+
     "volume_up": 0xAF,
+
     "media_play_pause": 0xB3,
+
     "snapshot": 0x2C
 }
 
 
-def key_down(vk_code):
+def key_down(
+    vk_code
+):
 
     ctypes.windll.user32.keybd_event(
         vk_code,
@@ -432,7 +1405,9 @@ def key_down(vk_code):
     )
 
 
-def key_up(vk_code):
+def key_up(
+    vk_code
+):
 
     ctypes.windll.user32.keybd_event(
         vk_code,
@@ -442,29 +1417,59 @@ def key_up(vk_code):
     )
 
 
-def press_key(vk_code):
+def press_key(
+    vk_code
+):
 
-    key_down(vk_code)
-    time.sleep(0.03)
-    key_up(vk_code)
+    key_down(
+        vk_code
+    )
+
+    time.sleep(
+        0.03
+    )
+
+    key_up(
+        vk_code
+    )
 
 
-def hotkey(*keys):
+def hotkey(
+    *keys
+):
 
     codes = [
+
         VK[key]
-        if isinstance(key, str)
+        if isinstance(
+            key,
+            str
+        )
         else key
+
         for key in keys
     ]
 
+
     for code in codes:
-        key_down(code)
 
-    time.sleep(0.05)
+        key_down(
+            code
+        )
 
-    for code in reversed(codes):
-        key_up(code)
+
+    time.sleep(
+        0.05
+    )
+
+
+    for code in reversed(
+        codes
+    ):
+
+        key_up(
+            code
+        )
 
 
 # ============================================================
@@ -647,12 +1652,17 @@ def minimize_window():
 # SAFE URL HANDLING
 # ============================================================
 
-def normalize_url(url):
+def normalize_url(
+    url
+):
 
     url = url.strip()
 
+
     if not url:
+
         return None
+
 
     if not re.match(
         r"^https?://",
@@ -662,34 +1672,53 @@ def normalize_url(url):
 
         url = "https://" + url
 
-    parsed = urlparse(url)
+
+    parsed = urlparse(
+        url
+    )
+
 
     if not parsed.netloc:
+
         return None
+
 
     return url
 
 
-def open_url(url, browser=None):
+def open_url(
+    url,
+    browser=None
+):
 
-    url = normalize_url(url)
+    url = normalize_url(
+        url
+    )
+
 
     if not url:
+
         return False
+
 
     if browser == "chrome":
 
-        executable = find_browser_executable(
-            "chrome"
+        executable = (
+            find_browser_executable(
+                "chrome"
+            )
         )
+
 
         if executable:
 
             subprocess.Popen(
+
                 [
                     executable,
                     url
                 ],
+
                 creationflags=getattr(
                     subprocess,
                     "CREATE_NO_WINDOW",
@@ -698,20 +1727,26 @@ def open_url(url, browser=None):
             )
 
             return True
+
 
     if browser == "edge":
 
-        executable = find_browser_executable(
-            "edge"
+        executable = (
+            find_browser_executable(
+                "edge"
+            )
         )
+
 
         if executable:
 
             subprocess.Popen(
+
                 [
                     executable,
                     url
                 ],
+
                 creationflags=getattr(
                     subprocess,
                     "CREATE_NO_WINDOW",
@@ -720,6 +1755,7 @@ def open_url(url, browser=None):
             )
 
             return True
+
 
     return webbrowser.open(
         url
@@ -730,9 +1766,12 @@ def open_url(url, browser=None):
 # BROWSER DISCOVERY
 # ============================================================
 
-def find_browser_executable(browser):
+def find_browser_executable(
+    browser
+):
 
     candidates = []
+
 
     if browser == "chrome":
 
@@ -751,6 +1790,7 @@ def find_browser_executable(browser):
             )
         ]
 
+
     elif browser == "edge":
 
         candidates = [
@@ -768,15 +1808,22 @@ def find_browser_executable(browser):
             )
         ]
 
+
     for path in candidates:
 
-        if os.path.isfile(path):
+        if os.path.isfile(
+            path
+        ):
 
             return path
 
+
     return shutil.which(
+
         "chrome.exe"
+
         if browser == "chrome"
+
         else "msedge.exe"
     )
 
@@ -820,13 +1867,16 @@ def open_website(
 
     site = site.lower().strip()
 
+
     url = WEBSITES.get(
         site
     )
 
+
     if not url:
 
         return False
+
 
     return open_url(
         url,
@@ -838,17 +1888,24 @@ def open_website(
 # SEARCH
 # ============================================================
 
-def google_search(query, browser=None):
+def google_search(
+    query,
+    browser=None
+):
 
     query = query.strip()
 
+
     if not query:
+
         return False
+
 
     url = (
         "https://www.google.com/search?q="
         + quote_plus(query)
     )
+
 
     return open_url(
         url,
@@ -856,17 +1913,24 @@ def google_search(query, browser=None):
     )
 
 
-def youtube_search(query, browser=None):
+def youtube_search(
+    query,
+    browser=None
+):
 
     query = query.strip()
 
+
     if not query:
+
         return False
+
 
     url = (
         "https://www.youtube.com/results?search_query="
         + quote_plus(query)
     )
+
 
     return open_url(
         url,
@@ -878,15 +1942,21 @@ def youtube_search(query, browser=None):
 # SAFE APP LAUNCHING
 # ============================================================
 
-def launch_application(app):
+def launch_application(
+    app
+):
 
     app = app.lower().strip()
 
+
     if app == "chrome":
 
-        executable = find_browser_executable(
-            "chrome"
+        executable = (
+            find_browser_executable(
+                "chrome"
+            )
         )
+
 
         if executable:
 
@@ -896,13 +1966,18 @@ def launch_application(app):
 
             return True
 
+
         return False
+
 
     if app == "edge":
 
-        executable = find_browser_executable(
-            "edge"
+        executable = (
+            find_browser_executable(
+                "edge"
+            )
         )
+
 
         if executable:
 
@@ -912,7 +1987,9 @@ def launch_application(app):
 
             return True
 
+
         return False
+
 
     if app == "notepad":
 
@@ -922,6 +1999,7 @@ def launch_application(app):
 
         return True
 
+
     if app == "calculator":
 
         subprocess.Popen(
@@ -929,6 +2007,7 @@ def launch_application(app):
         )
 
         return True
+
 
     if app in (
         "file explorer",
@@ -942,6 +2021,7 @@ def launch_application(app):
 
         return True
 
+
     return False
 
 
@@ -949,7 +2029,9 @@ def launch_application(app):
 # SAFE FOLDER OPENING
 # ============================================================
 
-def open_folder(path):
+def open_folder(
+    path
+):
 
     path = os.path.expandvars(
         os.path.expanduser(
@@ -957,8 +2039,13 @@ def open_folder(path):
         )
     )
 
-    if not os.path.isdir(path):
+
+    if not os.path.isdir(
+        path
+    ):
+
         return False
+
 
     subprocess.Popen(
         [
@@ -967,14 +2054,18 @@ def open_folder(path):
         ]
     )
 
+
     return True
 
 
-def common_folder(name):
+def common_folder(
+    name
+):
 
     home = os.path.expanduser(
         "~"
     )
+
 
     folders = {
 
@@ -1015,6 +2106,7 @@ def common_folder(name):
             )
     }
 
+
     return folders.get(
         name.lower()
     )
@@ -1031,12 +2123,16 @@ def search_files(
 
     query = query.lower().strip()
 
+
     if not query:
+
         return []
+
 
     home = os.path.expanduser(
         "~"
     )
+
 
     roots = [
 
@@ -1071,29 +2167,37 @@ def search_files(
         )
     ]
 
+
     results = []
+
 
     for root in roots:
 
-        if not os.path.isdir(root):
+        if not os.path.isdir(
+            root
+        ):
+
             continue
+
 
         for current_root, dirs, files in os.walk(
             root,
             topdown=True
         ):
 
-            # Never enter hidden/system-like folders.
             dirs[:] = [
+
                 d for d in dirs
+
                 if not d.startswith(".")
-                and d.lower()
-                not in (
+
+                and d.lower() not in (
                     "appdata",
                     "node_modules",
                     "__pycache__"
                 )
             ]
+
 
             for filename in files:
 
@@ -1106,14 +2210,20 @@ def search_files(
                         )
                     )
 
-                    if len(results) >= max_results:
+
+                    if len(
+                        results
+                    ) >= max_results:
 
                         return results
+
 
     return results
 
 
-def open_file(path):
+def open_file(
+    path
+):
 
     path = os.path.expandvars(
         os.path.expanduser(
@@ -1121,13 +2231,18 @@ def open_file(path):
         )
     )
 
-    if not os.path.isfile(path):
+
+    if not os.path.isfile(
+        path
+    ):
 
         return False
+
 
     os.startfile(
         path
     )
+
 
     return True
 
@@ -1136,12 +2251,15 @@ def open_file(path):
 # FILE COMMAND EXTRACTION
 # ============================================================
 
-def extract_explicit_path(command):
+def extract_explicit_path(
+    command
+):
 
     quoted = re.findall(
         r'"([^"]+)"',
         command
     )
+
 
     for item in quoted:
 
@@ -1151,15 +2269,21 @@ def extract_explicit_path(command):
             )
         )
 
-        if os.path.isfile(expanded):
+
+        if os.path.isfile(
+            expanded
+        ):
 
             return expanded
 
-    # Windows absolute path.
+
     match = re.search(
+
         r'([A-Za-z]:\\[^<>:"|?*\r\n]+)',
+
         command
     )
+
 
     if match:
 
@@ -1169,9 +2293,13 @@ def extract_explicit_path(command):
             )
         )
 
-        if os.path.isfile(path):
+
+        if os.path.isfile(
+            path
+        ):
 
             return path
+
 
     return None
 
@@ -1180,9 +2308,12 @@ def extract_explicit_path(command):
 # MEDIA SESSION
 # ============================================================
 
-def windows_media_session_command(action):
+def windows_media_session_command(
+    action
+):
 
     action = action.lower().strip()
+
 
     if action not in (
         "pause",
@@ -1190,6 +2321,7 @@ def windows_media_session_command(action):
     ):
 
         return False
+
 
     powershell_script = r'''
 $ErrorActionPreference = "Stop"
@@ -1255,10 +2387,14 @@ catch {
 }
 '''
 
-    powershell_script = powershell_script.replace(
-        "ACTION",
-        action
+
+    powershell_script = (
+        powershell_script.replace(
+            "ACTION",
+            action
+        )
     )
+
 
     try:
 
@@ -1275,7 +2411,9 @@ catch {
             ],
 
             capture_output=True,
+
             text=True,
+
             timeout=5,
 
             creationflags=getattr(
@@ -1285,7 +2423,11 @@ catch {
             )
         )
 
-        return result.returncode == 0
+
+        return (
+            result.returncode == 0
+        )
+
 
     except Exception as e:
 
@@ -1300,9 +2442,12 @@ catch {
 # MEDIA COMMANDS
 # ============================================================
 
-def handle_media_command(action):
+def handle_media_command(
+    action
+):
 
     action = action.lower().strip()
+
 
     if action == "pause":
 
@@ -1310,31 +2455,38 @@ def handle_media_command(action):
             "pause"
         )
 
+
     if action == "play":
 
         return windows_media_session_command(
             "play"
         )
 
+
     if action == "volume_up":
 
         return windows_volume_up()
+
 
     if action == "volume_down":
 
         return windows_volume_down()
 
+
     if action == "screenshot":
 
         return windows_screenshot()
+
 
     if action == "next_tab":
 
         return browser_next_tab()
 
+
     if action == "previous_tab":
 
         return browser_previous_tab()
+
 
     return False
 
@@ -1343,24 +2495,24 @@ def handle_media_command(action):
 # TEXT TYPING
 # ============================================================
 
-def type_text(text):
+def type_text(
+    text
+):
 
     if not text:
+
         return False
 
-    # Clipboard is deliberately avoided.
-    # This uses the Windows Unicode input API.
-    #
-    # It is slower than clipboard paste but does not
-    # permanently place the user's text into the clipboard.
 
     user32 = ctypes.windll.user32
 
     KEYEVENTF_UNICODE = 0x0004
 
+
     for char in text:
 
         code = ord(char)
+
 
         user32.keybd_event(
             0,
@@ -1369,16 +2521,20 @@ def type_text(text):
             0
         )
 
+
         user32.keybd_event(
             0,
             code,
-            KEYEVENTF_UNICODE | KEYEVENTF_KEYUP,
+            KEYEVENTF_UNICODE |
+            KEYEVENTF_KEYUP,
             0
         )
+
 
         time.sleep(
             0.003
         )
+
 
     return True
 
@@ -1387,13 +2543,12 @@ def type_text(text):
 # SAFE COMMAND ROUTER
 # ============================================================
 
-def pc_action(command):
+def pc_action(
+    command
+):
 
     cmd = command.lower().strip()
 
-    # --------------------------------------------------------
-    # Explicitly refuse destructive commands.
-    # --------------------------------------------------------
 
     destructive_patterns = (
 
@@ -1415,6 +2570,7 @@ def pc_action(command):
         r"\bedit registry\b"
     )
 
+
     for pattern in destructive_patterns:
 
         if re.search(
@@ -1427,6 +2583,7 @@ def pc_action(command):
             )
 
             return True
+
 
     # --------------------------------------------------------
     # MEDIA
@@ -1441,9 +2598,13 @@ def pc_action(command):
         )
     ):
 
-        if handle_media_command("pause"):
+        if handle_media_command(
+            "pause"
+        ):
 
-            speak("Paused.")
+            speak(
+                "Paused."
+            )
 
             return True
 
@@ -1458,9 +2619,13 @@ def pc_action(command):
         )
     ):
 
-        if handle_media_command("play"):
+        if handle_media_command(
+            "play"
+        ):
 
-            speak("Playing.")
+            speak(
+                "Playing."
+            )
 
             return True
 
@@ -1515,8 +2680,9 @@ def pc_action(command):
 
         return True
 
+
     # --------------------------------------------------------
-    # BROWSER NAVIGATION
+    # BROWSER
     # --------------------------------------------------------
 
     if (
@@ -1575,12 +2741,10 @@ def pc_action(command):
         return True
 
 
-    if (
-        cmd in (
-            "go back",
-            "back",
-            "browser back"
-        )
+    if cmd in (
+        "go back",
+        "back",
+        "browser back"
     ):
 
         browser_back()
@@ -1592,12 +2756,10 @@ def pc_action(command):
         return True
 
 
-    if (
-        cmd in (
-            "go forward",
-            "forward",
-            "browser forward"
-        )
+    if cmd in (
+        "go forward",
+        "forward",
+        "browser forward"
     ):
 
         browser_forward()
@@ -1624,15 +2786,13 @@ def pc_action(command):
 
 
     # --------------------------------------------------------
-    # WINDOW CONTROL
+    # WINDOW
     # --------------------------------------------------------
 
-    if (
-        cmd in (
-            "switch window",
-            "switch app",
-            "switch applications"
-        )
+    if cmd in (
+        "switch window",
+        "switch app",
+        "switch applications"
     ):
 
         switch_window()
@@ -1687,7 +2847,7 @@ def pc_action(command):
 
 
     # --------------------------------------------------------
-    # KEYBOARD COMMANDS
+    # KEYBOARD
     # --------------------------------------------------------
 
     keyboard_actions = {
@@ -1720,11 +2880,13 @@ def pc_action(command):
             ("find", "Find opened.")
     }
 
+
     if cmd in keyboard_actions:
 
-        action, response = keyboard_actions[
-            cmd
-        ]
+        action, response = (
+            keyboard_actions[cmd]
+        )
+
 
         if action == "enter":
 
@@ -1732,17 +2894,20 @@ def pc_action(command):
                 VK["enter"]
             )
 
+
         elif action == "escape":
 
             press_key(
                 VK["escape"]
             )
 
+
         elif action == "tab":
 
             press_key(
                 VK["tab"]
             )
+
 
         elif action == "copy":
 
@@ -1751,12 +2916,14 @@ def pc_action(command):
                 "c"
             )
 
+
         elif action == "paste":
 
             hotkey(
                 "ctrl",
                 "v"
             )
+
 
         elif action == "cut":
 
@@ -1765,12 +2932,14 @@ def pc_action(command):
                 "x"
             )
 
+
         elif action == "selectall":
 
             hotkey(
                 "ctrl",
                 "a"
             )
+
 
         elif action == "undo":
 
@@ -1779,9 +2948,11 @@ def pc_action(command):
                 "z"
             )
 
+
         elif action == "find":
 
             browser_find()
+
 
         speak(
             response
@@ -1795,33 +2966,45 @@ def pc_action(command):
     # --------------------------------------------------------
 
     type_match = re.match(
+
         r'^(?:type|write)\s+["\'](.+)["\']$',
+
         command,
+
         re.IGNORECASE
     )
 
+
     if type_match:
 
-        text = type_match.group(1)
+        text = type_match.group(
+            1
+        )
+
 
         type_text(
             text
         )
 
+
         speak(
             "Done."
         )
+
 
         return True
 
 
     # --------------------------------------------------------
-    # OPEN EXACT FILE
+    # EXACT FILE
     # --------------------------------------------------------
 
-    explicit_path = extract_explicit_path(
-        command
+    explicit_path = (
+        extract_explicit_path(
+            command
+        )
     )
+
 
     if explicit_path:
 
@@ -1839,14 +3022,16 @@ def pc_action(command):
                 "I couldn't open that file."
             )
 
+
         return True
 
 
     # --------------------------------------------------------
-    # OPEN COMMON FOLDERS
+    # FOLDERS
     # --------------------------------------------------------
 
     for folder_name in (
+
         "desktop",
         "documents",
         "downloads",
@@ -1868,7 +3053,11 @@ def pc_action(command):
                 folder_name
             )
 
-            if path and open_folder(path):
+
+            if (
+                path
+                and open_folder(path)
+            ):
 
                 speak(
                     f"Opening {folder_name}."
@@ -1882,140 +3071,197 @@ def pc_action(command):
     # --------------------------------------------------------
 
     search_file_match = re.search(
-        r"(?:find|search for|look for|locate)\s+(?:my\s+)?(.+?)(?:\s+file|\s+document|\s+pdf)?$",
+
+        r"(?:find|search for|look for|locate)\s+"
+        r"(?:my\s+)?(.+?)"
+        r"(?:\s+file|\s+document|\s+pdf)?$",
+
         command,
+
         re.IGNORECASE
     )
 
+
     if search_file_match:
 
-        query = search_file_match.group(1).strip()
+        query = (
+            search_file_match
+            .group(1)
+            .strip()
+        )
+
 
         results = search_files(
             query
         )
 
+
         if not results:
 
             speak(
-                f"I couldn't find a file matching {query}."
+                f"I couldn't find a file "
+                f"matching {query}."
             )
 
             return True
 
+
         if len(results) == 1:
 
             speak(
-                f"I found it. Opening {os.path.basename(results[0])}."
+                "I found it. Opening "
+                f"{os.path.basename(results[0])}."
             )
+
 
             open_file(
                 results[0]
             )
 
+
             return True
 
-        # Open the first best matching result.
+
         best = results[0]
 
+
         speak(
+
             f"I found {len(results)} matches. "
             f"Opening {os.path.basename(best)}."
         )
+
 
         open_file(
             best
         )
 
+
         return True
 
 
     # --------------------------------------------------------
-    # SEARCH GOOGLE
+    # GOOGLE SEARCH
     # --------------------------------------------------------
 
     google_match = re.search(
+
         r"(?:search google for|google search for|search google)\s+(.+)",
+
         command,
+
         re.IGNORECASE
     )
 
+
     if google_match:
 
-        query = google_match.group(1).strip()
+        query = (
+            google_match
+            .group(1)
+            .strip()
+        )
+
 
         google_search(
             query
         )
 
+
         speak(
             f"Searching Google for {query}."
         )
+
 
         return True
 
 
     # --------------------------------------------------------
-    # SEARCH YOUTUBE
+    # YOUTUBE SEARCH
     # --------------------------------------------------------
 
     youtube_match = re.search(
+
         r"(?:search youtube for|search youtube|find on youtube)\s+(.+)",
+
         command,
+
         re.IGNORECASE
     )
 
+
     if youtube_match:
 
-        query = youtube_match.group(1).strip()
+        query = (
+            youtube_match
+            .group(1)
+            .strip()
+        )
+
 
         youtube_search(
             query
         )
 
+
         speak(
             f"Searching YouTube for {query}."
         )
+
 
         return True
 
 
     # --------------------------------------------------------
-    # OPEN URL
+    # URL
     # --------------------------------------------------------
 
     url_match = re.search(
+
         r"(https?://[^\s]+|www\.[^\s]+)",
+
         command,
+
         re.IGNORECASE
     )
 
+
     if url_match:
 
-        url = url_match.group(1)
+        url = url_match.group(
+            1
+        )
+
 
         browser = None
 
+
         if "edge" in cmd:
+
             browser = "edge"
 
+
         elif "chrome" in cmd:
+
             browser = "chrome"
+
 
         open_url(
             url,
             browser
         )
 
+
         speak(
             "Opening the website."
         )
+
 
         return True
 
 
     # --------------------------------------------------------
-    # OPEN SITE IN SPECIFIC BROWSER
+    # WEBSITES
     # --------------------------------------------------------
 
     for site in WEBSITES:
@@ -2024,11 +3270,16 @@ def pc_action(command):
 
             browser = None
 
+
             if "edge" in cmd:
+
                 browser = "edge"
 
+
             elif "chrome" in cmd:
+
                 browser = "chrome"
+
 
             if (
                 "open" in cmd
@@ -2046,6 +3297,7 @@ def pc_action(command):
                         f"Opening {site}."
                     )
 
+
                     return True
 
 
@@ -2055,28 +3307,49 @@ def pc_action(command):
 
     app_aliases = {
 
-        "chrome": "chrome",
-        "google chrome": "chrome",
+        "chrome":
+            "chrome",
 
-        "edge": "edge",
-        "microsoft edge": "edge",
+        "google chrome":
+            "chrome",
 
-        "notepad": "notepad",
+        "edge":
+            "edge",
 
-        "calculator": "calculator",
-        "calc": "calculator",
+        "microsoft edge":
+            "edge",
 
-        "file explorer": "file explorer",
-        "explorer": "file explorer",
-        "files": "file explorer"
+        "notepad":
+            "notepad",
+
+        "calculator":
+            "calculator",
+
+        "calc":
+            "calculator",
+
+        "file explorer":
+            "file explorer",
+
+        "explorer":
+            "file explorer",
+
+        "files":
+            "file explorer"
     }
 
-    for phrase, app in app_aliases.items():
 
-        if phrase in cmd and (
-            "open" in cmd
-            or "launch" in cmd
-            or "start" in cmd
+    for phrase, app in (
+        app_aliases.items()
+    ):
+
+        if (
+            phrase in cmd
+            and (
+                "open" in cmd
+                or "launch" in cmd
+                or "start" in cmd
+            )
         ):
 
             if launch_application(
@@ -2090,8 +3363,10 @@ def pc_action(command):
             else:
 
                 speak(
-                    f"I couldn't find {phrase} on this PC."
+                    f"I couldn't find "
+                    f"{phrase} on this PC."
                 )
+
 
             return True
 
@@ -2109,9 +3384,11 @@ def pc_action(command):
             VK["pagedown"]
         )
 
+
         speak(
             "Scrolling down."
         )
+
 
         return True
 
@@ -2125,9 +3402,11 @@ def pc_action(command):
             VK["pageup"]
         )
 
+
         speak(
             "Scrolling up."
         )
+
 
         return True
 
@@ -2149,25 +3428,30 @@ class EdithBridgeHandler(
             204
         )
 
+
         self.send_header(
             "Access-Control-Allow-Origin",
             "*"
         )
+
 
         self.send_header(
             "Access-Control-Allow-Methods",
             "GET, OPTIONS"
         )
 
+
         self.send_header(
             "Access-Control-Allow-Headers",
             "*"
         )
 
+
         self.send_header(
             "Access-Control-Allow-Private-Network",
             "true"
         )
+
 
         self.end_headers()
 
@@ -2184,31 +3468,38 @@ class EdithBridgeHandler(
             "utf-8"
         )
 
+
         self.send_response(
             status
         )
+
 
         self.send_header(
             "Content-Type",
             "application/json"
         )
 
+
         self.send_header(
             "Access-Control-Allow-Origin",
             "*"
         )
+
 
         self.send_header(
             "Access-Control-Allow-Private-Network",
             "true"
         )
 
+
         self.send_header(
             "Cache-Control",
             "no-store"
         )
 
+
         self.end_headers()
+
 
         self.wfile.write(
             response
@@ -2221,7 +3512,9 @@ class EdithBridgeHandler(
             self.path
         )
 
+
         path = parsed.path
+
 
         # ----------------------------------------------------
         # STATE
@@ -2235,9 +3528,11 @@ class EdithBridgeHandler(
                     edith_state
                 )
 
+
             self.send_json(
                 data
             )
+
 
             return
 
@@ -2250,11 +3545,14 @@ class EdithBridgeHandler(
 
             self.send_json({
 
-                "installed": True,
+                "installed":
+                    True,
 
-                "running": True,
+                "running":
+                    True,
 
-                "version": "2.0.0",
+                "version":
+                    APP_VERSION,
 
                 "state":
                     edith_state["state"],
@@ -2266,9 +3564,19 @@ class EdithBridgeHandler(
                     True,
 
                 "destructive_actions":
-                    False
+                    False,
+
+                "ai_provider":
+                    ai_provider(),
+
+                "ai_model":
+                    ai_model(),
+
+                "ai_configured":
+                    ai_is_configured()
 
             })
+
 
             return
 
@@ -2283,37 +3591,55 @@ class EdithBridgeHandler(
                 parsed.query
             )
 
+
             action = query.get(
                 "action",
                 [""]
             )[0].lower().strip()
 
+
             allowed = (
+
                 "pause",
+
                 "play",
+
                 "volume_up",
+
                 "volume_down",
+
                 "screenshot",
+
                 "next_tab",
+
                 "previous_tab"
             )
+
 
             if action not in allowed:
 
                 self.send_json(
+
                     {
                         "ok": False,
+
                         "error":
                             "Invalid action"
                     },
+
                     400
                 )
 
+
                 return
 
-            success = handle_media_command(
-                action
+
+            success = (
+                handle_media_command(
+                    action
+                )
             )
+
 
             self.send_json({
 
@@ -2325,6 +3651,7 @@ class EdithBridgeHandler(
 
             }, 200 if success else 500)
 
+
             return
 
 
@@ -2333,10 +3660,14 @@ class EdithBridgeHandler(
         # ----------------------------------------------------
 
         self.send_json(
+
             {
                 "ok": False,
-                "error": "Not found"
+
+                "error":
+                    "Not found"
             },
+
             404
         )
 
@@ -2359,19 +3690,25 @@ def start_bridge():
     try:
 
         server = HTTPServer(
+
             (
                 BRIDGE_HOST,
                 BRIDGE_PORT
             ),
+
             EdithBridgeHandler
         )
 
+
         print(
+
             f"JARVIS WEB BRIDGE: "
             f"http://{BRIDGE_HOST}:{BRIDGE_PORT}"
         )
 
+
         server.serve_forever()
+
 
     except Exception as e:
 
@@ -2381,29 +3718,14 @@ def start_bridge():
 
 
 bridge_thread = threading.Thread(
+
     target=start_bridge,
+
     daemon=True
 )
 
+
 bridge_thread.start()
-
-
-# ============================================================
-# GEMINI
-# ============================================================
-
-if not GEMINI_API_KEY:
-
-    print(
-        "GEMINI_API_KEY is not set."
-    )
-
-    raise SystemExit
-
-
-client = genai.Client(
-    api_key=GEMINI_API_KEY
-)
 
 
 # ============================================================
@@ -2423,33 +3745,52 @@ def find_microphone():
 
     devices = sd.query_devices()
 
+
     preferred = [
+
         "microphone",
+
         "bassheads",
+
         "headset",
+
         "usb",
+
         "headphones"
     ]
 
+
     candidates = []
+
 
     for index, device in enumerate(
         devices
     ):
 
-        if device["max_input_channels"] <= 0:
+        if device[
+            "max_input_channels"
+        ] <= 0:
+
             continue
 
-        name = device["name"].lower()
+
+        name = device[
+            "name"
+        ].lower()
+
 
         score = 0
+
 
         for word in preferred:
 
             if word in name:
+
                 score += 1
 
+
         candidates.append(
+
             (
                 score,
                 index,
@@ -2457,18 +3798,26 @@ def find_microphone():
             )
         )
 
+
     if not candidates:
 
         raise RuntimeError(
             "No microphone found."
         )
 
+
     candidates.sort(
+
         key=lambda x: x[0],
+
         reverse=True
     )
 
-    _, index, device = candidates[0]
+
+    _, index, device = (
+        candidates[0]
+    )
+
 
     return index, device
 
@@ -2483,40 +3832,57 @@ async def generate_voice(
 ):
 
     communicator = edge_tts.Communicate(
+
         text,
+
         VOICE
     )
+
 
     await communicator.save(
         filename
     )
 
 
-def speak(text):
+def speak(
+    text
+):
 
     print(
         f"\nJARVIS: {text}\n"
     )
 
-    filename = tempfile.NamedTemporaryFile(
-        suffix=".mp3",
-        delete=False
-    ).name
+
+    filename = (
+        tempfile.NamedTemporaryFile(
+
+            suffix=".mp3",
+
+            delete=False
+        ).name
+    )
+
 
     try:
 
         asyncio.run(
+
             generate_voice(
+
                 text,
+
                 filename
             )
         )
+
 
         pygame.mixer.music.load(
             filename
         )
 
+
         pygame.mixer.music.play()
+
 
         while pygame.mixer.music.get_busy():
 
@@ -2524,13 +3890,16 @@ def speak(text):
                 0.02
             )
 
+
         pygame.mixer.music.unload()
+
 
     except Exception as e:
 
         print(
             f"TTS error: {e}"
         )
+
 
     finally:
 
@@ -2541,6 +3910,7 @@ def speak(text):
             )
 
         except Exception:
+
             pass
 
 
@@ -2549,7 +3919,9 @@ def speak(text):
 # ============================================================
 
 YES_FILE = os.path.join(
+
     tempfile.gettempdir(),
+
     "jarvis_yes.mp3"
 )
 
@@ -2557,9 +3929,12 @@ YES_FILE = os.path.join(
 async def create_yes_voice():
 
     communicator = edge_tts.Communicate(
+
         "Yes?",
+
         VOICE
     )
+
 
     await communicator.save(
         YES_FILE
@@ -2576,6 +3951,7 @@ def prepare_yes_voice():
             "Preparing Andrew voice..."
         )
 
+
         asyncio.run(
             create_yes_voice()
         )
@@ -2587,13 +3963,16 @@ def say_yes():
         "\nJARVIS: Yes?\n"
     )
 
+
     try:
 
         pygame.mixer.music.load(
             YES_FILE
         )
 
+
         pygame.mixer.music.play()
+
 
         while pygame.mixer.music.get_busy():
 
@@ -2601,7 +3980,9 @@ def say_yes():
                 0.02
             )
 
+
         pygame.mixer.music.unload()
+
 
     except Exception:
 
@@ -2616,54 +3997,83 @@ def say_yes():
 
 def listen_for_command():
 
-    mic_index, mic_info = find_microphone()
-
-    sample_rate = int(
-        mic_info["default_samplerate"]
+    mic_index, mic_info = (
+        find_microphone()
     )
 
+
+    sample_rate = int(
+        mic_info[
+            "default_samplerate"
+        ]
+    )
+
+
     channels = (
+
         2
-        if mic_info["max_input_channels"] >= 2
+
+        if mic_info[
+            "max_input_channels"
+        ] >= 2
+
         else 1
     )
 
+
     print(
+
         f"Listening for your command "
         f"(up to {MAX_COMMAND_TIME:.0f} seconds)..."
     )
 
+
     try:
 
         calibration = sd.rec(
+
             int(
                 sample_rate * 0.30
             ),
+
             samplerate=sample_rate,
+
             channels=channels,
+
             dtype="float32",
+
             device=mic_index
         )
 
+
         sd.wait()
+
 
         if channels > 1:
 
-            calibration = calibration.mean(
-                axis=1
+            calibration = (
+                calibration.mean(
+                    axis=1
+                )
             )
 
         else:
 
-            calibration = calibration[:, 0]
+            calibration = (
+                calibration[:, 0]
+            )
+
 
         noise_rms = float(
+
             np.sqrt(
+
                 np.mean(
                     calibration ** 2
                 )
             )
         )
+
 
     except Exception as e:
 
@@ -2675,40 +4085,55 @@ def listen_for_command():
 
 
     threshold = max(
+
         0.012,
+
         noise_rms * 2.5
     )
 
+
     chunk_time = 0.05
 
+
     chunk_size = max(
+
         1,
+
         int(
             sample_rate *
             chunk_time
         )
     )
 
+
     maximum_chunks = int(
+
         MAX_COMMAND_TIME /
         chunk_time
     )
 
+
     silence_chunks_needed = max(
+
         1,
+
         int(
             END_SILENCE /
             chunk_time
         )
     )
 
+
     minimum_speech_chunks = max(
+
         1,
+
         int(
             MIN_SPEECH_TIME /
             chunk_time
         )
     )
+
 
     recorded = []
 
@@ -2718,14 +4143,21 @@ def listen_for_command():
 
     silent_chunks = 0
 
+
     try:
 
         with sd.InputStream(
+
             device=mic_index,
+
             samplerate=sample_rate,
+
             channels=channels,
+
             dtype="float32",
+
             blocksize=chunk_size
+
         ) as stream:
 
             for _ in range(
@@ -2736,9 +4168,11 @@ def listen_for_command():
                     chunk_size
                 )
 
+
                 data = np.asarray(
                     data
                 )
+
 
                 if channels > 1:
 
@@ -2750,13 +4184,17 @@ def listen_for_command():
 
                     mono = data[:, 0]
 
+
                 volume = float(
+
                     np.sqrt(
+
                         np.mean(
                             mono ** 2
                         )
                     )
                 )
+
 
                 if not speech_started:
 
@@ -2774,11 +4212,14 @@ def listen_for_command():
 
                     continue
 
+
                 recorded.append(
                     mono.copy()
                 )
 
+
                 speech_chunks += 1
+
 
                 if volume >= threshold:
 
@@ -2788,15 +4229,21 @@ def listen_for_command():
 
                     silent_chunks += 1
 
+
                 if (
+
                     speech_chunks >=
                     minimum_speech_chunks
+
                     and
+
                     silent_chunks >=
                     silence_chunks_needed
+
                 ):
 
                     break
+
 
     except Exception as e:
 
@@ -2806,6 +4253,7 @@ def listen_for_command():
 
         return ""
 
+
     if not speech_started:
 
         print(
@@ -2814,9 +4262,11 @@ def listen_for_command():
 
         return ""
 
+
     audio = np.concatenate(
         recorded
     )
+
 
     audio = np.clip(
         audio,
@@ -2824,44 +4274,65 @@ def listen_for_command():
         1
     )
 
+
     wav_file = tempfile.NamedTemporaryFile(
+
         suffix=".wav",
+
         delete=False
     )
 
+
     wav_path = wav_file.name
 
+
     wav_file.close()
+
 
     try:
 
         sf.write(
+
             wav_path,
+
             audio,
+
             sample_rate,
+
             subtype="PCM_16"
         )
+
 
         with sr.AudioFile(
             wav_path
         ) as source:
 
-            recorded_audio = recognizer.record(
-                source
+            recorded_audio = (
+                recognizer.record(
+                    source
+                )
             )
+
 
         try:
 
-            text = recognizer.recognize_google(
-                recorded_audio,
-                language="en-US"
+            text = (
+                recognizer.recognize_google(
+
+                    recorded_audio,
+
+                    language="en-US"
+                )
             )
+
 
             print(
                 f"You: {text}"
             )
 
+
             return text.strip()
+
 
         except sr.UnknownValueError:
 
@@ -2871,6 +4342,7 @@ def listen_for_command():
 
             return ""
 
+
         except sr.RequestError as e:
 
             print(
@@ -2878,6 +4350,7 @@ def listen_for_command():
             )
 
             return ""
+
 
     finally:
 
@@ -2888,50 +4361,57 @@ def listen_for_command():
             )
 
         except Exception:
+
             pass
 
 
 # ============================================================
-# GEMINI GENERAL RESPONSE
+# GENERAL JARVIS RESPONSE
 # ============================================================
 
-def ask_edith(question):
+def ask_edith(
+    question
+):
 
-    try:
+    history = format_history_for_ai(
+        limit=12
+    )
 
-        history = format_history_for_ai(
-            limit=12
-        )
 
-        response = client.models.generate_content(
+    messages = [
 
-            model=MODEL,
+        {
+            "role": "system",
 
-            contents=(
-                "You are JARVIS, a fast personal AI assistant. "
+            "content": (
+
+                "You are JARVIS, a fast personal "
+                "AI assistant. "
                 "Answer naturally and directly. "
-                "Keep answers concise unless asked for detail. "
-                "Use recent JARVIS conversation as context. "
-                "Do not claim to have performed a PC action unless "
-                "the PC control layer actually performed it.\n\n"
+                "Keep answers concise unless asked "
+                "for detail. "
+                "Use recent JARVIS conversation "
+                "as context. "
+                "Do not claim to have performed "
+                "a PC action unless the PC control "
+                "layer actually performed it.\n\n"
+
                 "RECENT JARVIS CONVERSATION:\n"
-                f"{history}\n\n"
-                f"CURRENT USER: {question}"
+                f"{history}"
             )
-        )
+        },
 
-        return response.text.strip()
+        {
+            "role": "user",
 
-    except Exception as e:
+            "content": question
+        }
+    ]
 
-        print(
-            f"Gemini error: {e}"
-        )
 
-        return (
-            "I'm having trouble connecting "
-            "to my AI system."
-        )
+    return ask_ai(
+        messages
+    )
 
 
 # ============================================================
@@ -2940,26 +4420,42 @@ def ask_edith(question):
 
 def wait_for_jarvis():
 
-    mic_index, mic_info = find_microphone()
-
-    mic_rate = int(
-        mic_info["default_samplerate"]
+    mic_index, mic_info = (
+        find_microphone()
     )
 
+
+    mic_rate = int(
+        mic_info[
+            "default_samplerate"
+        ]
+    )
+
+
     channels = (
+
         2
-        if mic_info["max_input_channels"] >= 2
+
+        if mic_info[
+            "max_input_channels"
+        ] >= 2
+
         else 1
     )
 
+
     wake_model = Model(
+
         wakeword_models=[
             WAKE_WORD
         ],
+
         inference_framework="onnx"
     )
 
+
     detected = False
+
 
     def callback(
         indata,
@@ -2970,10 +4466,14 @@ def wait_for_jarvis():
 
         nonlocal detected
 
+
         if detected:
+
             return
 
+
         audio = indata
+
 
         if audio.ndim > 1:
 
@@ -2981,48 +4481,72 @@ def wait_for_jarvis():
                 axis=1
             )
 
+
         if mic_rate != 16000:
 
             audio = resample_poly(
+
                 audio,
+
                 16000,
+
                 mic_rate
             )
 
+
         audio = np.clip(
+
             audio,
+
             -1,
+
             1
         )
 
+
         audio = (
+
             audio * 32767
+
         ).astype(
             np.int16
         )
+
 
         prediction = wake_model.predict(
             audio
         )
 
+
         score = prediction.get(
+
             WAKE_WORD,
+
             0
         )
+
 
         if score >= WAKE_THRESHOLD:
 
             detected = True
 
+
     try:
 
         with sd.InputStream(
+
             device=mic_index,
+
             samplerate=mic_rate,
+
             channels=channels,
+
             dtype="float32",
+
             blocksize=2400,
+
             callback=callback
+
         ):
 
             while not detected:
@@ -3031,17 +4555,21 @@ def wait_for_jarvis():
                     20
                 )
 
+
     except Exception as e:
 
         print(
             f"\nWake detector error: {e}"
         )
 
+
         time.sleep(
             1
         )
 
+
         return False
+
 
     return True
 
@@ -3065,7 +4593,17 @@ print(
 )
 
 print(
-    "Gemini AI: ACTIVE"
+    f"Companion Version: {APP_VERSION}"
+)
+
+print(
+    f"AI Provider: "
+    f"{ai_provider().upper() or 'NOT CONFIGURED'}"
+)
+
+print(
+    f"AI Model: "
+    f"{ai_model() or 'NOT CONFIGURED'}"
 )
 
 print(
@@ -3139,12 +4677,31 @@ print(
 print()
 
 
+if not ai_is_configured():
+
+    print(
+        "WARNING: AI PROVIDER IS NOT CONFIGURED."
+    )
+
+    print(
+        f"Expected configuration file:"
+    )
+
+    print(
+        CONFIG_FILE
+    )
+
+    print()
+
+
 prepare_yes_voice()
+
 
 set_state(
     "ready",
     "JARVIS CORE // ONLINE"
 )
+
 
 print(
     "JARVIS is sleeping."
@@ -3170,21 +4727,28 @@ while True:
             "JARVIS CORE // ONLINE"
         )
 
+
         woke_up = wait_for_jarvis()
 
+
         if not woke_up:
+
             continue
+
 
         print(
             "\nHEY JARVIS detected!"
         )
+
 
         set_state(
             "listening",
             "VOICE INPUT // ACTIVE"
         )
 
+
         say_yes()
+
 
         while True:
 
@@ -3193,11 +4757,16 @@ while True:
                 "VOICE INPUT // ACTIVE"
             )
 
+
             print(
                 "\nListening..."
             )
 
-            command = listen_for_command()
+
+            command = (
+                listen_for_command()
+            )
+
 
             if not command:
 
@@ -3206,26 +4775,33 @@ while True:
                     "JARVIS CORE // ONLINE"
                 )
 
+
                 time.sleep(
                     COOLDOWN
                 )
+
 
                 print(
                     "\nJARVIS is sleeping."
                 )
 
+
                 print(
                     "Say: HEY JARVIS"
                 )
 
+
                 print()
 
+
                 break
+
 
             set_state(
                 "thinking",
                 "NEURAL PROCESSING // ACTIVE"
             )
+
 
             # ------------------------------------------------
             # CONTEXT RECALL
@@ -3235,23 +4811,29 @@ while True:
                 command
             ):
 
-                answer = ask_context_recall(
-                    command
+                answer = (
+                    ask_context_recall(
+                        command
+                    )
                 )
+
 
                 set_state(
                     "responding",
                     "JARVIS RESPONSE // ACTIVE"
                 )
 
+
                 speak(
                     answer
                 )
+
 
                 remember_exchange(
                     command,
                     answer
                 )
+
 
             else:
 
@@ -3259,10 +4841,15 @@ while True:
                 # LOCAL RESPONSE
                 # --------------------------------------------
 
-                local_answer = local_responses.get_response(
-                    command,
-                    CONVERSATION_HISTORY
+                local_answer = (
+                    local_responses.get_response(
+
+                        command,
+
+                        CONVERSATION_HISTORY
+                    )
                 )
+
 
                 if local_answer is not None:
 
@@ -3271,14 +4858,17 @@ while True:
                         "JARVIS RESPONSE // ACTIVE"
                     )
 
+
                     speak(
                         local_answer
                     )
+
 
                     remember_exchange(
                         command,
                         local_answer
                     )
+
 
                 # --------------------------------------------
                 # PC CONTROL
@@ -3293,13 +4883,17 @@ while True:
                         "PC ACTION // COMPLETE"
                     )
 
+
                     remember_exchange(
+
                         command,
+
                         "(performed a safe PC action)"
                     )
 
+
                 # --------------------------------------------
-                # GEMINI
+                # AI
                 # --------------------------------------------
 
                 else:
@@ -3308,36 +4902,44 @@ while True:
                         "\nJARVIS is thinking..."
                     )
 
+
                     answer = ask_edith(
                         command
                     )
+
 
                     set_state(
                         "responding",
                         "JARVIS RESPONSE // ACTIVE"
                     )
 
+
                     speak(
                         answer
                     )
+
 
                     remember_exchange(
                         command,
                         answer
                     )
 
+
             set_state(
                 "ready",
                 "JARVIS CORE // ONLINE"
             )
 
+
             time.sleep(
                 COOLDOWN
             )
 
+
             print(
                 "\nJARVIS ready for your next command..."
             )
+
 
     except KeyboardInterrupt:
 
@@ -3346,11 +4948,14 @@ while True:
             "JARVIS CORE // OFFLINE"
         )
 
+
         print(
             "\n\nJARVIS shutting down..."
         )
 
+
         break
+
 
     except Exception as e:
 
@@ -3358,10 +4963,12 @@ while True:
             f"\nUnexpected error: {e}"
         )
 
+
         set_state(
             "ready",
             "JARVIS CORE // ONLINE"
         )
+
 
         time.sleep(
             1
