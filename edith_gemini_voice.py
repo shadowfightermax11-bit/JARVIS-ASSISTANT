@@ -3422,39 +3422,42 @@ class EdithBridgeHandler(
     BaseHTTPRequestHandler
 ):
 
+    # --------------------------------------------------------
+    # CORS / PREFLIGHT
+    # --------------------------------------------------------
+
     def do_OPTIONS(self):
 
         self.send_response(
             204
         )
 
-
         self.send_header(
             "Access-Control-Allow-Origin",
             "*"
         )
 
-
         self.send_header(
             "Access-Control-Allow-Methods",
-            "GET, OPTIONS"
+            "GET, POST, OPTIONS"
         )
-
 
         self.send_header(
             "Access-Control-Allow-Headers",
             "*"
         )
 
-
         self.send_header(
             "Access-Control-Allow-Private-Network",
             "true"
         )
 
-
         self.end_headers()
 
+
+    # --------------------------------------------------------
+    # JSON RESPONSE
+    # --------------------------------------------------------
 
     def send_json(
         self,
@@ -3468,50 +3471,389 @@ class EdithBridgeHandler(
             "utf-8"
         )
 
-
         self.send_response(
             status
         )
-
 
         self.send_header(
             "Content-Type",
             "application/json"
         )
 
-
         self.send_header(
             "Access-Control-Allow-Origin",
             "*"
         )
-
 
         self.send_header(
             "Access-Control-Allow-Private-Network",
             "true"
         )
 
-
         self.send_header(
             "Cache-Control",
             "no-store"
         )
 
-
         self.end_headers()
-
 
         self.wfile.write(
             response
         )
 
 
-    def do_GET(self):
+    # --------------------------------------------------------
+    # POST
+    # --------------------------------------------------------
+
+    def do_POST(self):
 
         parsed = urlparse(
             self.path
         )
 
+        path = parsed.path
+
+
+        # ----------------------------------------------------
+        # AI CONFIGURATION
+        # ----------------------------------------------------
+
+        if path == "/config":
+
+            try:
+
+                content_length = int(
+                    self.headers.get(
+                        "Content-Length",
+                        "0"
+                    )
+                )
+
+            except (
+                TypeError,
+                ValueError
+            ):
+
+                content_length = 0
+
+
+            if content_length <= 0:
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error": "Empty request body."
+                    },
+                    400
+                )
+
+                return
+
+
+            if content_length > 32 * 1024:
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error": "Request too large."
+                    },
+                    413
+                )
+
+                return
+
+
+            try:
+
+                raw_body = self.rfile.read(
+                    content_length
+                )
+
+                data = json.loads(
+                    raw_body.decode(
+                        "utf-8"
+                    )
+                )
+
+            except json.JSONDecodeError:
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error": "Invalid JSON."
+                    },
+                    400
+                )
+
+                return
+
+            except Exception:
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "Could not read request."
+                    },
+                    400
+                )
+
+                return
+
+
+            if not isinstance(
+                data,
+                dict
+            ):
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "Invalid configuration."
+                    },
+                    400
+                )
+
+                return
+
+
+            provider = data.get(
+                "provider",
+                ""
+            )
+
+            api_key = data.get(
+                "api_key",
+                ""
+            )
+
+            model = data.get(
+                "model",
+                ""
+            )
+
+            base_url = data.get(
+                "base_url",
+                ""
+            )
+
+
+            if not isinstance(
+                provider,
+                str
+            ):
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "Provider must be text."
+                    },
+                    400
+                )
+
+                return
+
+
+            if not isinstance(
+                api_key,
+                str
+            ):
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "API key must be text."
+                    },
+                    400
+                )
+
+                return
+
+
+            if not isinstance(
+                model,
+                str
+            ):
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "AI model must be text."
+                    },
+                    400
+                )
+
+                return
+
+
+            if not isinstance(
+                base_url,
+                str
+            ):
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "Base URL must be text."
+                    },
+                    400
+                )
+
+                return
+
+
+            provider = provider.strip().lower()
+            api_key = api_key.strip()
+            model = model.strip()
+            base_url = base_url.strip()
+
+
+            if provider not in SUPPORTED_PROVIDERS:
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "Unsupported AI provider."
+                    },
+                    400
+                )
+
+                return
+
+
+            if not api_key:
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "API key is required."
+                    },
+                    400
+                )
+
+                return
+
+
+            if not model:
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "AI model is required."
+                    },
+                    400
+                )
+
+                return
+
+
+            if (
+                provider == "custom"
+                and not base_url
+            ):
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "Custom provider requires "
+                            "an API endpoint."
+                    },
+                    400
+                )
+
+                return
+
+
+            try:
+
+                save_ai_config(
+                    provider,
+                    api_key,
+                    model,
+                    base_url
+                )
+
+            except Exception as e:
+
+                print(
+                    f"AI config save error: {e}"
+                )
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "Could not save "
+                            "AI configuration."
+                    },
+                    500
+                )
+
+                return
+
+
+            self.send_json({
+
+                "ok":
+                    True,
+
+                "provider":
+                    ai_provider(),
+
+                "model":
+                    ai_model(),
+
+                "configured":
+                    ai_is_configured()
+
+            })
+
+
+            print(
+
+                "AI CONFIG → "
+                f"{ai_provider()} / "
+                f"{ai_model()} configured"
+            )
+
+
+            return
+
+
+        # ----------------------------------------------------
+        # UNKNOWN POST
+        # ----------------------------------------------------
+
+        self.send_json(
+
+            {
+                "ok": False,
+                "error": "Not found"
+            },
+
+            404
+        )
+
+
+    # --------------------------------------------------------
+    # GET
+    # --------------------------------------------------------
+
+    def do_GET(self):
+
+        parsed = urlparse(
+            self.path
+        )
 
         path = parsed.path
 
@@ -3532,7 +3874,6 @@ class EdithBridgeHandler(
             self.send_json(
                 data
             )
-
 
             return
 
@@ -3577,7 +3918,6 @@ class EdithBridgeHandler(
 
             })
 
-
             return
 
 
@@ -3590,7 +3930,6 @@ class EdithBridgeHandler(
             query = parse_qs(
                 parsed.query
             )
-
 
             action = query.get(
                 "action",
@@ -3613,6 +3952,7 @@ class EdithBridgeHandler(
                 "next_tab",
 
                 "previous_tab"
+
             )
 
 
@@ -3622,14 +3962,12 @@ class EdithBridgeHandler(
 
                     {
                         "ok": False,
-
                         "error":
                             "Invalid action"
                     },
 
                     400
                 )
-
 
                 return
 
@@ -3641,16 +3979,19 @@ class EdithBridgeHandler(
             )
 
 
-            self.send_json({
+            self.send_json(
 
-                "ok":
-                    success,
+                {
+                    "ok":
+                        success,
 
-                "action":
-                    action
+                    "action":
+                        action
 
-            }, 200 if success else 500)
+                },
 
+                200 if success else 500
+            )
 
             return
 
@@ -3663,14 +4004,16 @@ class EdithBridgeHandler(
 
             {
                 "ok": False,
-
-                "error":
-                    "Not found"
+                "error": "Not found"
             },
 
             404
         )
 
+
+    # --------------------------------------------------------
+    # SILENT SERVER LOG
+    # --------------------------------------------------------
 
     def log_message(
         self,
@@ -4684,35 +5027,16 @@ if not ai_is_configured():
     )
 
     print(
-        f"Expected configuration file:"
+        "Configure the AI provider from "
+        "the J.A.R.V.I.S. web interface."
     )
 
     print(
-        CONFIG_FILE
+        "The Companion is waiting for "
+        "AI configuration."
     )
 
     print()
-
-
-prepare_yes_voice()
-
-
-set_state(
-    "ready",
-    "JARVIS CORE // ONLINE"
-)
-
-
-print(
-    "JARVIS is sleeping."
-)
-
-print(
-    "Say: HEY JARVIS"
-)
-
-print()
-
 
 # ============================================================
 # MAIN LOOP
