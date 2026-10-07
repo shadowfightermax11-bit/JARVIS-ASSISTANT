@@ -8389,6 +8389,79 @@ a:focus-visible,button:focus-visible,input:focus-visible,.earth-chip:focus-visib
         0 0 8px rgba(0,220,255,.5);
 }
 
+#jarvisCoreStageHost .settings-editor{
+    margin:18px 0 8px;
+    padding:18px;
+    border:1px solid rgba(100,170,255,.12);
+    border-radius:14px;
+    background:rgba(4,7,18,.58);
+    box-shadow:inset 0 0 30px rgba(76,124,255,.035);
+}
+#jarvisCoreStageHost .settings-editor-title{
+    color:#8eeef1;
+    font:8px "IBM Plex Mono",monospace;
+    letter-spacing:.2em;
+    margin-bottom:14px;
+}
+#jarvisCoreStageHost .settings-editor label{
+    display:block;
+    margin-top:12px;
+    color:#66748d;
+    font:7px "IBM Plex Mono",monospace;
+    letter-spacing:.14em;
+}
+#jarvisCoreStageHost .settings-editor input,
+#jarvisCoreStageHost .settings-editor select{
+    width:100%;
+    margin-top:6px;
+    padding:11px 12px;
+    border:1px solid rgba(255,255,255,.09);
+    border-radius:9px;
+    background:rgba(0,0,0,.28);
+    color:#eef4ff;
+    outline:none;
+    font:11px Inter,sans-serif;
+}
+#jarvisCoreStageHost .settings-editor select option{
+    background:#080611;
+    color:#fff;
+}
+#jarvisCoreStageHost .settings-editor input:focus,
+#jarvisCoreStageHost .settings-editor select:focus{
+    border-color:rgba(139,92,246,.65);
+    box-shadow:0 0 0 2px rgba(139,92,246,.08);
+}
+#jarvisCoreStageHost .settings-key-row{
+    display:flex;
+    gap:7px;
+}
+#jarvisCoreStageHost .settings-key-row input{flex:1}
+#jarvisCoreStageHost .settings-key-row button{
+    margin-top:6px;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:9px;
+    background:rgba(255,255,255,.04);
+    color:#9ea9bb;
+    padding:0 11px;
+    cursor:pointer;
+}
+#jarvisCoreStageHost .settings-save-btn{
+    width:100%;
+    margin-top:15px;
+}
+#jarvisCoreStageHost .settings-connection-status{
+    min-height:16px;
+    margin-top:9px;
+    color:#7d8ba3;
+    font:7px "IBM Plex Mono",monospace;
+    letter-spacing:.08em;
+}
+#jarvisCoreStageHost .settings-connection-status.connected{
+    color:#64ffb1;
+    text-shadow:0 0 8px rgba(100,255,177,.35);
+}
+#jarvisCoreStageHost .settings-connection-status.error{color:#ff7c9e;}
+
 
 /* =========================================================
    MOBILE
@@ -12987,12 +13060,28 @@ function generateAccessId(email){
     }
 
     async function trySendProviderToCompanion(config){
-        /* The current bridge exposes live status/media endpoints, not a
-           provider-config endpoint. Try the endpoint only if a future
-           Companion build exposes it; never claim success without a real response. */
+        /* Real Companion handshake. We first read /status so an old installed
+           executable can be identified, then POST the complete AI config to
+           /config and require the server's JSON {ok:true} response. */
         try{
             const controller = new AbortController();
-            const timer = setTimeout(()=>controller.abort(),2500);
+            const timer = setTimeout(()=>controller.abort(),4000);
+
+            const statusResponse = await fetch("http://127.0.0.1:8765/status",{
+                method:"GET",
+                mode:"cors",
+                cache:"no-store",
+                signal:controller.signal
+            });
+
+            if(!statusResponse.ok){
+                clearTimeout(timer);
+                return {ok:false,error:`Companion status returned HTTP ${statusResponse.status}.`};
+            }
+
+            let statusData = null;
+            try{ statusData = await statusResponse.json(); }catch(e){}
+
             const response = await fetch("http://127.0.0.1:8765/config",{
                 method:"POST",
                 mode:"cors",
@@ -13001,14 +13090,36 @@ function generateAccessId(email){
                 headers:{"Content-Type":"application/json"},
                 body:JSON.stringify({
                     provider:config.provider,
+                    api_key:config.apiKey || "",
                     model:config.model,
-                    endpoint:config.endpoint || ""
+                    base_url:config.endpoint || ""
                 })
             });
             clearTimeout(timer);
-            return response.ok;
+
+            let data = null;
+            try{ data = await response.json(); }catch(e){}
+
+            if(!response.ok || !data?.ok){
+                const serverError = data?.error ? ` ${data.error}` : "";
+                const version = statusData?.version ? ` Companion v${statusData.version}.` : "";
+                return {
+                    ok:false,
+                    error:`Companion rejected the AI configuration.${version}${serverError}`
+                };
+            }
+
+            return {
+                ok:true,
+                version:statusData?.version || data.version || "",
+                provider:data.provider || config.provider,
+                model:data.model || config.model
+            };
         }catch(e){
-            return false;
+            const message = e?.name === "AbortError"
+                ? "The Companion took too long to respond."
+                : (e?.message || "The browser could not reach the Companion configuration endpoint.");
+            return {ok:false,error:message};
         }
     }
 
@@ -13043,6 +13154,123 @@ function generateAccessId(email){
         if(label){
             label.textContent = checked ? "INFORMATION // READY" : "INFORMATION // REVIEW REQUIRED";
             label.classList.toggle("ready", checked);
+        }
+    }
+
+    function applyProviderToDashboard(){
+        const provider = readCoreProvider();
+        const providerName = provider?.label || "NOT CONFIGURED";
+        const modelName = provider?.model || "NOT CONFIGURED";
+        const connected = !!provider?.companionConnected;
+
+        const providerEl = document.getElementById("dashboardProviderName");
+        const statusEl = document.getElementById("dashboardProviderStatus");
+        const modelEl = document.getElementById("dashboardModelName");
+
+        if(providerEl) providerEl.textContent = providerName;
+        if(modelEl) modelEl.textContent = modelName;
+        if(statusEl){
+            statusEl.textContent = connected ? "CONNECTED" : "NOT CONNECTED";
+            statusEl.className = "panel-value " + (connected ? "green" : "blue");
+        }
+
+        const settingsProvider = document.getElementById("settingsProviderValue");
+        const settingsModel = document.getElementById("settingsModelValue");
+        const settingsConnection = document.getElementById("settingsConnectionValue");
+
+        if(settingsProvider) settingsProvider.textContent = providerName;
+        if(settingsModel) settingsModel.textContent = modelName;
+        if(settingsConnection) settingsConnection.textContent = connected ? "CONNECTED" : "NOT CONNECTED";
+
+        const select = document.getElementById("settingsProviderInput");
+        const key = document.getElementById("settingsApiKeyInput");
+        const model = document.getElementById("settingsModelInput");
+        const endpoint = document.getElementById("settingsEndpointInput");
+        const endpointWrap = document.getElementById("settingsEndpointWrap");
+
+        if(select) select.value = provider?.provider || "gemini";
+        if(key) key.value = provider?.apiKey || "";
+        if(model) model.value = provider?.model || "";
+        if(endpoint) endpoint.value = provider?.endpoint || "";
+        if(endpointWrap) endpointWrap.hidden = (provider?.provider || "gemini") !== "custom";
+    }
+
+    async function saveProviderFromSettings(){
+        const provider = (document.getElementById("settingsProviderInput")?.value || "").trim().toLowerCase();
+        const apiKey = (document.getElementById("settingsApiKeyInput")?.value || "").trim();
+        const model = (document.getElementById("settingsModelInput")?.value || "").trim();
+        const endpoint = (document.getElementById("settingsEndpointInput")?.value || "").trim();
+        const status = document.getElementById("settingsConnectionStatus");
+
+        if(!provider || !apiKey || !model){
+            if(status){
+                status.textContent = "CONNECTION // PROVIDER, API KEY AND MODEL ARE REQUIRED";
+                status.className = "settings-connection-status error";
+            }
+            return;
+        }
+
+        if(provider === "custom" && !/^https?:\/\//i.test(endpoint)){
+            if(status){
+                status.textContent = "CONNECTION // CUSTOM ENDPOINT REQUIRED";
+                status.className = "settings-connection-status error";
+            }
+            return;
+        }
+
+        if(status){
+            status.textContent = "CONNECTION // SENDING CONFIGURATION TO COMPANION…";
+            status.className = "settings-connection-status";
+        }
+
+        try{
+            const controller = new AbortController();
+            const timer = setTimeout(()=>controller.abort(),3000);
+            const response = await fetch("http://127.0.0.1:8765/config",{
+                method:"POST",
+                mode:"cors",
+                cache:"no-store",
+                signal:controller.signal,
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({
+                    provider,
+                    api_key:apiKey,
+                    model,
+                    base_url:endpoint
+                })
+            });
+            clearTimeout(timer);
+
+            const result = await response.json().catch(()=>({}));
+            if(!response.ok || !result.ok){
+                throw new Error(result.error || ("HTTP " + response.status));
+            }
+
+            const config = {
+                provider,
+                label: CORE_PROVIDER_DEFAULTS[provider]?.label || provider.toUpperCase(),
+                apiKey,
+                model,
+                endpoint,
+                companionConnected:true,
+                savedAt:new Date().toISOString(),
+                connectedAt:new Date().toISOString()
+            };
+
+            saveCoreProvider(config);
+            coreProviderConfig = config;
+            coreSelectedProvider = provider;
+            applyProviderToDashboard();
+
+            if(status){
+                status.textContent = "CONNECTION // LIVE — " + config.label + " / " + model;
+                status.className = "settings-connection-status connected";
+            }
+        }catch(error){
+            if(status){
+                status.textContent = "CONNECTION // FAILED — " + (error.message || "Companion unavailable");
+                status.className = "settings-connection-status error";
+            }
         }
     }
 
@@ -13100,12 +13328,26 @@ function generateAccessId(email){
         const status = document.getElementById("coreProviderStatus");
         if(status) status.textContent = "PROVIDER CONFIGURATION // SAVED LOCALLY";
 
-        const companionAccepted = await trySendProviderToCompanion(coreProviderConfig);
+        const companionResult = await trySendProviderToCompanion(coreProviderConfig);
+        const companionAccepted = !!companionResult?.ok;
         if(status){
             status.textContent = companionAccepted
-                ? "PROVIDER CONFIGURATION // COMPANION ACCEPTED"
-                : "PROVIDER CONFIGURATION // SAVED LOCALLY";
+                ? `PROVIDER CONFIGURATION // COMPANION ACCEPTED${companionResult.version ? ` // v${companionResult.version}` : ""}`
+                : `COMPANION CONFIGURATION // FAILED${companionResult?.error ? ` — ${companionResult.error}` : ""}`;
         }
+
+        if(!companionAccepted){
+            alert(
+                "J.A.R.V.I.S. could reach the Companion, but the AI configuration was not accepted.\n\n" +
+                (companionResult?.error || "No response from the Companion /config endpoint.") +
+                "\n\nIf the installed Companion is an older build, replace it with the latest JARVIS Companion build containing the /config endpoint, then restart it."
+            );
+            return;
+        }
+
+        coreProviderConfig.companionConnected = true;
+        coreProviderConfig.connectedAt = new Date().toISOString();
+        saveCoreProvider(coreProviderConfig);
 
         openCoreInformation();
     });
@@ -13127,16 +13369,30 @@ function generateAccessId(email){
         if(window.JARVISCoreDashboard && typeof window.JARVISCoreDashboard.initialize==="function"){
             window.JARVISCoreDashboard.initialize();
         }
-        const provider = readCoreProvider();
-        const providerName = provider?.label || "NOT CONFIGURED";
-        document.querySelectorAll("#dashboardStage .panel-row span:first-child").forEach(span=>{
-            if(span.textContent.trim().toUpperCase()==="GEMINI"){
-                span.textContent = providerName;
-            }
-        });
+        applyProviderToDashboard();
     });
 
     }
+
+    document.getElementById("settingsProviderInput")?.addEventListener("change",()=>{
+        const provider = document.getElementById("settingsProviderInput")?.value || "gemini";
+        const wrap = document.getElementById("settingsEndpointWrap");
+        if(wrap) wrap.hidden = provider !== "custom";
+        const model = document.getElementById("settingsModelInput");
+        if(model && !model.value) model.value = CORE_PROVIDER_DEFAULTS[provider]?.model || "";
+    });
+
+    document.getElementById("settingsApiKeyToggle")?.addEventListener("click",()=>{
+        const input = document.getElementById("settingsApiKeyInput");
+        const button = document.getElementById("settingsApiKeyToggle");
+        if(!input || !button) return;
+        const show = input.type === "password";
+        input.type = show ? "text" : "password";
+        button.textContent = show ? "HIDE" : "SHOW";
+    });
+
+    document.getElementById("settingsSaveConnection")?.addEventListener("click",saveProviderFromSettings);
+    applyProviderToDashboard();
 
     if(document.readyState === "loading"){
         document.addEventListener("DOMContentLoaded", initCoreFlowBindings, {once:true});
@@ -14484,12 +14740,24 @@ tiltEls.forEach(el=>{
 
         <div class="panel-row">
 
-            <span>
-                GEMINI
+            <span id="dashboardProviderName">
+                AI PROVIDER
             </span>
 
-            <span class="panel-value blue">
+            <span id="dashboardProviderStatus" class="panel-value blue">
                 READY
+            </span>
+
+        </div>
+
+        <div class="panel-row">
+
+            <span>
+                MODEL
+            </span>
+
+            <span id="dashboardModelName" class="panel-value purple">
+                NOT CONFIGURED
             </span>
 
         </div>
@@ -15373,60 +15641,78 @@ tiltEls.forEach(el=>{
                 </p>
 
 
-                <div class="settings-list">
-
-
-                    <div class="setting-row">
-
-                        <span>
-                            RGB CORE
-                        </span>
-
-                        <b>
-                            ACTIVE
-                        </b>
-
-                    </div>
-
+                <div class="settings-list settings-live-config">
 
                     <div class="setting-row">
-
-                        <span>
-                            VOICE WAKE
-                        </span>
-
-                        <b>
-                            HEY JARVIS
-                        </b>
-
+                        <span>AI PROVIDER</span>
+                        <b id="settingsProviderValue">NOT CONFIGURED</b>
                     </div>
-
 
                     <div class="setting-row">
-
-                        <span>
-                            VISUAL EFFECTS
-                        </span>
-
-                        <b>
-                            HIGH
-                        </b>
-
+                        <span>MODEL</span>
+                        <b id="settingsModelValue">NOT CONFIGURED</b>
                     </div>
-
 
                     <div class="setting-row">
-
-                        <span>
-                            NEURAL LINK
-                        </span>
-
-                        <b>
-                            SECURE
-                        </b>
-
+                        <span>API CONNECTION</span>
+                        <b id="settingsConnectionValue">NOT CONNECTED</b>
                     </div>
 
+                    <div class="settings-editor">
+                        <div class="settings-editor-title">LIVE AI CONNECTION</div>
+
+                        <label>
+                            PROVIDER
+                            <select id="settingsProviderInput">
+                                <option value="gemini">GOOGLE GEMINI</option>
+                                <option value="openai">OPENAI</option>
+                                <option value="anthropic">ANTHROPIC / CLAUDE</option>
+                                <option value="openrouter">OPENROUTER</option>
+                                <option value="custom">OTHER / CUSTOM</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            API KEY
+                            <div class="settings-key-row">
+                                <input id="settingsApiKeyInput" type="password" autocomplete="off" placeholder="Paste API key">
+                                <button type="button" id="settingsApiKeyToggle">SHOW</button>
+                            </div>
+                        </label>
+
+                        <label>
+                            MODEL
+                            <input id="settingsModelInput" type="text" autocomplete="off" placeholder="Model name">
+                        </label>
+
+                        <label id="settingsEndpointWrap" hidden>
+                            API ENDPOINT
+                            <input id="settingsEndpointInput" type="url" autocomplete="off" placeholder="https://your-api.example/v1">
+                        </label>
+
+                        <button type="button" class="btn btn-primary settings-save-btn" id="settingsSaveConnection">
+                            SAVE &amp; CONNECT
+                        </button>
+
+                        <div id="settingsConnectionStatus" class="settings-connection-status">
+                            CONNECTION // READY
+                        </div>
+                    </div>
+
+                    <div class="setting-row">
+                        <span>VOICE WAKE</span>
+                        <b>HEY JARVIS</b>
+                    </div>
+
+                    <div class="setting-row">
+                        <span>VISUAL EFFECTS</span>
+                        <b>HIGH</b>
+                    </div>
+
+                    <div class="setting-row">
+                        <span>NEURAL LINK</span>
+                        <b>SECURE</b>
+                    </div>
 
                 </div>
 
