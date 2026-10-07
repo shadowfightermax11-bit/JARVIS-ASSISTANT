@@ -12981,7 +12981,7 @@ function generateAccessId(email){
     ===================================================== */
     const CORE_PROVIDER_KEY = "jarvisProviderConfig";
     const CORE_PROVIDER_DEFAULTS = {
-        gemini: {label:"GOOGLE GEMINI", model:"gemini-3.8-flash", help:"https://aistudio.google.com/app/apikey"},
+        gemini: {label:"GOOGLE GEMINI", model:"gemini-3.5-flash-lite", help:"https://aistudio.google.com/app/apikey"},
         openai: {label:"OPENAI", model:"gpt-6-astra", help:"https://platform.openai.com/api-keys"},
         anthropic: {label:"ANTHROPIC / CLAUDE", model:"claude-opus-5", help:"https://console.anthropic.com/settings/keys"},
         openrouter: {label:"OPENROUTER", model:"", help:"https://openrouter.ai/keys"},
@@ -13060,68 +13060,136 @@ function generateAccessId(email){
     }
 
     async function trySendProviderToCompanion(config){
-        /* Real Companion handshake. We first read /status so an old installed
-           executable can be identified, then POST the complete AI config to
-           /config and require the server's JSON {ok:true} response. */
+    /*
+       Real Companion handshake.
+
+       IMPORTANT:
+       /status and /config each get their OWN AbortController.
+       This prevents the timeout from the first request from
+       accidentally cancelling the second request.
+    */
+    try{
+        // ---------------------------------------------------------
+        // 1. CHECK COMPANION STATUS
+        // ---------------------------------------------------------
+        const statusController = new AbortController();
+        const statusTimer = setTimeout(() => {
+            statusController.abort();
+        }, 8000);
+
+        let statusResponse;
+
         try{
-            const controller = new AbortController();
-            const timer = setTimeout(()=>controller.abort(),4000);
+            statusResponse = await fetch(
+                "http://127.0.0.1:8765/status",
+                {
+                    method:"GET",
+                    mode:"cors",
+                    cache:"no-store",
+                    signal:statusController.signal
+                }
+            );
+        }finally{
+            clearTimeout(statusTimer);
+        }
 
-            const statusResponse = await fetch("http://127.0.0.1:8765/status",{
-                method:"GET",
-                mode:"cors",
-                cache:"no-store",
-                signal:controller.signal
-            });
+        if(!statusResponse.ok){
+            return {
+                ok:false,
+                error:`Companion status returned HTTP ${statusResponse.status}.`
+            };
+        }
 
-            if(!statusResponse.ok){
-                clearTimeout(timer);
-                return {ok:false,error:`Companion status returned HTTP ${statusResponse.status}.`};
-            }
+        let statusData = null;
 
-            let statusData = null;
-            try{ statusData = await statusResponse.json(); }catch(e){}
+        try{
+            statusData = await statusResponse.json();
+        }catch(e){}
 
-            const response = await fetch("http://127.0.0.1:8765/config",{
-                method:"POST",
-                mode:"cors",
-                cache:"no-store",
-                signal:controller.signal,
-                headers:{"Content-Type":"application/json"},
-                body:JSON.stringify({
-                    provider:config.provider,
-                    api_key:config.apiKey || "",
-                    model:config.model,
-                    base_url:config.endpoint || ""
-                })
-            });
-            clearTimeout(timer);
+        // ---------------------------------------------------------
+        // 2. SEND AI CONFIGURATION
+        // ---------------------------------------------------------
+        const configController = new AbortController();
+        const configTimer = setTimeout(() => {
+            configController.abort();
+        }, 8000);
 
-            let data = null;
-            try{ data = await response.json(); }catch(e){}
+        let response;
 
-            if(!response.ok || !data?.ok){
-                const serverError = data?.error ? ` ${data.error}` : "";
-                const version = statusData?.version ? ` Companion v${statusData.version}.` : "";
-                return {
-                    ok:false,
-                    error:`Companion rejected the AI configuration.${version}${serverError}`
-                };
-            }
+        try{
+            response = await fetch(
+                "http://127.0.0.1:8765/config",
+                {
+                    method:"POST",
+                    mode:"cors",
+                    cache:"no-store",
+                    signal:configController.signal,
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+                    body:JSON.stringify({
+                        provider:config.provider,
+                        api_key:config.apiKey || "",
+                        model:config.model,
+                        base_url:config.endpoint || ""
+                    })
+                }
+            );
+        }finally{
+            clearTimeout(configTimer);
+        }
+
+        // ---------------------------------------------------------
+        // 3. READ SERVER RESPONSE
+        // ---------------------------------------------------------
+        let data = null;
+
+        try{
+            data = await response.json();
+        }catch(e){}
+
+        if(!response.ok || !data?.ok){
+            const serverError = data?.error
+                ? ` ${data.error}`
+                : "";
+
+            const version = statusData?.version
+                ? ` Companion v${statusData.version}.`
+                : "";
 
             return {
-                ok:true,
-                version:statusData?.version || data.version || "",
-                provider:data.provider || config.provider,
-                model:data.model || config.model
+                ok:false,
+                error:
+                    `Companion rejected the AI configuration.${version}${serverError}`
             };
-        }catch(e){
-            const message = e?.name === "AbortError"
-                ? "The Companion took too long to respond."
-                : (e?.message || "The browser could not reach the Companion configuration endpoint.");
-            return {ok:false,error:message};
         }
+
+        // ---------------------------------------------------------
+        // 4. SUCCESS
+        // ---------------------------------------------------------
+        return {
+            ok:true,
+            version:statusData?.version || data.version || "",
+            provider:data.provider || config.provider,
+            model:data.model || config.model
+        };
+
+    }catch(e){
+
+        const message =
+            e?.name === "AbortError"
+                ? "The Companion took too long to respond."
+                : (
+                    e?.message ||
+                    "The browser could not reach the Companion configuration endpoint."
+                );
+
+        return {
+            ok:false,
+            error:message
+        };
     }
+}
 
     function openCoreInformation(){
         if(!pendingEntry) pendingEntry = {name:"J.A.R.V.I.S. User"};
