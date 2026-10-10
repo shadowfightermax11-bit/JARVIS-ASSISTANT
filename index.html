@@ -4209,6 +4209,169 @@ a:focus-visible,button:focus-visible,input:focus-visible,.earth-chip:focus-visib
         scroll-behavior:auto !important;
     }
 }
+
+/* =========================================================
+   PERSONAL COMPANION — ADDITIVE SECTION
+   ========================================================= */
+
+#personalCompanion{
+    position:relative;
+}
+
+.companion-showcase{
+    display:grid;
+    grid-template-columns:minmax(0,1.08fr) minmax(280px,.92fr);
+    gap:22px;
+    margin-top:48px;
+    align-items:stretch;
+}
+
+.companion-conversation,
+.companion-feature{
+    border:1px solid rgba(255,255,255,.10);
+    background:
+        linear-gradient(145deg,rgba(10,8,22,.82),rgba(3,7,17,.68));
+    box-shadow:
+        inset 0 0 35px rgba(139,92,246,.035),
+        0 0 30px rgba(0,0,0,.16);
+    backdrop-filter:blur(12px);
+}
+
+.companion-conversation{
+    padding:22px;
+    min-height:420px;
+}
+
+.companion-card-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    padding-bottom:16px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    color:rgba(255,255,255,.62);
+    font:8px "IBM Plex Mono",monospace;
+    letter-spacing:2px;
+}
+
+.companion-live{
+    color:var(--teal);
+    text-shadow:0 0 10px rgba(47,217,196,.65);
+}
+
+.companion-message{
+    width:min(88%,520px);
+    margin-top:18px;
+    padding:15px 17px;
+    border:1px solid rgba(255,255,255,.08);
+}
+
+.companion-message.user{
+    margin-left:auto;
+    background:rgba(76,124,255,.055);
+    border-color:rgba(76,124,255,.16);
+}
+
+.companion-message.jarvis{
+    background:rgba(139,92,246,.055);
+    border-color:rgba(139,92,246,.16);
+}
+
+.companion-label{
+    display:block;
+    margin-bottom:7px;
+    color:var(--teal);
+    font:8px "IBM Plex Mono",monospace;
+    letter-spacing:2px;
+}
+
+.companion-message.user .companion-label{
+    color:var(--blue2);
+}
+
+.companion-message p{
+    color:rgba(255,255,255,.82);
+    font-size:13px;
+    line-height:1.65;
+}
+
+.companion-features{
+    display:grid;
+    gap:12px;
+}
+
+.companion-feature{
+    display:grid;
+    grid-template-columns:34px 1fr;
+    gap:14px;
+    padding:18px;
+    min-height:96px;
+    transition:transform .3s var(--ease),border-color .3s,box-shadow .3s;
+}
+
+.companion-feature:hover{
+    transform:translateX(4px);
+    border-color:rgba(47,217,196,.28);
+    box-shadow:0 0 25px rgba(47,217,196,.07);
+}
+
+.companion-feature-index{
+    color:var(--violet);
+    font:9px "IBM Plex Mono",monospace;
+    letter-spacing:1px;
+    padding-top:2px;
+}
+
+.companion-feature b{
+    display:block;
+    color:#fff;
+    font-size:10px;
+    letter-spacing:2px;
+}
+
+.companion-feature p{
+    margin-top:7px;
+    color:rgba(255,255,255,.58);
+    font-size:12px;
+    line-height:1.6;
+}
+
+.companion-notice{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    margin-top:20px;
+    color:rgba(255,255,255,.46);
+    font:8px "IBM Plex Mono",monospace;
+    letter-spacing:2px;
+    text-align:center;
+}
+
+.companion-notice-dot{
+    width:5px;
+    height:5px;
+    flex:0 0 5px;
+    border-radius:50%;
+    background:var(--teal);
+    box-shadow:0 0 10px var(--teal);
+}
+
+@media(max-width:800px){
+    .companion-showcase{
+        grid-template-columns:1fr;
+    }
+
+    .companion-conversation{
+        min-height:0;
+    }
+
+    .companion-message{
+        width:94%;
+    }
+}
+
+
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
@@ -10009,6 +10172,139 @@ a:focus-visible,button:focus-visible,input:focus-visible,.earth-chip:focus-visib
 </section>
 
 
+
+<!-- =========================================================
+     PERSONAL COMPANION
+     ========================================================= -->
+
+<section
+    id="personalCompanion"
+    data-caption="PERSONAL COMPANION"
+>
+
+    <div class="section-inner">
+
+        <div class="eyebrow mono reveal">
+            J.A.R.V.I.S. // PERSONAL COMPANION
+        </div>
+
+        <h2 class="section-title reveal">
+            More than commands.
+            <em>
+                A human-type companion.
+            </em>
+        </h2>
+
+        <p class="section-sub reveal">
+            J.A.R.V.I.S. is designed to feel like a companion you
+            can simply talk to — for everyday conversation, useful
+            reminders, notifications and small things that keep
+            your day moving.
+        </p>
+
+        <div class="companion-showcase reveal">
+
+            <div class="companion-conversation">
+                <div class="companion-card-head">
+                    <span>J.A.R.V.I.S. // CONVERSATION</span>
+                    <span class="companion-live">● LIVE</span>
+                </div>
+
+                <div class="companion-message user">
+                    <span class="companion-label">YOU</span>
+                    <p>
+                        Hey JARVIS, remind me about my study session
+                        today at 4:00 PM.
+                    </p>
+                </div>
+
+                <div class="companion-message jarvis">
+                    <span class="companion-label">J.A.R.V.I.S.</span>
+                    <p>
+                        Of course. I’ll set your study reminder for 4:00 PM.
+                        I’ll let you know when it’s time.
+                    </p>
+                </div>
+
+                <div class="companion-message user">
+                    <span class="companion-label">YOU</span>
+                    <p>
+                        Hey JARVIS, suggest me some ideas for my study session today.
+                    </p>
+                </div>
+
+                <div class="companion-message jarvis">
+                    <span class="companion-label">J.A.R.V.I.S.</span>
+                    <p>
+                        Absolutely. You could try a 25-minute focused revision sprint,
+                        a quick self-test on the hardest topic, or five practice problems
+                        followed by a short recap. Want me to help you plan the session?
+                    </p>
+                </div>
+            </div>
+
+            <div class="companion-features">
+
+                <div class="companion-feature">
+                    <span class="companion-feature-index">01</span>
+                    <div>
+                        <b>CASUAL CONVERSATION</b>
+                        <p>
+                            Talk naturally instead of treating every
+                            interaction like a command.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="companion-feature">
+                    <span class="companion-feature-index">02</span>
+                    <div>
+                        <b>REMINDERS</b>
+                        <p>
+                            Keep track of things you want JARVIS to
+                            remember and bring back at the right time.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="companion-feature">
+                    <span class="companion-feature-index">03</span>
+                    <div>
+                        <b>NOTIFICATIONS</b>
+                        <p>
+                            Surface useful updates and small alerts
+                            without making the experience feel robotic.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="companion-feature">
+                    <span class="companion-feature-index">04</span>
+                    <div>
+                        <b>EVERYDAY PRESENCE</b>
+                        <p>
+                            A personal interface built around your
+                            conversations, your machine and your routine.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="companion-notice reveal">
+            <span class="companion-notice-dot"></span>
+            <span>
+                PERSONAL COMPANION // CONVERSATION + REMINDERS + NOTIFICATIONS
+            </span>
+        </div>
+
+    </div>
+
+</section>
+
+
 <!-- =========================================================
      ABOUT
      ========================================================= -->
@@ -10504,8 +10800,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,.earth-chip:focus-visib
                     </label>
 
                     <button type="button" class="core-provider-help" id="coreProviderHelp">DON’T HAVE AN API KEY? LEARN HOW TO GET ONE</button>
-                    <div class="core-provider-note">Provider configuration is saved locally in this browser. The existing Companion bridge is used for live PC status/control; provider-runtime switching is only reported as connected if the Companion exposes a configuration endpoint.</div>
-                    <button type="button" class="btn btn-primary auth-submit core-provider-save" id="coreProviderSave" disabled>SAVE &amp; CONTINUE TO INFORMATION →</button>
+                    <div class="core-provider-note">Choose your provider, API key and model here. JARVIS sends this configuration to the local Companion when it is available. Treat API keys as secrets and do not use a shared/public computer.</div>
+                    <button type="button" class="btn btn-primary auth-submit core-provider-save" id="coreProviderSave" disabled>SAVE &amp; CONTINUE →</button>
                     <div class="core-provider-status" id="coreProviderStatus"></div>
                 </div>
             </div>
@@ -12981,10 +13277,10 @@ function generateAccessId(email){
     ===================================================== */
     const CORE_PROVIDER_KEY = "jarvisProviderConfig";
     const CORE_PROVIDER_DEFAULTS = {
-        gemini: {label:"GOOGLE GEMINI", model:"gemini-3.5-flash-lite", help:"https://aistudio.google.com/app/apikey"},
-        openai: {label:"OPENAI", model:"gpt-6-astra", help:"https://platform.openai.com/api-keys"},
-        anthropic: {label:"ANTHROPIC / CLAUDE", model:"claude-opus-5", help:"https://console.anthropic.com/settings/keys"},
-        openrouter: {label:"OPENROUTER", model:"", help:"https://openrouter.ai/keys"},
+        gemini: {label:"GOOGLE GEMINI", model:"gemini-2.5-flash", help:"https://aistudio.google.com/app/apikey"},
+        openai: {label:"OPENAI", model:"gpt-4o-mini", help:"https://platform.openai.com/api-keys"},
+        anthropic: {label:"ANTHROPIC / CLAUDE", model:"claude-3-5-sonnet-latest", help:"https://console.anthropic.com/settings/keys"},
+        openrouter: {label:"OPENROUTER", model:"openai/gpt-4o-mini", help:"https://openrouter.ai/keys"},
         custom: {label:"OTHER / CUSTOM", model:"", help:""}
     };
     let coreSelectedProvider = "";
@@ -13375,8 +13671,8 @@ function generateAccessId(email){
         const endpoint = (document.getElementById("coreProviderEndpoint")?.value || "").trim();
         if(!apiKey){ alert("Enter the API key."); return; }
         if(!model){ alert("Enter the model name."); return; }
-        if(coreSelectedProvider === "custom" && endpoint && !/^https?:\/\//i.test(endpoint)){
-            alert("Custom endpoint must start with http:// or https://.");
+        if(coreSelectedProvider === "custom" && !/^https?:\/\//i.test(endpoint)){
+            alert("Enter a valid custom endpoint starting with http:// or https://.");
             return;
         }
 
@@ -13386,6 +13682,8 @@ function generateAccessId(email){
             apiKey,
             model,
             endpoint,
+            companionConnected:false,
+            connectedAt:null,
             savedAt:new Date().toISOString()
         };
         if(!saveCoreProvider(coreProviderConfig)){
@@ -13394,29 +13692,25 @@ function generateAccessId(email){
         }
 
         const status = document.getElementById("coreProviderStatus");
-        if(status) status.textContent = "PROVIDER CONFIGURATION // SAVED LOCALLY";
+        if(status) status.textContent = "PROVIDER CONFIGURATION // CONNECTING TO COMPANION…";
 
-        const companionResult = await trySendProviderToCompanion(coreProviderConfig);
-        const companionAccepted = !!companionResult?.ok;
-        if(status){
-            status.textContent = companionAccepted
-                ? `PROVIDER CONFIGURATION // COMPANION ACCEPTED${companionResult.version ? ` // v${companionResult.version}` : ""}`
-                : `COMPANION CONFIGURATION // FAILED${companionResult?.error ? ` — ${companionResult.error}` : ""}`;
-        }
-
-        if(!companionAccepted){
-            alert(
-                "J.A.R.V.I.S. could reach the Companion, but the AI configuration was not accepted.\n\n" +
-                (companionResult?.error || "No response from the Companion /config endpoint.") +
-                "\n\nIf the installed Companion is an older build, replace it with the latest JARVIS Companion build containing the /config endpoint, then restart it."
-            );
+        // Save the provider on the local Companion now, not only in browser storage.
+        // The installer deliberately does not collect API keys; this website is the setup UI.
+        const connection = await trySendProviderToCompanion(coreProviderConfig);
+        if(!connection.ok){
+            coreProviderConfig.companionConnected = false;
+            coreProviderConfig.connectedAt = null;
+            saveCoreProvider(coreProviderConfig);
+            if(status) status.textContent = "CONNECTION FAILED // " + (connection.error || "Companion unavailable");
+            alert("JARVIS could not send this provider configuration to the Windows Companion. Make sure the Companion is installed and running, then try again.\n\n" + (connection.error || "Companion unavailable"));
             return;
         }
 
         coreProviderConfig.companionConnected = true;
         coreProviderConfig.connectedAt = new Date().toISOString();
+        coreProviderConfig.companionVersion = connection.version || "";
         saveCoreProvider(coreProviderConfig);
-
+        if(status) status.textContent = "PROVIDER CONFIGURATION // CONNECTED // " + coreProviderConfig.label;
         openCoreInformation();
     });
 
@@ -13460,6 +13754,13 @@ function generateAccessId(email){
     });
 
     document.getElementById("settingsSaveConnection")?.addEventListener("click",saveProviderFromSettings);
+    document.getElementById("jarvisMobilePairBtn")?.addEventListener("click",()=>{
+        const status = document.getElementById("jarvisMobileConnectionNote");
+        if(status){
+            status.textContent = "MOBILE LINK // READY FOR A FUTURE JARVIS MOBILE APP. THIS WEB BUILD CANNOT PAIR OR CONTROL A PHONE BY ITSELF.";
+            status.className = "settings-connection-status";
+        }
+    });
     applyProviderToDashboard();
 
     if(document.readyState === "loading"){
@@ -15764,6 +16065,25 @@ tiltEls.forEach(el=>{
 
                         <div id="settingsConnectionStatus" class="settings-connection-status">
                             CONNECTION // READY
+                        </div>
+                    </div>
+
+                    <div class="settings-editor mobile-companion-settings">
+                        <div class="settings-editor-title">MOBILE COMPANION // BLUETOOTH</div>
+                        <p class="info-intro" style="margin:8px 0 14px;">
+                            Pairing is designed to begin on your phone, where you can approve the connection.
+                            Phone-control features require a JARVIS Mobile companion app and explicit permissions;
+                            Bluetooth pairing alone cannot control a phone.
+                        </p>
+                        <div class="setting-row">
+                            <span>MOBILE STATUS</span>
+                            <b id="jarvisMobileConnectionStatus">NOT PAIRED</b>
+                        </div>
+                        <button type="button" class="btn btn-primary settings-save-btn" id="jarvisMobilePairBtn">
+                            SET UP MOBILE CONNECTION
+                        </button>
+                        <div id="jarvisMobileConnectionNote" class="settings-connection-status" role="status" aria-live="polite">
+                            MOBILE LINK // COMPANION APP REQUIRED
                         </div>
                     </div>
 
