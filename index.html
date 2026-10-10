@@ -10791,7 +10791,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,.earth-chip:focus-visib
 
                     <label>
                         TOP / PREFERRED MODEL
-                        <input id="coreProviderModel" type="text" autocomplete="off" placeholder="Model name">
+                        <input id="coreProviderModel" type="text" list="jarvisModelSuggestions" autocomplete="off" placeholder="Choose a model or type its ID"><datalist id="jarvisModelSuggestions"></datalist>
                     </label>
 
                     <label id="coreCustomEndpointWrap" hidden>
@@ -10800,7 +10800,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,.earth-chip:focus-visib
                     </label>
 
                     <button type="button" class="core-provider-help" id="coreProviderHelp">DON’T HAVE AN API KEY? LEARN HOW TO GET ONE</button>
-                    <div class="core-provider-note">Choose your provider, API key and model here. JARVIS sends this configuration to the local Companion when it is available. Treat API keys as secrets and do not use a shared/public computer.</div>
+                    <div class="core-provider-note">Choose a suggested model from the dropdown or type a model ID supported by your account. JARVIS sends this configuration to the local Companion when it is available. Treat API keys as secrets and do not use a shared/public computer.</div>
                     <button type="button" class="btn btn-primary auth-submit core-provider-save" id="coreProviderSave" disabled>SAVE &amp; CONTINUE →</button>
                     <div class="core-provider-status" id="coreProviderStatus"></div>
                 </div>
@@ -13182,14 +13182,12 @@ function generateAccessId(email){
             /*
                REAL WINDOWS INSTALLER
                ----------------------
-               Put JARVIS-Setup.exe in the SAME GitHub Pages folder as this
-               HTML file. The button below then downloads the real installer
-               directly from the deployed JARVIS site.
-
-               If you later host the installer somewhere else, replace this
-               relative path with its full HTTPS URL.
+               The Windows build is published as a GitHub Release asset.
+               A website cannot silently install a Windows program: the user
+               approves/runs the downloaded installer once, then JARVIS can
+               detect the Companion automatically when it is running.
             */
-            const INSTALLER_DOWNLOAD_URL = "./JARVIS-Setup.exe";
+            const INSTALLER_DOWNLOAD_URL = "https://github.com/shadowfightermax11-bit/JARVIS-ASSISTANT/releases/latest/download/JARVIS-Setup.exe";
 
             showStep(stepInstalling);
             if(installStatus){
@@ -13283,6 +13281,49 @@ function generateAccessId(email){
         openrouter: {label:"OPENROUTER", model:"openai/gpt-4o-mini", help:"https://openrouter.ai/keys"},
         custom: {label:"OTHER / CUSTOM", model:"", help:""}
     };
+    // Suggested model IDs are a convenience, not a lock: users can still type
+    // any model ID supported by their provider/account.
+    const CORE_PROVIDER_MODELS = {
+        gemini: [
+            ["Gemini 3.8 Flash (recommended)", "gemini-3.8-flash"],
+            ["Gemini 3.7 Flash", "gemini-3.7-flash"],
+            ["Gemini 3.6 Flash", "gemini-3.6-flash"],
+            ["Gemini 3.5 Flash-Lite", "gemini-3.5-flash-lite"],
+            ["Gemini 3.5 Flash", "gemini-3.5-flash"],
+            ["Gemini 2.5 Flash", "gemini-2.5-flash"],
+            ["Gemini 2.5 Flash-Lite", "gemini-2.5-flash-lite"],
+            ["Gemini 2.5 Pro", "gemini-2.5-pro"],
+            ["Gemini 3.1 Pro Preview", "gemini-3.1-pro-preview"]
+        ],
+        openai: [
+            ["GPT-4o mini", "gpt-4o-mini"], ["GPT-4o", "gpt-4o"],
+            ["GPT-4.1 mini", "gpt-4.1-mini"], ["GPT-4.1", "gpt-4.1"],
+            ["GPT-5 mini (if enabled for your account)", "gpt-5-mini"],
+            ["GPT-5 (if enabled for your account)", "gpt-5"]
+        ],
+        anthropic: [
+            ["Claude Sonnet 4.5", "claude-sonnet-4-5"],
+            ["Claude Haiku 4.5", "claude-haiku-4-5"],
+            ["Claude Opus 4.1", "claude-opus-4-1"],
+            ["Claude 3.5 Sonnet (legacy ID)", "claude-3-5-sonnet-latest"]
+        ],
+        openrouter: [
+            ["OpenAI GPT-4o mini", "openai/gpt-4o-mini"],
+            ["OpenAI GPT-4o", "openai/gpt-4o"],
+            ["Anthropic Claude Sonnet", "anthropic/claude-sonnet-4.5"],
+            ["Google Gemini Flash", "google/gemini-2.5-flash"]
+        ],
+        custom: []
+    };
+
+    function updateModelSuggestions(provider, listId){
+        const list = document.getElementById(listId);
+        if(!list) return;
+        const models = CORE_PROVIDER_MODELS[provider] || [];
+        list.innerHTML = models.map(([label, id]) =>
+            `<option value="${id}">${label}</option>`
+        ).join("");
+    }
     let coreSelectedProvider = "";
     let coreProviderConfig = null;
 
@@ -13319,6 +13360,7 @@ function generateAccessId(email){
         const model = document.getElementById("coreProviderModel");
         const endpoint = document.getElementById("coreProviderEndpoint");
         const endpointWrap = document.getElementById("coreCustomEndpointWrap");
+        updateModelSuggestions(coreSelectedProvider, "jarvisModelSuggestions");
         if(key) key.value = coreProviderConfig?.apiKey || "";
         if(model) model.value = coreProviderConfig?.model || (CORE_PROVIDER_DEFAULTS[coreSelectedProvider]?.model || "");
         if(endpoint) endpoint.value = coreProviderConfig?.endpoint || "";
@@ -13327,6 +13369,7 @@ function generateAccessId(email){
     }
 
     function selectCoreProvider(key){
+        const previousProvider = coreSelectedProvider;
         coreSelectedProvider = key;
         document.querySelectorAll("[data-core-provider]").forEach(btn=>{
             btn.classList.toggle("selected", btn.dataset.coreProvider === key);
@@ -13337,7 +13380,8 @@ function generateAccessId(email){
         const endpointWrap = document.getElementById("coreCustomEndpointWrap");
         const endpoint = document.getElementById("coreProviderEndpoint");
         const keyInput = document.getElementById("coreProviderApiKey");
-        if(model && !model.value) model.value = CORE_PROVIDER_DEFAULTS[key]?.model || "";
+        updateModelSuggestions(key, "jarvisModelSuggestions");
+        if(model && (!model.value || previousProvider !== key)) model.value = CORE_PROVIDER_DEFAULTS[key]?.model || "";
         if(endpointWrap) endpointWrap.hidden = key !== "custom";
         if(endpoint && key !== "custom") endpoint.value = "";
         if(coreProviderConfig?.provider === key){
@@ -13553,6 +13597,7 @@ function generateAccessId(email){
         const endpointWrap = document.getElementById("settingsEndpointWrap");
 
         if(select) select.value = provider?.provider || "gemini";
+        updateModelSuggestions(provider?.provider || "gemini", "jarvisSettingsModelSuggestions");
         if(key) key.value = provider?.apiKey || "";
         if(model) model.value = provider?.model || "";
         if(endpoint) endpoint.value = provider?.endpoint || "";
@@ -13741,7 +13786,8 @@ function generateAccessId(email){
         const wrap = document.getElementById("settingsEndpointWrap");
         if(wrap) wrap.hidden = provider !== "custom";
         const model = document.getElementById("settingsModelInput");
-        if(model && !model.value) model.value = CORE_PROVIDER_DEFAULTS[provider]?.model || "";
+        updateModelSuggestions(provider, "jarvisSettingsModelSuggestions");
+        if(model) model.value = CORE_PROVIDER_DEFAULTS[provider]?.model || "";
     });
 
     document.getElementById("settingsApiKeyToggle")?.addEventListener("click",()=>{
@@ -16051,7 +16097,7 @@ tiltEls.forEach(el=>{
 
                         <label>
                             MODEL
-                            <input id="settingsModelInput" type="text" autocomplete="off" placeholder="Model name">
+                            <input id="settingsModelInput" type="text" list="jarvisSettingsModelSuggestions" autocomplete="off" placeholder="Choose a model or type its ID"><datalist id="jarvisSettingsModelSuggestions"></datalist>
                         </label>
 
                         <label id="settingsEndpointWrap" hidden>
