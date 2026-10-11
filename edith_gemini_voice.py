@@ -9,6 +9,7 @@ import asyncio
 import threading
 import ctypes
 import shutil
+import sys
 import urllib.request
 import urllib.error
 from urllib.parse import urlparse, parse_qs, quote_plus
@@ -37,6 +38,9 @@ APP_VERSION = "3.0.0"
 
 BRIDGE_HOST = "127.0.0.1"
 BRIDGE_PORT = 8765
+
+# Only the official JARVIS GitHub Pages site may issue browser bridge commands.
+ALLOWED_WEB_ORIGINS = {"https://shadowfightermax11-bit.github.io"}
 
 VOICE = "en-US-AndrewNeural"
 
@@ -80,6 +84,20 @@ os.makedirs(
     APP_DATA_DIR,
     exist_ok=True
 )
+
+
+# PyInstaller's --noconsole mode has no stdout/stderr; keep diagnostics in the user data folder.
+if sys.stdout is None or sys.stderr is None:
+    _jarvis_log = open(
+        os.path.join(APP_DATA_DIR, "companion.log"),
+        "a",
+        encoding="utf-8",
+        buffering=1
+    )
+    if sys.stdout is None:
+        sys.stdout = _jarvis_log
+    if sys.stderr is None:
+        sys.stderr = _jarvis_log
 
 
 CONFIG_FILE = os.path.join(
@@ -3426,32 +3444,27 @@ class EdithBridgeHandler(
     # CORS / PREFLIGHT
     # --------------------------------------------------------
 
+    def origin_is_allowed(self):
+
+        return self.headers.get("Origin", "") in ALLOWED_WEB_ORIGINS
+
+
     def do_OPTIONS(self):
 
-        self.send_response(
-            204
-        )
+        origin = self.headers.get("Origin", "")
 
-        self.send_header(
-            "Access-Control-Allow-Origin",
-            "*"
-        )
+        if origin not in ALLOWED_WEB_ORIGINS:
+            self.send_response(403)
+            self.end_headers()
+            return
 
-        self.send_header(
-            "Access-Control-Allow-Methods",
-            "GET, POST, OPTIONS"
-        )
-
-        self.send_header(
-            "Access-Control-Allow-Headers",
-            "*"
-        )
-
-        self.send_header(
-            "Access-Control-Allow-Private-Network",
-            "true"
-        )
-
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Origin", origin)
+        self.send_header("Vary", "Origin")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Private-Network", "true")
+        self.send_header("Cache-Control", "no-store")
         self.end_headers()
 
 
@@ -3480,15 +3493,11 @@ class EdithBridgeHandler(
             "application/json"
         )
 
-        self.send_header(
-            "Access-Control-Allow-Origin",
-            "*"
-        )
-
-        self.send_header(
-            "Access-Control-Allow-Private-Network",
-            "true"
-        )
+        origin = self.headers.get("Origin", "")
+        if origin in ALLOWED_WEB_ORIGINS:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
+            self.send_header("Access-Control-Allow-Private-Network", "true")
 
         self.send_header(
             "Cache-Control",
@@ -3513,6 +3522,13 @@ class EdithBridgeHandler(
         )
 
         path = parsed.path
+
+        if path == "/config" and not self.origin_is_allowed():
+            self.send_json(
+                {"ok": False, "error": "Origin not allowed."},
+                403
+            )
+            return
 
 
         # ----------------------------------------------------
@@ -3926,6 +3942,13 @@ class EdithBridgeHandler(
         # ----------------------------------------------------
 
         if path == "/media":
+
+            if not self.origin_is_allowed():
+                self.send_json(
+                    {"ok": False, "error": "Origin not allowed."},
+                    403
+                )
+                return
 
             query = parse_qs(
                 parsed.query

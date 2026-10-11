@@ -205,7 +205,8 @@ def _handle_time_now(history):
 
 def _handle_date_today(history):
 
-    today = datetime.now().strftime("%A, %B %-d")
+    now_dt = datetime.now()
+    today = f"{now_dt:%A, %B} {now_dt.day}"
 
     templates = [
         f"Today is {today}.",

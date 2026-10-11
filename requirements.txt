@@ -1,3 +1,4 @@
+# J.A.R.V.I.S. Companion runtime/build dependencies
 edge-tts
 numpy
 pygame
@@ -6,5 +7,6 @@ soundfile
 SpeechRecognition
 scipy
 openwakeword
+onnxruntime
 google-genai
 pyinstaller
