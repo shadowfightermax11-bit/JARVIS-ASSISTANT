@@ -14941,5 +14941,127 @@ tiltEls.forEach(el=>{
   },{passive:true});
 })();
 </script>
+
+<style id="jarvis-ultimate-polish">
+/* Manual chat: cinematic depth, responsive layout, subtle motion */
+#manualChatStage{isolation:isolate;position:relative;overflow:hidden;background:#03040d!important}
+#manualChatStage:before{content:"";position:absolute;inset:-35%;z-index:0;pointer-events:none;background:conic-gradient(from 0deg,transparent 0 25%,rgba(65,112,255,.12),transparent 42%,rgba(0,229,255,.09),transparent 66%,rgba(211,74,255,.10),transparent 85%);filter:blur(45px);animation:jarvisChatAurora 28s linear infinite}
+#manualChatStage:after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(124,147,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(124,147,255,.035) 1px,transparent 1px);background-size:42px 42px;mask-image:radial-gradient(ellipse at center,#000 15%,transparent 82%)}
+#manualChatStage>*{position:relative;z-index:1}
+#manualChatStage .manual-chat-main{position:relative;isolation:isolate}
+#manualChatStage .chat-message{animation:jarvisMessageIn .45s cubic-bezier(.16,1,.3,1) both}
+#manualChatStage .chat-welcome{animation:jarvisWelcomeIn .8s cubic-bezier(.16,1,.3,1) both;backdrop-filter:blur(16px)}
+#manualChatStage .chat-welcome-orb{filter:drop-shadow(0 0 22px rgba(74,218,255,.28));animation:jarvisOrbFloat 5s ease-in-out infinite}
+#manualChatStage .chat-composer{transition:transform .25s,border-color .25s,box-shadow .25s!important}
+#manualChatStage .chat-composer:focus-within{transform:translateY(-2px);border-color:rgba(86,224,255,.65)!important}
+#manualChatStage .chat-suggestion-grid button{position:relative;overflow:hidden}
+#manualChatStage .chat-suggestion-grid button:after{content:"";position:absolute;inset:-1px;pointer-events:none;background:linear-gradient(110deg,transparent 20%,rgba(255,255,255,.08),transparent 55%);transform:translateX(-120%);transition:transform .65s}
+#manualChatStage .chat-suggestion-grid button:hover:after{transform:translateX(120%)}
+@keyframes jarvisChatAurora{to{transform:rotate(360deg)}}
+@keyframes jarvisMessageIn{from{opacity:0;transform:translateY(12px) scale(.99);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+@keyframes jarvisWelcomeIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes jarvisOrbFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+/* Compact the recurring empty rectangle/close-button overlay without hiding its content */
+.overlay{align-items:center!important;justify-content:center!important;padding:18px!important}
+.overlay .panel{position:relative!important;width:min(780px,calc(100vw - 36px))!important;max-width:calc(100vw - 36px)!important;max-height:calc(100dvh - 36px)!important;overflow:auto!important;margin:auto!important;border-radius:20px!important}
+.overlay .panel:empty{display:none!important}
+.overlay .close,.overlay button.close{width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important;top:10px!important;right:10px!important;padding:0!important;border-radius:8px!important}
+.vision-detail-panel>.close{width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important}
+/* Truly distinct dashboard atmospheres */
+body.jarvis-bg-nebula{background:#050018!important}
+body.jarvis-bg-nebula #threeBackground,body.jarvis-bg-nebula #threeHero{filter:hue-rotate(45deg) saturate(1.5)}
+body.jarvis-bg-aurora{background:#001a1b!important}
+body.jarvis-bg-aurora .aurora-field{filter:hue-rotate(95deg) saturate(1.8);opacity:1}
+body.jarvis-bg-cosmic{background:#170516!important}
+body.jarvis-bg-cosmic .aurora-field{filter:hue-rotate(145deg) saturate(1.9)}
+body.jarvis-bg-eclipse{background:#000!important}
+body.jarvis-bg-eclipse .aurora-field{opacity:.08;filter:grayscale(1)}
+body.jarvis-bg-abyss{background:#001027!important}
+body.jarvis-bg-abyss .aurora-field{filter:hue-rotate(170deg) saturate(1.8)}
+body.jarvis-bg-solar{background:#1a1000!important}
+body.jarvis-bg-solar .aurora-field{filter:hue-rotate(225deg) saturate(1.7)}
+body.jarvis-bg-matrix{background:#001404!important}
+body.jarvis-bg-matrix .aurora-field{filter:hue-rotate(275deg) saturate(2)}
+body.jarvis-bg-crimson{background:#190006!important}
+body.jarvis-bg-crimson .aurora-field{filter:hue-rotate(305deg) saturate(2)}
+body.jarvis-bg-glacier{background:#00151c!important}
+body.jarvis-bg-glacier .aurora-field{filter:hue-rotate(155deg) brightness(1.35)}
+body.jarvis-bg-prism{background:#10001b!important}
+body.jarvis-bg-prism .aurora-field{filter:hue-rotate(35deg) saturate(2.2)}
+body.jarvis-bg-storm{background:#080b1a!important}
+body.jarvis-bg-storm .aurora-field{filter:contrast(1.4) hue-rotate(190deg)}
+/* Reactor type and pulse type are unified; active state changes listening/speaking glow */
+body.jarvis-reactor-hexagonal{--reactor-shape:polygon(25% 6%,75% 6%,100% 50%,75% 94%,25% 94%,0 50%)}
+body.jarvis-reactor-orb{--reactor-shape:circle}
+body.jarvis-reactor-prism{--reactor-shape:polygon(50% 0,94% 25%,94% 75%,50% 100%,6% 75%,6% 25%)}
+body.jarvis-reactor-diamond{--reactor-shape:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+body.jarvis-reactor-core{--reactor-shape:polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%)}
+body[class*="jarvis-reactor-"] .neural-core-orb,body[class*="jarvis-reactor-"] .core-orb,body[class*="jarvis-reactor-"] .reactor-orb{clip-path:var(--reactor-shape,none)}
+body.jarvis-pulse-electric{--pulse-color:#16bfff}
+body.jarvis-pulse-golden{--pulse-color:#ffc247}
+body.jarvis-pulse-violet{--pulse-color:#a78bfa}
+body.jarvis-pulse-rose{--pulse-color:#ff5db1}
+body.jarvis-pulse-mint{--pulse-color:#47ffd1}
+body.jarvis-pulse-ice{--pulse-color:#b9f4ff}
+body.jarvis-pulse-plasma{--pulse-color:#e879ff}
+body.jarvis-pulse-ember{--pulse-color:#ff7048}
+body.jarvis-pulse-lime{--pulse-color:#b7ff4a}
+body.jarvis-pulse-rainbow{--pulse-color:#55eaff}
+body[class*="jarvis-pulse-"] .neural-core-orb,body[class*="jarvis-pulse-"] .core-orb,body[class*="jarvis-pulse-"] .reactor-orb{border-color:var(--pulse-color)!important;box-shadow:0 0 22px var(--pulse-color),inset 0 0 22px color-mix(in srgb,var(--pulse-color) 22%,transparent)!important}
+body.jarvis-speaking{--pulse-color:#ffc247!important}
+body.jarvis-listening{--pulse-color:#16bfff!important}
+@media(prefers-reduced-motion:reduce){#manualChatStage:before,#manualChatStage .chat-message,#manualChatStage .chat-welcome,#manualChatStage .chat-welcome-orb{animation:none!important}}
+</style>
+<script id="jarvis-reactor-upgrade">
+(function(){
+ const body=document.body;
+ // Expose the 10 reactor/pulse combinations as a compact settings chooser if settings are present.
+ const settings=document.querySelector('#settingsOverlay .panel,#settingsPanel,.settings-panel,#settingsContent,.settings-content,[data-panel="settings"]');
+ const host=settings||document.querySelector('#integrationsPanel,#integrations,.info-content');
+ if(host&&!document.getElementById('jarvisReactorPulsePicker')){
+  const wrap=document.createElement('section');wrap.id='jarvisReactorPulsePicker';wrap.className='integration-card';
+  wrap.style.cssText='margin:18px 0;padding:18px;border:1px solid rgba(96,220,255,.2);border-radius:16px;background:linear-gradient(135deg,rgba(14,23,48,.8),rgba(9,8,24,.9))';
+  wrap.innerHTML='<div style="font:700 10px IBM Plex Mono,monospace;letter-spacing:.16em;color:#8deeff;margin-bottom:8px">REACTOR + PULSE LAB</div><p style="font-size:11px;color:#9ca9c6;margin-bottom:14px">Choose a core shape and its energy pulse. Blue while listening; golden while speaking.</p><label style="display:block;font-size:10px;margin:10px 0 6px;color:#dce7ff">REACTOR TYPE</label><select id="jarvisReactorType" style="width:100%;padding:11px;border-radius:10px;background:#090e20;color:#fff;border:1px solid #34466d"><option value="hexagonal">Hexagonal Reactor</option><option value="orb">Orb Reactor</option><option value="prism">Prism Reactor</option><option value="diamond">Diamond Reactor</option><option value="core">Octa-Core Reactor</option></select><label style="display:block;font-size:10px;margin:12px 0 6px;color:#dce7ff">PULSE TYPE</label><select id="jarvisPulseType" style="width:100%;padding:11px;border-radius:10px;background:#090e20;color:#fff;border:1px solid #34466d"><option value="electric">Electric Blue</option><option value="golden">Golden Arc</option><option value="violet">Violet Wave</option><option value="rose">Rose Plasma</option><option value="mint">Mint Flux</option><option value="ice">Glacier Pulse</option><option value="plasma">Plasma Bloom</option><option value="ember">Ember Drive</option><option value="lime">Lime Spark</option><option value="rainbow">Prismatic Cycle</option></select><div id="jarvisReactorPreview" style="margin:15px auto;width:72px;height:72px;clip-path:polygon(25% 6%,75% 6%,100% 50%,75% 94%,25% 94%,0 50%);border:2px solid #16bfff;background:radial-gradient(circle,#16bfff55,transparent 68%);box-shadow:0 0 28px #16bfff;animation:jarvisOrbFloat 2s ease-in-out infinite"></div><div style="font:8px IBM Plex Mono,monospace;color:#7285aa">10 PULSE TYPES · LISTENING BLUE / SPEAKING GOLD</div>';
+  host.appendChild(wrap);
+  const rt=wrap.querySelector('#jarvisReactorType'),pt=wrap.querySelector('#jarvisPulseType'),preview=wrap.querySelector('#jarvisReactorPreview');
+  const shapes={hexagonal:'polygon(25% 6%,75% 6%,100% 50%,75% 94%,25% 94%,0 50%)',orb:'circle(50%)',prism:'polygon(50% 0,94% 25%,94% 75%,50% 100%,6% 75%,6% 25%)',diamond:'polygon(50% 0,100% 50%,50% 100%,0 50%)',core:'polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%)'};
+  const colors={electric:'#16bfff',golden:'#ffc247',violet:'#a78bfa',rose:'#ff5db1',mint:'#47ffd1',ice:'#b9f4ff',plasma:'#e879ff',ember:'#ff7048',lime:'#b7ff4a',rainbow:'#55eaff'};
+  function apply(){body.classList.remove(...Array.from(body.classList).filter(c=>c.startsWith('jarvis-reactor-')||c.startsWith('jarvis-pulse-')));body.classList.add('jarvis-reactor-'+rt.value,'jarvis-pulse-'+pt.value);preview.style.clipPath=shapes[rt.value];preview.style.borderColor=colors[pt.value];preview.style.boxShadow='0 0 28px '+colors[pt.value];preview.style.background='radial-gradient(circle,'+colors[pt.value]+'66,transparent 70%)';try{localStorage.setItem('jarvisReactorTypeV2',rt.value);localStorage.setItem('jarvisPulseTypeV2',pt.value)}catch(e){}}
+  try{rt.value=localStorage.getItem('jarvisReactorTypeV2')||'hexagonal';pt.value=localStorage.getItem('jarvisPulseTypeV2')||'electric'}catch(e){}rt.addEventListener('change',apply);pt.addEventListener('change',apply);apply();
+ }
+ // Make settings background selector cover ten genuinely different presets.
+ const bgSelect=document.querySelector('#dashboardBackgroundSelect,#backgroundSelect,select[name="dashboardBackground"]');
+ if(bgSelect){['abyss','solar','matrix','crimson','glacier','prism','storm'].forEach((v)=>{if(!Array.from(bgSelect.options).some(o=>o.value===v)){const o=document.createElement('option');o.value=v;o.textContent=v.toUpperCase()+' REALITY';bgSelect.appendChild(o)}});bgSelect.addEventListener('change',()=>{body.classList.remove(...Array.from(body.classList).filter(c=>c.startsWith('jarvis-bg-')));body.classList.add('jarvis-bg-'+bgSelect.value);try{localStorage.setItem('jarvisActiveDashboardBackgroundV1',bgSelect.value)}catch(e){}})}
+ // Keep the visible pulse state aligned with speech/listening events when present.
+ document.addEventListener('jarvis:listening',()=>{body.classList.add('jarvis-listening');body.classList.remove('jarvis-speaking')});
+ document.addEventListener('jarvis:speaking',()=>{body.classList.add('jarvis-speaking');body.classList.remove('jarvis-listening')});
+ document.addEventListener('jarvis:idle',()=>{body.classList.remove('jarvis-speaking','jarvis-listening')});
+})();
+</script>
+
+
+<script id="jarvis-core-frame-polish">
+(function(){
+ function sync(){
+  const frame=document.getElementById('jarvisCoreStageFrame');
+  if(!frame)return;
+  try{
+   const d=frame.contentDocument;if(!d||!d.head)return;
+   if(!d.getElementById('jarvis-ultimate-polish-frame')){
+    const source=document.getElementById('jarvis-ultimate-polish');
+    if(source){const st=d.createElement('style');st.id='jarvis-ultimate-polish-frame';st.textContent=source.textContent;d.head.appendChild(st)}
+   }
+   const b=d.body;
+   if(b){
+    const rt=localStorage.getItem('jarvisReactorTypeV2'),pt=localStorage.getItem('jarvisPulseTypeV2'),bg=localStorage.getItem('jarvisActiveDashboardBackgroundV1');
+    if(rt)b.classList.add('jarvis-reactor-'+rt);if(pt)b.classList.add('jarvis-pulse-'+pt);if(bg)b.classList.add('jarvis-bg-'+bg);
+   }
+  }catch(e){}
+ }
+ const f=document.getElementById('jarvisCoreStageFrame');if(f)f.addEventListener('load',sync);
+ sync();
+})();
+</script>
+
 </body>
 </html>
