@@ -1,14 +1,18 @@
-
 import os
-import tempfile
+import re
+import json
 import time
+import tempfile
 import webbrowser
 import subprocess
 import asyncio
 import threading
-import json
 import ctypes
-from urllib.parse import urlparse, parse_qs
+import shutil
+import sys
+import urllib.request
+import urllib.error
+from urllib.parse import urlparse, parse_qs, quote_plus
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import edge_tts
@@ -25,13 +29,37 @@ from google import genai
 import local_responses
 
 
+# Optional local hand-tracking dependencies. Voice/PC features remain available
+# if the vision packages or camera are unavailable.
+try:
+    import cv2
+    import mediapipe as mp
+    from mediapipe.tasks import python as mp_python
+    from mediapipe.tasks.python import vision as mp_vision
+    HAND_TRACKING_AVAILABLE = True
+    HAND_TRACKING_IMPORT_ERROR = ""
+except Exception as _hand_import_error:
+    cv2 = None
+    mp = None
+    mp_python = None
+    mp_vision = None
+    HAND_TRACKING_AVAILABLE = False
+    HAND_TRACKING_IMPORT_ERROR = str(_hand_import_error)
+
+
 # ============================================================
-# JARVIS SETTINGS
+# J.A.R.V.I.S. SETTINGS
 # ============================================================
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+APP_NAME = "JARVIS Companion"
+APP_VERSION = "3.0.0"
 
-MODEL = "gemini-3.5-flash-lite"
+BRIDGE_HOST = "127.0.0.1"
+BRIDGE_PORT = 8765
+
+# Only the official JARVIS GitHub Pages site may issue browser bridge commands.
+ALLOWED_WEB_ORIGINS = {"https://shadowfightermax11-bit.github.io"}
+
 VOICE = "en-US-AndrewNeural"
 
 WAKE_WORD = "hey_jarvis"
@@ -42,31 +70,450 @@ END_SILENCE = 1.0
 MIN_SPEECH_TIME = 0.25
 COOLDOWN = 1.5
 
+MAX_HISTORY = 40
+
+
+# ============================================================
+# LOCAL HAND TRACKING
+# ============================================================
+
+HAND_TRACKING_ENABLED = os.getenv(
+    "JARVIS_HAND_TRACKING", "1"
+).strip().lower() not in ("0", "false", "no", "off")
+
+HAND_CAMERA_INDEX = int(os.getenv("JARVIS_HAND_CAMERA_INDEX", "0"))
+HAND_SHOW_WINDOW = os.getenv(
+    "JARVIS_HAND_SHOW_WINDOW", "1"
+).strip().lower() not in ("0", "false", "no", "off")
+
+HAND_MODEL_PATH = os.path.expandvars(
+    os.path.expanduser(
+        os.getenv(
+            "JARVIS_HAND_MODEL_PATH",
+            os.path.join(os.path.expanduser("~"), "hand_landmarker.task")
+        )
+    )
+)
+
+HAND_CONFIRM_FRAMES = 4
+HAND_ACTION_COOLDOWN = 1.25
+HAND_SWIPE_MIN_DISTANCE = 0.20
+HAND_SWIPE_MAX_SECONDS = 0.65
+
+hand_state_lock = threading.Lock()
+hand_state = {
+    "enabled": HAND_TRACKING_ENABLED,
+    "available": HAND_TRACKING_AVAILABLE,
+    "running": False,
+    "camera": HAND_CAMERA_INDEX,
+    "gesture": "none",
+    "last_action": "",
+    "error": HAND_TRACKING_IMPORT_ERROR
+}
+
+
+# ============================================================
+# JARVIS USER DATA DIRECTORY
+# ============================================================
+#
+# IMPORTANT:
+# The installed program should not write user data beside
+# the executable.
+#
+# This directory will eventually contain:
+#
+#   config.json
+#   jarvis_conversation_memory.json
+#
+# The installer will create/configure config.json.
+#
+# ============================================================
+
+APP_DATA_DIR = os.path.join(
+    os.environ.get(
+        "APPDATA",
+        os.path.expanduser("~")
+    ),
+    "JARVIS"
+)
+
+os.makedirs(
+    APP_DATA_DIR,
+    exist_ok=True
+)
+
+
+# PyInstaller's --noconsole mode has no stdout/stderr; keep diagnostics in the user data folder.
+if sys.stdout is None or sys.stderr is None:
+    _jarvis_log = open(
+        os.path.join(APP_DATA_DIR, "companion.log"),
+        "a",
+        encoding="utf-8",
+        buffering=1
+    )
+    if sys.stdout is None:
+        sys.stdout = _jarvis_log
+    if sys.stderr is None:
+        sys.stderr = _jarvis_log
+
+
+CONFIG_FILE = os.path.join(
+    APP_DATA_DIR,
+    "config.json"
+)
+
+MEMORY_FILE = os.path.join(
+    APP_DATA_DIR,
+    "jarvis_conversation_memory.json"
+)
+
+
+# ============================================================
+# AI PROVIDER CONFIGURATION
+# ============================================================
+
+SUPPORTED_PROVIDERS = (
+    "gemini",
+    "openai",
+    "anthropic",
+    "openrouter",
+    "custom"
+)
+
+
+DEFAULT_AI_CONFIG = {
+
+    "provider": "gemini",
+
+    "api_key": "",
+
+    "model": "gemini-2.5-flash",
+
+    "base_url": "",
+
+    "enabled": True
+}
+
+
+AI_CONFIG = {}
+
+
+def load_ai_config():
+
+    config = dict(
+        DEFAULT_AI_CONFIG
+    )
+
+    # --------------------------------------------------------
+    # Local configuration
+    # --------------------------------------------------------
+
+    try:
+
+        if os.path.isfile(CONFIG_FILE):
+
+            with open(
+                CONFIG_FILE,
+                "r",
+                encoding="utf-8"
+            ) as f:
+
+                data = json.load(f)
+
+            if isinstance(data, dict):
+
+                ai = data.get(
+                    "ai",
+                    {}
+                )
+
+                if isinstance(ai, dict):
+
+                    config.update(
+                        ai
+                    )
+
+    except Exception as e:
+
+        print(
+            f"AI config load warning: {e}"
+        )
+
+
+    # --------------------------------------------------------
+    # Environment-variable fallback
+    #
+    # Useful for development.
+    # The public installer will use config.json.
+    # --------------------------------------------------------
+
+    provider_env = os.getenv(
+        "JARVIS_AI_PROVIDER"
+    )
+
+    if provider_env:
+
+        config["provider"] = (
+            provider_env.strip().lower()
+        )
+
+
+    api_key_env = os.getenv(
+        "JARVIS_AI_API_KEY"
+    )
+
+    if api_key_env:
+
+        config["api_key"] = api_key_env
+
+
+    # Backward compatibility with your
+    # existing Gemini setup.
+    if (
+        not config.get("api_key")
+        and config.get("provider") == "gemini"
+    ):
+
+        old_key = os.getenv(
+            "GEMINI_API_KEY"
+        )
+
+        if old_key:
+
+            config["api_key"] = old_key
+
+
+    model_env = os.getenv(
+        "JARVIS_AI_MODEL"
+    )
+
+    if model_env:
+
+        config["model"] = model_env
+
+
+    base_url_env = os.getenv(
+        "JARVIS_AI_BASE_URL"
+    )
+
+    if base_url_env:
+
+        config["base_url"] = base_url_env
+
+
+    provider = str(
+        config.get(
+            "provider",
+            "gemini"
+        )
+    ).strip().lower()
+
+
+    if provider not in SUPPORTED_PROVIDERS:
+
+        provider = "gemini"
+
+
+    config["provider"] = provider
+
+
+    return config
+
+
+AI_CONFIG = load_ai_config()
+
+
+def save_ai_config(
+    provider,
+    api_key,
+    model,
+    base_url=""
+):
+
+    provider = str(
+        provider
+    ).strip().lower()
+
+
+    if provider not in SUPPORTED_PROVIDERS:
+
+        raise ValueError(
+            f"Unsupported AI provider: {provider}"
+        )
+
+
+    config = {
+
+        "provider": provider,
+
+        "api_key": api_key.strip(),
+
+        "model": model.strip(),
+
+        "base_url": base_url.strip(),
+
+        "enabled": True
+    }
+
+
+    root_config = {}
+
+    if os.path.isfile(CONFIG_FILE):
+
+        try:
+
+            with open(
+                CONFIG_FILE,
+                "r",
+                encoding="utf-8"
+            ) as f:
+
+                root_config = json.load(f)
+
+            if not isinstance(
+                root_config,
+                dict
+            ):
+
+                root_config = {}
+
+        except Exception:
+
+            root_config = {}
+
+
+    root_config["ai"] = config
+
+
+    temp_file = CONFIG_FILE + ".tmp"
+
+
+    with open(
+        temp_file,
+        "w",
+        encoding="utf-8"
+    ) as f:
+
+        json.dump(
+            root_config,
+            f,
+            ensure_ascii=False,
+            indent=2
+        )
+
+
+    os.replace(
+        temp_file,
+        CONFIG_FILE
+    )
+
+
+    global AI_CONFIG
+
+    AI_CONFIG = config
+
+
+def ai_provider():
+
+    return str(
+        AI_CONFIG.get(
+            "provider",
+            ""
+        )
+    ).lower().strip()
+
+
+def ai_model():
+
+    return str(
+        AI_CONFIG.get(
+            "model",
+            ""
+        )
+    ).strip()
+
+
+def ai_api_key():
+
+    return str(
+        AI_CONFIG.get(
+            "api_key",
+            ""
+        )
+    ).strip()
+
+
+def ai_base_url():
+
+    return str(
+        AI_CONFIG.get(
+            "base_url",
+            ""
+        )
+    ).strip()
+
+
+def ai_is_configured():
+
+    return bool(
+        ai_provider()
+        and ai_model()
+        and ai_api_key()
+    )
+
+
+# ============================================================
+# SAFE PC POLICY
+# ============================================================
+#
+# JARVIS IS INTENTIONALLY NON-DESTRUCTIVE.
+#
+# ALLOWED:
+#   open
+#   search
+#   navigate
+#   switch
+#   close current window/tab
+#   type
+#   read/search filenames
+#   media control
+#   screenshots
+#
+# NOT IMPLEMENTED:
+#   delete files
+#   overwrite files
+#   rename files
+#   move files
+#   uninstall software
+#   format drives
+#   registry modification
+#   shutdown
+#   restart
+#   factory reset
+#   credential extraction
+#   disabling security
+#   arbitrary shell commands
+#
+# ============================================================
+
 
 # ============================================================
 # CONVERSATION MEMORY
 # ============================================================
 
-# Persistent rolling memory. This is JARVIS' OWN conversation
-# history — it does not read your ChatGPT history or any other
-# assistant's chats. It lets JARVIS remember what YOU told JARVIS
-# across restarts and answer context questions from its own history.
-
 CONVERSATION_HISTORY = []
-MAX_HISTORY = 40
-
-MEMORY_FILE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    "jarvis_conversation_memory.json"
-)
 
 
 def load_conversation_memory():
 
     try:
 
-        if not os.path.exists(MEMORY_FILE):
+        if not os.path.exists(
+            MEMORY_FILE
+        ):
+
             return []
+
 
         with open(
             MEMORY_FILE,
@@ -76,29 +523,48 @@ def load_conversation_memory():
 
             data = json.load(f)
 
-        if not isinstance(data, list):
+
+        if not isinstance(
+            data,
+            list
+        ):
+
             return []
 
+
         history = []
+
 
         for item in data[-MAX_HISTORY:]:
 
             if (
                 isinstance(item, dict)
-                and isinstance(item.get("question"), str)
-                and isinstance(item.get("answer"), str)
+                and isinstance(
+                    item.get("question"),
+                    str
+                )
+                and isinstance(
+                    item.get("answer"),
+                    str
+                )
             ):
 
-                history.append((
-                    item["question"],
-                    item["answer"]
-                ))
+                history.append(
+                    (
+                        item["question"],
+                        item["answer"]
+                    )
+                )
+
 
         print(
-            f"MEMORY → LOADED {len(history)} RECENT EXCHANGES"
+            f"MEMORY → LOADED "
+            f"{len(history)} RECENT EXCHANGES"
         )
 
+
         return history
+
 
     except Exception as e:
 
@@ -109,20 +575,52 @@ def load_conversation_memory():
         return []
 
 
+def should_store_exchange(question):
+
+    sensitive_words = (
+
+        "password",
+        "passcode",
+        "api key",
+        "apikey",
+        "secret key",
+        "credit card",
+        "otp",
+        "one time password",
+        "private key"
+    )
+
+
+    text = question.lower().strip()
+
+
+    return not any(
+        word in text
+        for word in sensitive_words
+    )
+
+
 def save_conversation_memory():
 
     try:
 
         data = []
 
-        for question, answer in CONVERSATION_HISTORY[-MAX_HISTORY:]:
+
+        for question, answer in (
+            CONVERSATION_HISTORY[-MAX_HISTORY:]
+        ):
 
             data.append({
+
                 "question": question,
+
                 "answer": answer
             })
 
+
         temp_file = MEMORY_FILE + ".tmp"
+
 
         with open(
             temp_file,
@@ -137,10 +635,12 @@ def save_conversation_memory():
                 indent=2
             )
 
+
         os.replace(
             temp_file,
             MEMORY_FILE
         )
+
 
     except Exception as e:
 
@@ -149,34 +649,14 @@ def save_conversation_memory():
         )
 
 
-def should_store_exchange(question):
+def remember_exchange(
+    question,
+    answer
+):
 
-    # Do not persist obvious password / secret-setting commands.
-    # This keeps JARVIS useful without turning the memory file into
-    # a place where credentials could be stored.
-
-    sensitive_words = (
-        "password",
-        "passcode",
-        "api key",
-        "apikey",
-        "secret key",
-        "credit card",
-        "otp",
-        "one time password"
-    )
-
-    text = question.lower().strip()
-
-    return not any(
-        word in text
-        for word in sensitive_words
-    )
-
-
-def remember_exchange(question, answer):
-
-    if not should_store_exchange(question):
+    if not should_store_exchange(
+        question
+    ):
 
         print(
             "MEMORY → SENSITIVE COMMAND NOT STORED"
@@ -184,18 +664,548 @@ def remember_exchange(question, answer):
 
         return
 
+
     CONVERSATION_HISTORY.append(
-        (question, answer)
+        (
+            question,
+            answer
+        )
     )
 
-    if len(CONVERSATION_HISTORY) > MAX_HISTORY:
+
+    if len(
+        CONVERSATION_HISTORY
+    ) > MAX_HISTORY:
 
         CONVERSATION_HISTORY.pop(0)
+
 
     save_conversation_memory()
 
 
-CONVERSATION_HISTORY = load_conversation_memory()
+CONVERSATION_HISTORY = (
+    load_conversation_memory()
+)
+
+
+# ============================================================
+# AI REQUEST HELPERS
+# ============================================================
+
+def clean_ai_text(text):
+
+    if text is None:
+
+        return ""
+
+
+    text = str(
+        text
+    ).strip()
+
+
+    return text
+
+
+def http_json_request(
+    url,
+    headers,
+    payload,
+    timeout=60
+):
+
+    data = json.dumps(
+        payload
+    ).encode(
+        "utf-8"
+    )
+
+
+    request = urllib.request.Request(
+
+        url,
+
+        data=data,
+
+        headers={
+            **headers,
+            "Content-Type":
+                "application/json"
+        },
+
+        method="POST"
+    )
+
+
+    try:
+
+        with urllib.request.urlopen(
+            request,
+            timeout=timeout
+        ) as response:
+
+            raw = response.read().decode(
+                "utf-8"
+            )
+
+            return json.loads(
+                raw
+            )
+
+
+    except urllib.error.HTTPError as e:
+
+        try:
+
+            error_body = e.read().decode(
+                "utf-8",
+                errors="replace"
+            )
+
+        except Exception:
+
+            error_body = str(e)
+
+
+        raise RuntimeError(
+            f"HTTP {e.code}: {error_body}"
+        )
+
+
+    except urllib.error.URLError as e:
+
+        raise RuntimeError(
+            f"Connection error: {e}"
+        )
+
+
+def openai_compatible_response(
+    base_url,
+    api_key,
+    model,
+    messages
+):
+
+    base_url = base_url.rstrip(
+        "/"
+    )
+
+
+    if not base_url.endswith(
+        "/chat/completions"
+    ):
+
+        if base_url.endswith(
+            "/v1"
+        ):
+
+            base_url += (
+                "/chat/completions"
+            )
+
+        else:
+
+            base_url += (
+                "/v1/chat/completions"
+            )
+
+
+    payload = {
+
+        "model": model,
+
+        "messages": messages
+    }
+
+
+    data = http_json_request(
+
+        base_url,
+
+        {
+            "Authorization":
+                f"Bearer {api_key}"
+        },
+
+        payload
+    )
+
+
+    try:
+
+        return clean_ai_text(
+            data["choices"][0]["message"]["content"]
+        )
+
+    except Exception:
+
+        raise RuntimeError(
+            "The AI provider returned an unexpected response."
+        )
+
+
+# ============================================================
+# GEMINI
+# ============================================================
+
+def ask_gemini(
+    messages,
+    model
+):
+
+    client = genai.Client(
+        api_key=ai_api_key()
+    )
+
+
+    # Gemini's generate_content API accepts
+    # a combined text prompt.
+    #
+    # We intentionally keep the existing
+    # JARVIS behavior simple and portable.
+
+    parts = []
+
+
+    for message in messages:
+
+        role = message.get(
+            "role",
+            "user"
+        )
+
+        content = message.get(
+            "content",
+            ""
+        )
+
+
+        if role == "system":
+
+            parts.append(
+                "SYSTEM:\n"
+                + content
+            )
+
+        elif role == "assistant":
+
+            parts.append(
+                "JARVIS:\n"
+                + content
+            )
+
+        else:
+
+            parts.append(
+                "USER:\n"
+                + content
+            )
+
+
+    prompt = "\n\n".join(
+        parts
+    )
+
+
+    response = client.models.generate_content(
+
+        model=model,
+
+        contents=prompt
+    )
+
+
+    return clean_ai_text(
+        response.text
+    )
+
+
+# ============================================================
+# OPENAI
+# ============================================================
+
+def ask_openai(
+    messages,
+    model
+):
+
+    return openai_compatible_response(
+
+        "https://api.openai.com/v1",
+
+        ai_api_key(),
+
+        model,
+
+        messages
+    )
+
+
+# ============================================================
+# OPENROUTER
+# ============================================================
+
+def ask_openrouter(
+    messages,
+    model
+):
+
+    return openai_compatible_response(
+
+        "https://openrouter.ai/api/v1",
+
+        ai_api_key(),
+
+        model,
+
+        messages
+    )
+
+
+# ============================================================
+# ANTHROPIC CLAUDE
+# ============================================================
+
+def ask_anthropic(
+    messages,
+    model
+):
+
+    system_messages = []
+
+    normal_messages = []
+
+
+    for message in messages:
+
+        role = message.get(
+            "role",
+            "user"
+        )
+
+        content = message.get(
+            "content",
+            ""
+        )
+
+
+        if role == "system":
+
+            system_messages.append(
+                content
+            )
+
+        elif role in (
+            "user",
+            "assistant"
+        ):
+
+            normal_messages.append({
+
+                "role": role,
+
+                "content": content
+            })
+
+
+    payload = {
+
+        "model": model,
+
+        "max_tokens": 2048,
+
+        "messages": normal_messages
+    }
+
+
+    if system_messages:
+
+        payload["system"] = (
+            "\n\n".join(
+                system_messages
+            )
+        )
+
+
+    data = http_json_request(
+
+        "https://api.anthropic.com/v1/messages",
+
+        {
+            "x-api-key":
+                ai_api_key(),
+
+            "anthropic-version":
+                "2023-06-01"
+        },
+
+        payload
+    )
+
+
+    try:
+
+        content = data.get(
+            "content",
+            []
+        )
+
+
+        texts = []
+
+
+        for item in content:
+
+            if (
+                isinstance(item, dict)
+                and item.get("type") == "text"
+            ):
+
+                texts.append(
+                    item.get(
+                        "text",
+                        ""
+                    )
+                )
+
+
+        return clean_ai_text(
+            "\n".join(texts)
+        )
+
+
+    except Exception:
+
+        raise RuntimeError(
+            "Claude returned an unexpected response."
+        )
+
+
+# ============================================================
+# CUSTOM / OPENAI-COMPATIBLE API
+# ============================================================
+
+def ask_custom(
+    messages,
+    model
+):
+
+    base_url = ai_base_url()
+
+
+    if not base_url:
+
+        raise RuntimeError(
+            "Custom AI provider has no API endpoint configured."
+        )
+
+
+    return openai_compatible_response(
+
+        base_url,
+
+        ai_api_key(),
+
+        model,
+
+        messages
+    )
+
+
+# ============================================================
+# UNIVERSAL AI ENGINE
+# ============================================================
+
+def ask_ai(
+    messages
+):
+
+    provider = ai_provider()
+
+    model = ai_model()
+
+    key = ai_api_key()
+
+
+    if not provider:
+
+        return (
+            "No AI provider has been configured yet."
+        )
+
+
+    if not key:
+
+        return (
+            "No AI API key has been configured yet."
+        )
+
+
+    if not model:
+
+        return (
+            "No AI model has been configured yet."
+        )
+
+
+    try:
+
+        if provider == "gemini":
+
+            return ask_gemini(
+                messages,
+                model
+            )
+
+
+        if provider == "openai":
+
+            return ask_openai(
+                messages,
+                model
+            )
+
+
+        if provider == "anthropic":
+
+            return ask_anthropic(
+                messages,
+                model
+            )
+
+
+        if provider == "openrouter":
+
+            return ask_openrouter(
+                messages,
+                model
+            )
+
+
+        if provider == "custom":
+
+            return ask_custom(
+                messages,
+                model
+            )
+
+
+        return (
+            "The configured AI provider is not supported."
+        )
+
+
+    except Exception as e:
+
+        print(
+            f"AI error [{provider}]: {e}"
+        )
+
+
+        return (
+            "I'm having trouble connecting "
+            "to my AI system."
+        )
 
 
 # ============================================================
@@ -203,6 +1213,7 @@ CONVERSATION_HISTORY = load_conversation_memory()
 # ============================================================
 
 CONTEXT_RECALL_PHRASES = (
+
     "remember what we were doing",
     "remember what we were working on",
     "what were we doing",
@@ -226,11 +1237,14 @@ CONTEXT_RECALL_PHRASES = (
 )
 
 
-def is_context_recall_question(question):
+def is_context_recall_question(
+    question
+):
 
     text = " ".join(
         question.lower().strip().split()
     )
+
 
     return any(
         phrase in text
@@ -238,117 +1252,225 @@ def is_context_recall_question(question):
     )
 
 
-def format_history_for_ai(limit=20):
+def format_history_for_ai(
+    limit=20
+):
 
-    recent = CONVERSATION_HISTORY[-limit:]
+    recent = (
+        CONVERSATION_HISTORY[-limit:]
+    )
+
 
     if not recent:
-        return "No previous JARVIS conversation is stored."
+
+        return (
+            "No previous JARVIS conversation is stored."
+        )
+
 
     lines = []
 
-    for index, (question, answer) in enumerate(recent, 1):
+
+    for index, (
+        question,
+        answer
+    ) in enumerate(
+        recent,
+        1
+    ):
 
         lines.append(
+
             f"{index}. User: {question}\n"
             f"   JARVIS: {answer}"
         )
 
-    return "\n".join(lines)
+
+    return "\n".join(
+        lines
+    )
 
 
-def ask_context_recall(question):
+def ask_context_recall(
+    question
+):
 
     if not CONVERSATION_HISTORY:
 
         return (
-            "I don't have any previous JARVIS conversation "
-            "stored yet, so I can't tell what we were doing."
+            "I don't have any previous JARVIS "
+            "conversation stored yet."
         )
+
 
     history = format_history_for_ai(
         limit=20
     )
 
-    try:
 
-        response = client.models.generate_content(
+    messages = [
 
-            model=MODEL,
+        {
+            "role": "system",
 
-            contents=(
-                "You are JARVIS answering a context-recall question. "
-                "Use ONLY the supplied JARVIS conversation history. "
-                "Identify the user's most recent actual task, topic, "
-                "or subject. Do not automatically say the JARVIS project. "
-                "If the recent conversation was about mathematics, say "
-                "the mathematics topic; if it was physics, coding, a "
-                "website, chemistry, etc., say that instead. "
-                "Prefer the latest substantive user task over greetings, "
-                "PC actions, or this recall question itself. "
-                "Mention the latest question/problem when it is clear. "
-                "Answer naturally in 1-3 concise sentences. "
-                "If the history does not contain enough information, say "
-                "that clearly instead of inventing a topic.\n\n"
+            "content": (
+                "You are JARVIS answering a "
+                "context-recall question. "
+                "Use ONLY the supplied JARVIS "
+                "conversation history. "
+                "Identify the user's most recent "
+                "actual task or topic. "
+                "Do not invent information. "
+                "Answer naturally in 1-3 concise sentences.\n\n"
                 "JARVIS CONVERSATION HISTORY:\n"
-                f"{history}\n\n"
-                f"CURRENT USER QUESTION: {question}"
+                f"{history}"
             )
-        )
+        },
 
-        answer = response.text.strip()
+        {
+            "role": "user",
 
-        if answer:
-            return answer
+            "content": question
+        }
+    ]
 
-    except Exception as e:
 
-        print(
-            f"Context recall error: {e}"
-        )
+    answer = ask_ai(
+        messages
+    )
 
-    # Safe local fallback if Gemini is unavailable.
-    last_question, last_answer = CONVERSATION_HISTORY[-1]
+
+    if answer:
+
+        return answer
+
+
+    last_question, _ = (
+        CONVERSATION_HISTORY[-1]
+    )
+
 
     return (
-        "The most recent thing I have in my JARVIS memory is: "
-        f"you asked, '{last_question}'."
+        "The most recent thing I have in "
+        "my JARVIS memory is that you asked: "
+        f"'{last_question}'."
     )
 
 
 # ============================================================
-# WEB JARVIS BRIDGE
+# WEB BRIDGE STATE
 # ============================================================
 
-BRIDGE_HOST = "127.0.0.1"
-BRIDGE_PORT = 8765
-
 edith_state = {
+
     "state": "ready",
-    "message": "JARVIS CORE // ONLINE"
+
+    "message":
+        "JARVIS CORE // ONLINE"
 }
+
 
 state_lock = threading.Lock()
 
 
-def set_state(state, message):
+def set_state(
+    state,
+    message
+):
 
     with state_lock:
+
         edith_state["state"] = state
+
         edith_state["message"] = message
 
+
     print(
-        f"WEB STATE → {state.upper()} | {message}"
+        f"WEB STATE → "
+        f"{state.upper()} | {message}"
     )
 
 
 # ============================================================
-# WINDOWS KEY CONTROL
+# WINDOWS KEYBOARD ENGINE
 # ============================================================
 
-def send_windows_key(vk_code):
+KEYEVENTF_KEYUP = 0x0002
 
-    KEYEVENTF_KEYUP = 0x0002
+
+VK = {
+
+    "backspace": 0x08,
+
+    "tab": 0x09,
+
+    "enter": 0x0D,
+
+    "shift": 0x10,
+
+    "ctrl": 0x11,
+
+    "alt": 0x12,
+
+    "escape": 0x1B,
+
+    "space": 0x20,
+
+    "left": 0x25,
+
+    "up": 0x26,
+
+    "right": 0x27,
+
+    "down": 0x28,
+
+    "home": 0x24,
+
+    "end": 0x23,
+
+    "pageup": 0x21,
+
+    "pagedown": 0x22,
+
+    "insert": 0x2D,
+
+    "delete": 0x2E,
+
+    "a": 0x41,
+
+    "c": 0x43,
+
+    "f": 0x46,
+
+    "l": 0x4C,
+
+    "r": 0x52,
+
+    "t": 0x54,
+
+    "v": 0x56,
+
+    "w": 0x57,
+
+    "x": 0x58,
+
+    "z": 0x5A,
+
+    "win": 0x5B,
+
+    "volume_down": 0xAE,
+
+    "volume_up": 0xAF,
+
+    "media_play_pause": 0xB3,
+
+    "snapshot": 0x2C
+}
+
+
+def key_down(
+    vk_code
+):
 
     ctypes.windll.user32.keybd_event(
         vk_code,
@@ -356,6 +1478,11 @@ def send_windows_key(vk_code):
         0,
         0
     )
+
+
+def key_up(
+    vk_code
+):
 
     ctypes.windll.user32.keybd_event(
         vk_code,
@@ -365,49 +1492,903 @@ def send_windows_key(vk_code):
     )
 
 
+def press_key(
+    vk_code
+):
+
+    key_down(
+        vk_code
+    )
+
+    time.sleep(
+        0.03
+    )
+
+    key_up(
+        vk_code
+    )
+
+
+def hotkey(
+    *keys
+):
+
+    codes = [
+
+        VK[key]
+        if isinstance(
+            key,
+            str
+        )
+        else key
+
+        for key in keys
+    ]
+
+
+    for code in codes:
+
+        key_down(
+            code
+        )
+
+
+    time.sleep(
+        0.05
+    )
+
+
+    for code in reversed(
+        codes
+    ):
+
+        key_up(
+            code
+        )
+
+
 # ============================================================
-# WINDOWS VOLUME CONTROL
+# WINDOWS VOLUME
 # ============================================================
 
 def windows_volume_up():
 
-    VK_VOLUME_UP = 0xAF
-
-    send_windows_key(
-        VK_VOLUME_UP
+    press_key(
+        VK["volume_up"]
     )
+
+    return True
 
 
 def windows_volume_down():
 
-    VK_VOLUME_DOWN = 0xAE
+    press_key(
+        VK["volume_down"]
+    )
 
-    send_windows_key(
-        VK_VOLUME_DOWN
+    return True
+
+
+# ============================================================
+# SCREENSHOT
+# ============================================================
+
+def windows_screenshot():
+
+    press_key(
+        VK["snapshot"]
+    )
+
+    print(
+        "SCREENSHOT → PRINT SCREEN"
+    )
+
+    return True
+
+
+# ============================================================
+# BROWSER NAVIGATION
+# ============================================================
+
+def browser_next_tab():
+
+    hotkey(
+        "ctrl",
+        "tab"
+    )
+
+    print(
+        "BROWSER → NEXT TAB"
+    )
+
+    return True
+
+
+def browser_previous_tab():
+
+    hotkey(
+        "ctrl",
+        "shift",
+        "tab"
+    )
+
+    print(
+        "BROWSER → PREVIOUS TAB"
+    )
+
+    return True
+
+
+def browser_new_tab():
+
+    hotkey(
+        "ctrl",
+        "t"
+    )
+
+    return True
+
+
+def browser_close_tab():
+
+    hotkey(
+        "ctrl",
+        "w"
+    )
+
+    return True
+
+
+def browser_back():
+
+    hotkey(
+        "alt",
+        "left"
+    )
+
+    return True
+
+
+def browser_forward():
+
+    hotkey(
+        "alt",
+        "right"
+    )
+
+    return True
+
+
+def browser_refresh():
+
+    hotkey(
+        "ctrl",
+        "r"
+    )
+
+    return True
+
+
+def browser_find():
+
+    hotkey(
+        "ctrl",
+        "f"
+    )
+
+    return True
+
+
+# ============================================================
+# WINDOW NAVIGATION
+# ============================================================
+
+def switch_window():
+
+    hotkey(
+        "alt",
+        "tab"
+    )
+
+    return True
+
+
+def close_current_window():
+
+    hotkey(
+        "alt",
+        "f4"
+    )
+
+    return True
+
+
+def maximize_window():
+
+    hotkey(
+        "win",
+        "up"
+    )
+
+    return True
+
+
+def minimize_window():
+
+    hotkey(
+        "win",
+        "down"
+    )
+
+    return True
+
+
+# ============================================================
+# SAFE URL HANDLING
+# ============================================================
+
+def normalize_url(
+    url
+):
+
+    url = url.strip()
+
+
+    if not url:
+
+        return None
+
+
+    if not re.match(
+        r"^https?://",
+        url,
+        re.IGNORECASE
+    ):
+
+        url = "https://" + url
+
+
+    parsed = urlparse(
+        url
+    )
+
+
+    if not parsed.netloc:
+
+        return None
+
+
+    return url
+
+
+def open_url(
+    url,
+    browser=None
+):
+
+    url = normalize_url(
+        url
+    )
+
+
+    if not url:
+
+        return False
+
+
+    if browser == "chrome":
+
+        executable = (
+            find_browser_executable(
+                "chrome"
+            )
+        )
+
+
+        if executable:
+
+            subprocess.Popen(
+
+                [
+                    executable,
+                    url
+                ],
+
+                creationflags=getattr(
+                    subprocess,
+                    "CREATE_NO_WINDOW",
+                    0
+                )
+            )
+
+            return True
+
+
+    if browser == "edge":
+
+        executable = (
+            find_browser_executable(
+                "edge"
+            )
+        )
+
+
+        if executable:
+
+            subprocess.Popen(
+
+                [
+                    executable,
+                    url
+                ],
+
+                creationflags=getattr(
+                    subprocess,
+                    "CREATE_NO_WINDOW",
+                    0
+                )
+            )
+
+            return True
+
+
+    return webbrowser.open(
+        url
     )
 
 
 # ============================================================
-# WINDOWS GLOBAL MEDIA SESSION CONTROL
+# BROWSER DISCOVERY
 # ============================================================
 
-def windows_media_session_command(action):
+def find_browser_executable(
+    browser
+):
 
-    """
-    Controls the currently active Windows media session.
+    candidates = []
 
-    Supported:
-        pause
-        play
 
-    The function:
-        1. Finds the current media session.
-        2. Reads its playback state.
-        3. Executes the requested Play/Pause command.
-        4. Uses proper Windows Runtime async handling.
-    """
+    if browser == "chrome":
+
+        candidates = [
+
+            os.path.expandvars(
+                r"%ProgramFiles%\Google\Chrome\Application\chrome.exe"
+            ),
+
+            os.path.expandvars(
+                r"%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe"
+            ),
+
+            os.path.expandvars(
+                r"%LocalAppData%\Google\Chrome\Application\chrome.exe"
+            )
+        ]
+
+
+    elif browser == "edge":
+
+        candidates = [
+
+            os.path.expandvars(
+                r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"
+            ),
+
+            os.path.expandvars(
+                r"%ProgramFiles%\Microsoft\Edge\Application\msedge.exe"
+            ),
+
+            os.path.expandvars(
+                r"%LocalAppData%\Microsoft\Edge\Application\msedge.exe"
+            )
+        ]
+
+
+    for path in candidates:
+
+        if os.path.isfile(
+            path
+        ):
+
+            return path
+
+
+    return shutil.which(
+
+        "chrome.exe"
+
+        if browser == "chrome"
+
+        else "msedge.exe"
+    )
+
+
+# ============================================================
+# COMMON WEBSITES
+# ============================================================
+
+WEBSITES = {
+
+    "youtube":
+        "https://www.youtube.com",
+
+    "google":
+        "https://www.google.com",
+
+    "gmail":
+        "https://mail.google.com",
+
+    "instagram":
+        "https://www.instagram.com",
+
+    "facebook":
+        "https://www.facebook.com",
+
+    "github":
+        "https://github.com",
+
+    "chatgpt":
+        "https://chatgpt.com",
+
+    "claude":
+        "https://claude.ai"
+}
+
+
+def open_website(
+    site,
+    browser=None
+):
+
+    site = site.lower().strip()
+
+
+    url = WEBSITES.get(
+        site
+    )
+
+
+    if not url:
+
+        return False
+
+
+    return open_url(
+        url,
+        browser
+    )
+
+
+# ============================================================
+# SEARCH
+# ============================================================
+
+def google_search(
+    query,
+    browser=None
+):
+
+    query = query.strip()
+
+
+    if not query:
+
+        return False
+
+
+    url = (
+        "https://www.google.com/search?q="
+        + quote_plus(query)
+    )
+
+
+    return open_url(
+        url,
+        browser
+    )
+
+
+def youtube_search(
+    query,
+    browser=None
+):
+
+    query = query.strip()
+
+
+    if not query:
+
+        return False
+
+
+    url = (
+        "https://www.youtube.com/results?search_query="
+        + quote_plus(query)
+    )
+
+
+    return open_url(
+        url,
+        browser
+    )
+
+
+# ============================================================
+# SAFE APP LAUNCHING
+# ============================================================
+
+def launch_application(
+    app
+):
+
+    app = app.lower().strip()
+
+
+    if app == "chrome":
+
+        executable = (
+            find_browser_executable(
+                "chrome"
+            )
+        )
+
+
+        if executable:
+
+            subprocess.Popen(
+                [executable]
+            )
+
+            return True
+
+
+        return False
+
+
+    if app == "edge":
+
+        executable = (
+            find_browser_executable(
+                "edge"
+            )
+        )
+
+
+        if executable:
+
+            subprocess.Popen(
+                [executable]
+            )
+
+            return True
+
+
+        return False
+
+
+    if app == "notepad":
+
+        subprocess.Popen(
+            ["notepad.exe"]
+        )
+
+        return True
+
+
+    if app == "calculator":
+
+        subprocess.Popen(
+            ["calc.exe"]
+        )
+
+        return True
+
+
+    if app in (
+        "file explorer",
+        "explorer",
+        "files"
+    ):
+
+        subprocess.Popen(
+            ["explorer.exe"]
+        )
+
+        return True
+
+
+    return False
+
+
+# ============================================================
+# SAFE FOLDER OPENING
+# ============================================================
+
+def open_folder(
+    path
+):
+
+    path = os.path.expandvars(
+        os.path.expanduser(
+            path
+        )
+    )
+
+
+    if not os.path.isdir(
+        path
+    ):
+
+        return False
+
+
+    subprocess.Popen(
+        [
+            "explorer.exe",
+            path
+        ]
+    )
+
+
+    return True
+
+
+def common_folder(
+    name
+):
+
+    home = os.path.expanduser(
+        "~"
+    )
+
+
+    folders = {
+
+        "desktop":
+            os.path.join(
+                home,
+                "Desktop"
+            ),
+
+        "documents":
+            os.path.join(
+                home,
+                "Documents"
+            ),
+
+        "downloads":
+            os.path.join(
+                home,
+                "Downloads"
+            ),
+
+        "pictures":
+            os.path.join(
+                home,
+                "Pictures"
+            ),
+
+        "videos":
+            os.path.join(
+                home,
+                "Videos"
+            ),
+
+        "music":
+            os.path.join(
+                home,
+                "Music"
+            )
+    }
+
+
+    return folders.get(
+        name.lower()
+    )
+
+
+# ============================================================
+# SAFE FILE SEARCH
+# ============================================================
+
+def search_files(
+    query,
+    max_results=20
+):
+
+    query = query.lower().strip()
+
+
+    if not query:
+
+        return []
+
+
+    home = os.path.expanduser(
+        "~"
+    )
+
+
+    roots = [
+
+        os.path.join(
+            home,
+            "Desktop"
+        ),
+
+        os.path.join(
+            home,
+            "Documents"
+        ),
+
+        os.path.join(
+            home,
+            "Downloads"
+        ),
+
+        os.path.join(
+            home,
+            "Pictures"
+        ),
+
+        os.path.join(
+            home,
+            "Videos"
+        ),
+
+        os.path.join(
+            home,
+            "Music"
+        )
+    ]
+
+
+    results = []
+
+
+    for root in roots:
+
+        if not os.path.isdir(
+            root
+        ):
+
+            continue
+
+
+        for current_root, dirs, files in os.walk(
+            root,
+            topdown=True
+        ):
+
+            dirs[:] = [
+
+                d for d in dirs
+
+                if not d.startswith(".")
+
+                and d.lower() not in (
+                    "appdata",
+                    "node_modules",
+                    "__pycache__"
+                )
+            ]
+
+
+            for filename in files:
+
+                if query in filename.lower():
+
+                    results.append(
+                        os.path.join(
+                            current_root,
+                            filename
+                        )
+                    )
+
+
+                    if len(
+                        results
+                    ) >= max_results:
+
+                        return results
+
+
+    return results
+
+
+def open_file(
+    path
+):
+
+    path = os.path.expandvars(
+        os.path.expanduser(
+            path
+        )
+    )
+
+
+    if not os.path.isfile(
+        path
+    ):
+
+        return False
+
+
+    os.startfile(
+        path
+    )
+
+
+    return True
+
+
+# ============================================================
+# FILE COMMAND EXTRACTION
+# ============================================================
+
+def extract_explicit_path(
+    command
+):
+
+    quoted = re.findall(
+        r'"([^"]+)"',
+        command
+    )
+
+
+    for item in quoted:
+
+        expanded = os.path.expandvars(
+            os.path.expanduser(
+                item
+            )
+        )
+
+
+        if os.path.isfile(
+            expanded
+        ):
+
+            return expanded
+
+
+    match = re.search(
+
+        r'([A-Za-z]:\\[^<>:"|?*\r\n]+)',
+
+        command
+    )
+
+
+    if match:
+
+        path = os.path.expandvars(
+            os.path.expanduser(
+                match.group(1).strip()
+            )
+        )
+
+
+        if os.path.isfile(
+            path
+        ):
+
+            return path
+
+
+    return None
+
+
+# ============================================================
+# MEDIA SESSION
+# ============================================================
+
+def windows_media_session_command(
+    action
+):
 
     action = action.lower().strip()
+
 
     if action not in (
         "pause",
@@ -424,13 +2405,17 @@ try {
 
     Add-Type -AssemblyName System.Runtime.WindowsRuntime
 
-    $managerType = [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager, Windows, ContentType=WindowsRuntime]
+    $managerType =
+        [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager,
+        Windows,
+        ContentType=WindowsRuntime]
 
     $request = $managerType::RequestAsync()
 
-    $manager = [System.WindowsRuntimeSystemExtensions]::AsTask(
-        $request
-    ).GetAwaiter().GetResult()
+    $manager =
+        [System.WindowsRuntimeSystemExtensions]::AsTask(
+            $request
+        ).GetAwaiter().GetResult()
 
     if ($null -eq $manager) {
         exit 2
@@ -442,93 +2427,54 @@ try {
         exit 2
     }
 
-    $playbackInfo = $session.GetPlaybackInfo()
-
-    if ($null -eq $playbackInfo) {
-        exit 4
-    }
-
-    $status = $playbackInfo.PlaybackStatus.ToString()
-
-    Write-Output "STATUS=$status"
-
     $operation = $null
 
     if ("ACTION" -eq "pause") {
 
-        if ($status -eq "Playing") {
-
-            $operation = $session.TryPauseAsync()
-
-        }
-        elseif (
-            $status -eq "Paused" -or
-            $status -eq "Stopped"
-        ) {
-
-            Write-Output "ALREADY_NOT_PLAYING"
-            exit 0
-
-        }
-        else {
-
-            $operation = $session.TryPauseAsync()
-        }
+        $operation = $session.TryPauseAsync()
 
     }
     elseif ("ACTION" -eq "play") {
 
-        if ($status -eq "Paused" -or $status -eq "Stopped") {
+        $operation = $session.TryPlayAsync()
 
-            $operation = $session.TryPlayAsync()
-
-        }
-        elseif ($status -eq "Playing") {
-
-            Write-Output "ALREADY_PLAYING"
-            exit 0
-
-        }
-        else {
-
-            $operation = $session.TryPlayAsync()
-        }
     }
 
     if ($null -eq $operation) {
         exit 4
     }
 
-    $result = [System.WindowsRuntimeSystemExtensions]::AsTask(
-        $operation
-    ).GetAwaiter().GetResult()
+    $result =
+        [System.WindowsRuntimeSystemExtensions]::AsTask(
+            $operation
+        ).GetAwaiter().GetResult()
 
     if ($result) {
-        Write-Output "COMMAND_SUCCESS"
         exit 0
     }
-    else {
-        Write-Output "COMMAND_FAILED"
-        exit 3
-    }
+
+    exit 3
 
 }
 catch {
 
-    Write-Error $_.Exception.Message
     exit 5
 }
 '''
 
-    powershell_script = powershell_script.replace(
-        "ACTION",
-        action
+
+    powershell_script = (
+        powershell_script.replace(
+            "ACTION",
+            action
+        )
     )
 
 
     try:
 
         result = subprocess.run(
+
             [
                 "powershell.exe",
                 "-NoProfile",
@@ -538,9 +2484,13 @@ catch {
                 "-Command",
                 powershell_script
             ],
+
             capture_output=True,
+
             text=True,
+
             timeout=5,
+
             creationflags=getattr(
                 subprocess,
                 "CREATE_NO_WINDOW",
@@ -549,486 +2499,1679 @@ catch {
         )
 
 
-        output = (
-            result.stdout.strip()
-            if result.stdout
-            else ""
+        return (
+            result.returncode == 0
         )
-
-
-        if result.returncode == 0:
-
-            print(
-                f"WINDOWS MEDIA → {action.upper()}"
-            )
-
-            if output:
-                print(
-                    f"MEDIA STATUS → {output}"
-                )
-
-            return True
-
-
-        if result.returncode == 2:
-
-            print(
-                "No active Windows media session found."
-            )
-
-            return False
-
-
-        if result.stderr:
-
-            print(
-                "Windows media error:"
-            )
-
-            print(
-                result.stderr.strip()
-            )
-
-        elif output:
-
-            print(
-                f"Windows media response: {output}"
-            )
-
-        else:
-
-            print(
-                f"Windows could not execute "
-                f"{action.upper()}."
-            )
-
-        return False
-
-
-    except subprocess.TimeoutExpired:
-
-        print(
-            "Windows media command timed out."
-        )
-
-        return False
 
 
     except Exception as e:
 
         print(
-            f"Windows media control error: {e}"
+            f"Media session error: {e}"
         )
 
         return False
 
 
 # ============================================================
-# MEDIA KEY FALLBACK
+# MEDIA COMMANDS
 # ============================================================
 
-def windows_media_key_toggle():
-
-    """
-    Emergency Windows media-key fallback.
-
-    This is only used when explicitly requested by the
-    helper below. The key itself is a toggle.
-    """
-
-    try:
-
-        VK_MEDIA_PLAY_PAUSE = 0xB3
-
-        send_windows_key(
-            VK_MEDIA_PLAY_PAUSE
-        )
-
-        print(
-            "WINDOWS MEDIA KEY → PLAY/PAUSE TOGGLE"
-        )
-
-        return True
-
-    except Exception as e:
-
-        print(
-            f"Media key error: {e}"
-        )
-
-        return False
-
-
-# ============================================================
-# SCREENSHOT CONTROL
-# ============================================================
-
-def windows_screenshot():
-
-    """
-    Uses the Windows Print Screen key.
-
-    The screenshot is handled by Windows.
-    """
-
-    try:
-
-        VK_SNAPSHOT = 0x2C
-
-        send_windows_key(
-            VK_SNAPSHOT
-        )
-
-        print(
-            "SCREENSHOT → PRINT SCREEN"
-        )
-
-        return True
-
-    except Exception as e:
-
-        print(
-            f"Screenshot error: {e}"
-        )
-
-        return False
-
-
-# ============================================================
-# BROWSER TAB CONTROL
-# ============================================================
-
-def browser_next_tab():
-
-    """
-    Ctrl + Tab
-
-    RIGHT → LEFT HAND SWIPE
-    = NEXT BROWSER TAB
-    """
-
-    try:
-
-        VK_CONTROL = 0x11
-        VK_TAB = 0x09
-
-        KEYEVENTF_KEYUP = 0x0002
-
-        ctypes.windll.user32.keybd_event(
-            VK_CONTROL,
-            0,
-            0,
-            0
-        )
-
-        ctypes.windll.user32.keybd_event(
-            VK_TAB,
-            0,
-            0,
-            0
-        )
-
-        ctypes.windll.user32.keybd_event(
-            VK_TAB,
-            0,
-            KEYEVENTF_KEYUP,
-            0
-        )
-
-        ctypes.windll.user32.keybd_event(
-            VK_CONTROL,
-            0,
-            KEYEVENTF_KEYUP,
-            0
-        )
-
-        print(
-            "BROWSER → NEXT TAB"
-        )
-
-        return True
-
-    except Exception as e:
-
-        print(
-            f"Next tab error: {e}"
-        )
-
-        return False
-
-
-def browser_previous_tab():
-
-    """
-    Ctrl + Shift + Tab
-
-    LEFT → RIGHT HAND SWIPE
-    = PREVIOUS BROWSER TAB
-    """
-
-    try:
-
-        VK_CONTROL = 0x11
-        VK_SHIFT = 0x10
-        VK_TAB = 0x09
-
-        KEYEVENTF_KEYUP = 0x0002
-
-        ctypes.windll.user32.keybd_event(
-            VK_CONTROL,
-            0,
-            0,
-            0
-        )
-
-        ctypes.windll.user32.keybd_event(
-            VK_SHIFT,
-            0,
-            0,
-            0
-        )
-
-        ctypes.windll.user32.keybd_event(
-            VK_TAB,
-            0,
-            0,
-            0
-        )
-
-        ctypes.windll.user32.keybd_event(
-            VK_TAB,
-            0,
-            KEYEVENTF_KEYUP,
-            0
-        )
-
-        ctypes.windll.user32.keybd_event(
-            VK_SHIFT,
-            0,
-            KEYEVENTF_KEYUP,
-            0
-        )
-
-        ctypes.windll.user32.keybd_event(
-            VK_CONTROL,
-            0,
-            KEYEVENTF_KEYUP,
-            0
-        )
-
-        print(
-            "BROWSER → PREVIOUS TAB"
-        )
-
-        return True
-
-    except Exception as e:
-
-        print(
-            f"Previous tab error: {e}"
-        )
-
-        return False
-
-
-# ============================================================
-# MEDIA COMMAND HANDLER
-# ============================================================
-
-def handle_media_command(action):
+def handle_media_command(
+    action
+):
 
     action = action.lower().strip()
 
 
-    allowed_actions = (
-        "pause",
-        "play",
-        "volume_up",
-        "volume_down",
-        "screenshot",
-        "next_tab",
-        "previous_tab"
-    )
+    if action == "pause":
 
-
-    if action not in allowed_actions:
-
-        return False
-
-
-    try:
-
-        # ====================================================
-        # PAUSE
-        # ====================================================
-
-        if action == "pause":
-
-            success = windows_media_session_command(
-                "pause"
-            )
-
-            if success:
-
-                print(
-                    "OPEN PALM → PAUSE ONLY"
-                )
-
-            else:
-
-                print(
-                    "OPEN PALM → PAUSE FAILED"
-                )
-
-            return success
-
-
-        # ====================================================
-        # PLAY
-        # ====================================================
-
-        elif action == "play":
-
-            success = windows_media_session_command(
-                "play"
-            )
-
-            if success:
-
-                print(
-                    "CLOSED FIST → PLAY ONLY"
-                )
-
-            else:
-
-                print(
-                    "CLOSED FIST → PLAY FAILED"
-                )
-
-            return success
-
-
-        # ====================================================
-        # VOLUME UP
-        # ====================================================
-
-        elif action == "volume_up":
-
-            windows_volume_up()
-
-            print(
-                "THUMB UP → VOLUME UP ONLY"
-            )
-
-            return True
-
-
-        # ====================================================
-        # VOLUME DOWN
-        # ====================================================
-
-        elif action == "volume_down":
-
-            windows_volume_down()
-
-            print(
-                "THUMB DOWN → VOLUME DOWN ONLY"
-            )
-
-            return True
-
-
-        # ====================================================
-        # SCREENSHOT
-        # ====================================================
-
-        elif action == "screenshot":
-
-            success = windows_screenshot()
-
-            if success:
-
-                print(
-                    "TWO FINGERS → SCREENSHOT ONLY"
-                )
-
-            return success
-
-
-        # ====================================================
-        # NEXT TAB
-        # ====================================================
-
-        elif action == "next_tab":
-
-            success = browser_next_tab()
-
-            if success:
-
-                print(
-                    "SWIPE RIGHT → LEFT → NEXT TAB"
-                )
-
-            return success
-
-
-        # ====================================================
-        # PREVIOUS TAB
-        # ====================================================
-
-        elif action == "previous_tab":
-
-            success = browser_previous_tab()
-
-            if success:
-
-                print(
-                    "SWIPE LEFT → RIGHT → PREVIOUS TAB"
-                )
-
-            return success
-
-
-    except Exception as e:
-
-        print(
-            f"Media control error: {e}"
+        return windows_media_session_command(
+            "pause"
         )
 
-        return False
+
+    if action == "play":
+
+        return windows_media_session_command(
+            "play"
+        )
+
+
+    if action == "volume_up":
+
+        return windows_volume_up()
+
+
+    if action == "volume_down":
+
+        return windows_volume_down()
+
+
+    if action == "screenshot":
+
+        return windows_screenshot()
+
+
+    if action == "next_tab":
+
+        return browser_next_tab()
+
+
+    if action == "previous_tab":
+
+        return browser_previous_tab()
 
 
     return False
 
 
 # ============================================================
-# WEB BRIDGE HANDLER
+# TEXT TYPING
 # ============================================================
 
-class EdithBridgeHandler(BaseHTTPRequestHandler):
+def type_text(
+    text
+):
+
+    if not text:
+
+        return False
+
+
+    user32 = ctypes.windll.user32
+
+    KEYEVENTF_UNICODE = 0x0004
+
+
+    for char in text:
+
+        code = ord(char)
+
+
+        user32.keybd_event(
+            0,
+            code,
+            KEYEVENTF_UNICODE,
+            0
+        )
+
+
+        user32.keybd_event(
+            0,
+            code,
+            KEYEVENTF_UNICODE |
+            KEYEVENTF_KEYUP,
+            0
+        )
+
+
+        time.sleep(
+            0.003
+        )
+
+
+    return True
+
+
+# ============================================================
+# SAFE COMMAND ROUTER
+# ============================================================
+
+def pc_action(
+    command
+):
+
+    cmd = command.lower().strip()
+
+
+    destructive_patterns = (
+
+        r"\bdelete\b",
+        r"\berase\b",
+        r"\bremove file\b",
+        r"\bformat\b",
+        r"\buninstall\b",
+        r"\bshutdown\b",
+        r"\brestart\b",
+        r"\breboot\b",
+        r"\bfactory reset\b",
+        r"\breset windows\b",
+        r"\bkill all\b",
+        r"\bterminate all\b",
+        r"\bdisable antivirus\b",
+        r"\bdisable defender\b",
+        r"\bchange registry\b",
+        r"\bedit registry\b"
+    )
+
+
+    for pattern in destructive_patterns:
+
+        if re.search(
+            pattern,
+            cmd
+        ):
+
+            speak(
+                "I won't perform destructive system actions."
+            )
+
+            return True
+
+
+    # --------------------------------------------------------
+    # MEDIA
+    # --------------------------------------------------------
+
+    if any(
+        phrase in cmd
+        for phrase in (
+            "pause",
+            "pause the music",
+            "pause video"
+        )
+    ):
+
+        if handle_media_command(
+            "pause"
+        ):
+
+            speak(
+                "Paused."
+            )
+
+            return True
+
+
+    if any(
+        phrase in cmd
+        for phrase in (
+            "play",
+            "resume",
+            "resume the music",
+            "resume video"
+        )
+    ):
+
+        if handle_media_command(
+            "play"
+        ):
+
+            speak(
+                "Playing."
+            )
+
+            return True
+
+
+    if (
+        "volume up" in cmd
+        or "increase volume" in cmd
+        or "turn volume up" in cmd
+    ):
+
+        handle_media_command(
+            "volume_up"
+        )
+
+        speak(
+            "Volume increased."
+        )
+
+        return True
+
+
+    if (
+        "volume down" in cmd
+        or "decrease volume" in cmd
+        or "turn volume down" in cmd
+    ):
+
+        handle_media_command(
+            "volume_down"
+        )
+
+        speak(
+            "Volume decreased."
+        )
+
+        return True
+
+
+    if (
+        "take a screenshot" in cmd
+        or "take screenshot" in cmd
+        or "screenshot" == cmd
+    ):
+
+        handle_media_command(
+            "screenshot"
+        )
+
+        speak(
+            "Screenshot taken."
+        )
+
+        return True
+
+
+    # --------------------------------------------------------
+    # BROWSER
+    # --------------------------------------------------------
+
+    if (
+        "next tab" in cmd
+        or "next browser tab" in cmd
+    ):
+
+        browser_next_tab()
+
+        speak(
+            "Next tab."
+        )
+
+        return True
+
+
+    if (
+        "previous tab" in cmd
+        or "previous browser tab" in cmd
+    ):
+
+        browser_previous_tab()
+
+        speak(
+            "Previous tab."
+        )
+
+        return True
+
+
+    if (
+        "new tab" in cmd
+        or "open a new tab" in cmd
+    ):
+
+        browser_new_tab()
+
+        speak(
+            "New tab."
+        )
+
+        return True
+
+
+    if (
+        "close this tab" in cmd
+        or "close the tab" in cmd
+    ):
+
+        browser_close_tab()
+
+        speak(
+            "Tab closed."
+        )
+
+        return True
+
+
+    if cmd in (
+        "go back",
+        "back",
+        "browser back"
+    ):
+
+        browser_back()
+
+        speak(
+            "Going back."
+        )
+
+        return True
+
+
+    if cmd in (
+        "go forward",
+        "forward",
+        "browser forward"
+    ):
+
+        browser_forward()
+
+        speak(
+            "Going forward."
+        )
+
+        return True
+
+
+    if (
+        "refresh page" in cmd
+        or cmd == "refresh"
+    ):
+
+        browser_refresh()
+
+        speak(
+            "Refreshing."
+        )
+
+        return True
+
+
+    # --------------------------------------------------------
+    # WINDOW
+    # --------------------------------------------------------
+
+    if cmd in (
+        "switch window",
+        "switch app",
+        "switch applications"
+    ):
+
+        switch_window()
+
+        speak(
+            "Switching."
+        )
+
+        return True
+
+
+    if (
+        "close this window" in cmd
+        or cmd == "close window"
+    ):
+
+        close_current_window()
+
+        speak(
+            "Window closed."
+        )
+
+        return True
+
+
+    if (
+        "maximize window" in cmd
+        or cmd == "maximize"
+    ):
+
+        maximize_window()
+
+        speak(
+            "Maximized."
+        )
+
+        return True
+
+
+    if (
+        "minimize window" in cmd
+        or cmd == "minimize"
+    ):
+
+        minimize_window()
+
+        speak(
+            "Minimized."
+        )
+
+        return True
+
+
+    # --------------------------------------------------------
+    # KEYBOARD
+    # --------------------------------------------------------
+
+    keyboard_actions = {
+
+        "press enter":
+            ("enter", "Enter pressed."),
+
+        "press escape":
+            ("escape", "Escape pressed."),
+
+        "press tab":
+            ("tab", "Tab pressed."),
+
+        "copy":
+            ("copy", "Copied."),
+
+        "paste":
+            ("paste", "Pasted."),
+
+        "cut":
+            ("cut", "Cut."),
+
+        "select all":
+            ("selectall", "Selected all."),
+
+        "undo":
+            ("undo", "Undone."),
+
+        "find":
+            ("find", "Find opened.")
+    }
+
+
+    if cmd in keyboard_actions:
+
+        action, response = (
+            keyboard_actions[cmd]
+        )
+
+
+        if action == "enter":
+
+            press_key(
+                VK["enter"]
+            )
+
+
+        elif action == "escape":
+
+            press_key(
+                VK["escape"]
+            )
+
+
+        elif action == "tab":
+
+            press_key(
+                VK["tab"]
+            )
+
+
+        elif action == "copy":
+
+            hotkey(
+                "ctrl",
+                "c"
+            )
+
+
+        elif action == "paste":
+
+            hotkey(
+                "ctrl",
+                "v"
+            )
+
+
+        elif action == "cut":
+
+            hotkey(
+                "ctrl",
+                "x"
+            )
+
+
+        elif action == "selectall":
+
+            hotkey(
+                "ctrl",
+                "a"
+            )
+
+
+        elif action == "undo":
+
+            hotkey(
+                "ctrl",
+                "z"
+            )
+
+
+        elif action == "find":
+
+            browser_find()
+
+
+        speak(
+            response
+        )
+
+        return True
+
+
+    # --------------------------------------------------------
+    # TYPE TEXT
+    # --------------------------------------------------------
+
+    type_match = re.match(
+
+        r'^(?:type|write)\s+["\'](.+)["\']$',
+
+        command,
+
+        re.IGNORECASE
+    )
+
+
+    if type_match:
+
+        text = type_match.group(
+            1
+        )
+
+
+        type_text(
+            text
+        )
+
+
+        speak(
+            "Done."
+        )
+
+
+        return True
+
+
+    # --------------------------------------------------------
+    # EXACT FILE
+    # --------------------------------------------------------
+
+    explicit_path = (
+        extract_explicit_path(
+            command
+        )
+    )
+
+
+    if explicit_path:
+
+        if open_file(
+            explicit_path
+        ):
+
+            speak(
+                "Opening the file."
+            )
+
+        else:
+
+            speak(
+                "I couldn't open that file."
+            )
+
+
+        return True
+
+
+    # --------------------------------------------------------
+    # FOLDERS
+    # --------------------------------------------------------
+
+    for folder_name in (
+
+        "desktop",
+        "documents",
+        "downloads",
+        "pictures",
+        "videos",
+        "music"
+    ):
+
+        if (
+            folder_name in cmd
+            and (
+                "open" in cmd
+                or "show" in cmd
+                or "go to" in cmd
+            )
+        ):
+
+            path = common_folder(
+                folder_name
+            )
+
+
+            if (
+                path
+                and open_folder(path)
+            ):
+
+                speak(
+                    f"Opening {folder_name}."
+                )
+
+                return True
+
+
+    # --------------------------------------------------------
+    # FILE SEARCH
+    # --------------------------------------------------------
+
+    search_file_match = re.search(
+
+        r"(?:find|search for|look for|locate)\s+"
+        r"(?:my\s+)?(.+?)"
+        r"(?:\s+file|\s+document|\s+pdf)?$",
+
+        command,
+
+        re.IGNORECASE
+    )
+
+
+    if search_file_match:
+
+        query = (
+            search_file_match
+            .group(1)
+            .strip()
+        )
+
+
+        results = search_files(
+            query
+        )
+
+
+        if not results:
+
+            speak(
+                f"I couldn't find a file "
+                f"matching {query}."
+            )
+
+            return True
+
+
+        if len(results) == 1:
+
+            speak(
+                "I found it. Opening "
+                f"{os.path.basename(results[0])}."
+            )
+
+
+            open_file(
+                results[0]
+            )
+
+
+            return True
+
+
+        best = results[0]
+
+
+        speak(
+
+            f"I found {len(results)} matches. "
+            f"Opening {os.path.basename(best)}."
+        )
+
+
+        open_file(
+            best
+        )
+
+
+        return True
+
+
+    # --------------------------------------------------------
+    # GOOGLE SEARCH
+    # --------------------------------------------------------
+
+    google_match = re.search(
+
+        r"(?:search google for|google search for|search google)\s+(.+)",
+
+        command,
+
+        re.IGNORECASE
+    )
+
+
+    if google_match:
+
+        query = (
+            google_match
+            .group(1)
+            .strip()
+        )
+
+
+        google_search(
+            query
+        )
+
+
+        speak(
+            f"Searching Google for {query}."
+        )
+
+
+        return True
+
+
+    # --------------------------------------------------------
+    # YOUTUBE SEARCH
+    # --------------------------------------------------------
+
+    youtube_match = re.search(
+
+        r"(?:search youtube for|search youtube|find on youtube)\s+(.+)",
+
+        command,
+
+        re.IGNORECASE
+    )
+
+
+    if youtube_match:
+
+        query = (
+            youtube_match
+            .group(1)
+            .strip()
+        )
+
+
+        youtube_search(
+            query
+        )
+
+
+        speak(
+            f"Searching YouTube for {query}."
+        )
+
+
+        return True
+
+
+    # --------------------------------------------------------
+    # URL
+    # --------------------------------------------------------
+
+    url_match = re.search(
+
+        r"(https?://[^\s]+|www\.[^\s]+)",
+
+        command,
+
+        re.IGNORECASE
+    )
+
+
+    if url_match:
+
+        url = url_match.group(
+            1
+        )
+
+
+        browser = None
+
+
+        if "edge" in cmd:
+
+            browser = "edge"
+
+
+        elif "chrome" in cmd:
+
+            browser = "chrome"
+
+
+        open_url(
+            url,
+            browser
+        )
+
+
+        speak(
+            "Opening the website."
+        )
+
+
+        return True
+
+
+    # --------------------------------------------------------
+    # WEBSITES
+    # --------------------------------------------------------
+
+    for site in WEBSITES:
+
+        if site in cmd:
+
+            browser = None
+
+
+            if "edge" in cmd:
+
+                browser = "edge"
+
+
+            elif "chrome" in cmd:
+
+                browser = "chrome"
+
+
+            if (
+                "open" in cmd
+                or "launch" in cmd
+                or "start" in cmd
+                or "go to" in cmd
+            ):
+
+                if open_website(
+                    site,
+                    browser
+                ):
+
+                    speak(
+                        f"Opening {site}."
+                    )
+
+
+                    return True
+
+
+    # --------------------------------------------------------
+    # APPLICATIONS
+    # --------------------------------------------------------
+
+    app_aliases = {
+
+        "chrome":
+            "chrome",
+
+        "google chrome":
+            "chrome",
+
+        "edge":
+            "edge",
+
+        "microsoft edge":
+            "edge",
+
+        "notepad":
+            "notepad",
+
+        "calculator":
+            "calculator",
+
+        "calc":
+            "calculator",
+
+        "file explorer":
+            "file explorer",
+
+        "explorer":
+            "file explorer",
+
+        "files":
+            "file explorer"
+    }
+
+
+    for phrase, app in (
+        app_aliases.items()
+    ):
+
+        if (
+            phrase in cmd
+            and (
+                "open" in cmd
+                or "launch" in cmd
+                or "start" in cmd
+            )
+        ):
+
+            if launch_application(
+                app
+            ):
+
+                speak(
+                    f"Opening {phrase}."
+                )
+
+            else:
+
+                speak(
+                    f"I couldn't find "
+                    f"{phrase} on this PC."
+                )
+
+
+            return True
+
+
+    # --------------------------------------------------------
+    # SCROLL
+    # --------------------------------------------------------
+
+    if (
+        "scroll down" in cmd
+        or "scroll lower" in cmd
+    ):
+
+        press_key(
+            VK["pagedown"]
+        )
+
+
+        speak(
+            "Scrolling down."
+        )
+
+
+        return True
+
+
+    if (
+        "scroll up" in cmd
+        or "scroll higher" in cmd
+    ):
+
+        press_key(
+            VK["pageup"]
+        )
+
+
+        speak(
+            "Scrolling up."
+        )
+
+
+        return True
+
+
+    return False
+
+
+# ============================================================
+# WEB BRIDGE
+# ============================================================
+
+
+# ============================================================
+# HAND TRACKING / GESTURE CONTROL
+# ============================================================
+
+def update_hand_state(**values):
+    with hand_state_lock:
+        hand_state.update(values)
+
+
+def _hand_finger_count(landmarks):
+    """Return extended index/middle/ring/pinky count using image-space landmarks."""
+    count = 0
+    for tip_id, pip_id in ((8, 6), (12, 10), (16, 14), (20, 18)):
+        if landmarks[tip_id].y < landmarks[pip_id].y:
+            count += 1
+    return count
+
+
+def _hand_thumb_extended(landmarks):
+    # Thumb extension is estimated by its distance from the index MCP.
+    tip = landmarks[4]
+    ip = landmarks[3]
+    mcp = landmarks[2]
+    index_mcp = landmarks[5]
+    tip_distance = ((tip.x - index_mcp.x) ** 2 + (tip.y - index_mcp.y) ** 2) ** 0.5
+    mcp_distance = ((mcp.x - index_mcp.x) ** 2 + (mcp.y - index_mcp.y) ** 2) ** 0.5
+    return tip_distance > mcp_distance * 1.35 and (
+        abs(tip.x - ip.x) + abs(tip.y - ip.y) > 0.025
+    )
+
+
+def classify_hand_gesture(landmarks):
+    """Classify the supported static hand poses."""
+    extended = _hand_finger_count(landmarks)
+    thumb = _hand_thumb_extended(landmarks)
+
+    if extended == 0 and not thumb:
+        return "fist"
+    if extended == 4:
+        return "open_palm"
+    if extended == 2 and not thumb:
+        return "two_fingers"
+    if extended == 0 and thumb:
+        # Image y increases downward.
+        return "thumb_up" if landmarks[4].y < landmarks[3].y else "thumb_down"
+    return "none"
+
+
+def _perform_hand_action(gesture):
+    """Map confirmed gestures to the existing safe media-control functions."""
+    actions = {
+        "fist": ("play", "Playing."),
+        "open_palm": ("pause", "Paused."),
+        "thumb_up": ("volume_up", "Volume increased."),
+        "thumb_down": ("volume_down", "Volume decreased."),
+        "two_fingers": ("screenshot", "Screenshot captured.")
+    }
+    item = actions.get(gesture)
+    if not item:
+        return False
+
+    action, label = item
+    success = handle_media_command(action)
+    if success:
+        update_hand_state(last_action=action)
+        print(f"HAND GESTURE → {gesture.upper()} | {label}")
+    else:
+        print(f"HAND GESTURE → {gesture.upper()} | action unavailable")
+    return bool(success)
+
+
+def hand_tracking_loop():
+    """Run MediaPipe Tasks in a dedicated camera thread."""
+    if not HAND_TRACKING_ENABLED:
+        update_hand_state(enabled=False, running=False, error="Disabled by configuration")
+        return
+
+    if not HAND_TRACKING_AVAILABLE:
+        update_hand_state(
+            available=False,
+            running=False,
+            error=HAND_TRACKING_IMPORT_ERROR or "OpenCV/MediaPipe import failed"
+        )
+        print(f"HAND TRACKING unavailable: {HAND_TRACKING_IMPORT_ERROR}")
+        return
+
+    if not os.path.isfile(HAND_MODEL_PATH):
+        message = f"Hand model not found: {HAND_MODEL_PATH}"
+        update_hand_state(running=False, error=message)
+        print(f"HAND TRACKING unavailable: {message}")
+        return
+
+    camera = None
+    landmarker = None
+    window_name = "J.A.R.V.I.S. Hand Tracking"
+    last_action_time = 0.0
+    candidate = "none"
+    candidate_frames = 0
+    last_swipe_x = None
+    last_swipe_time = 0.0
+    recent_wrist_positions = []
+
+    try:
+        base_options = mp_python.BaseOptions(model_asset_path=HAND_MODEL_PATH)
+        options = mp_vision.HandLandmarkerOptions(
+            base_options=base_options,
+            running_mode=mp_vision.RunningMode.VIDEO,
+            num_hands=1,
+            min_hand_detection_confidence=0.55,
+            min_hand_presence_confidence=0.55,
+            min_tracking_confidence=0.55
+        )
+        landmarker = mp_vision.HandLandmarker.create_from_options(options)
+
+        if os.name == "nt" and hasattr(cv2, "CAP_DSHOW"):
+            camera = cv2.VideoCapture(HAND_CAMERA_INDEX, cv2.CAP_DSHOW)
+        else:
+            camera = cv2.VideoCapture(HAND_CAMERA_INDEX)
+
+        if not camera or not camera.isOpened():
+            raise RuntimeError(
+                f"Could not open camera index {HAND_CAMERA_INDEX}"
+            )
+
+        update_hand_state(running=True, error="", gesture="none")
+        print("HAND TRACKING → CAMERA ONLINE")
+        print(
+            "GESTURES → Open palm: pause | Fist: play | "
+            "Thumb up/down: volume | Two fingers: screenshot | "
+            "Swipe: browser tab"
+        )
+
+        while True:
+            ok, frame = camera.read()
+            if not ok or frame is None:
+                time.sleep(0.05)
+                continue
+
+            frame = cv2.flip(frame, 1)
+            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            mp_image = mp.Image(
+                image_format=mp.ImageFormat.SRGB,
+                data=rgb
+            )
+            timestamp_ms = int(time.monotonic() * 1000)
+            result = landmarker.detect_for_video(mp_image, timestamp_ms)
+
+            detected_gesture = "none"
+            if result.hand_landmarks:
+                landmarks = result.hand_landmarks[0]
+                detected_gesture = classify_hand_gesture(landmarks)
+
+                wrist_x = float(landmarks[0].x)
+                now = time.monotonic()
+                recent_wrist_positions.append((now, wrist_x))
+                recent_wrist_positions = [
+                    item for item in recent_wrist_positions
+                    if now - item[0] <= HAND_SWIPE_MAX_SECONDS
+                ]
+
+                if len(recent_wrist_positions) >= 2:
+                    old_time, old_x = recent_wrist_positions[0]
+                    delta = wrist_x - old_x
+                    if now - old_time <= HAND_SWIPE_MAX_SECONDS:
+                        if delta >= HAND_SWIPE_MIN_DISTANCE:
+                            detected_gesture = "swipe_right"
+                        elif delta <= -HAND_SWIPE_MIN_DISTANCE:
+                            detected_gesture = "swipe_left"
+            else:
+                recent_wrist_positions.clear()
+
+            if detected_gesture == candidate:
+                candidate_frames += 1
+            else:
+                candidate = detected_gesture
+                candidate_frames = 1
+
+            now = time.monotonic()
+            if (
+                candidate_frames >= HAND_CONFIRM_FRAMES
+                and now - last_action_time >= HAND_ACTION_COOLDOWN
+            ):
+                if candidate in (
+                    "fist", "open_palm", "thumb_up",
+                    "thumb_down", "two_fingers"
+                ):
+                    if _perform_hand_action(candidate):
+                        last_action_time = now
+                elif candidate == "swipe_right":
+                    if browser_next_tab():
+                        update_hand_state(last_action="next_tab")
+                        print("HAND GESTURE → SWIPE RIGHT | NEXT TAB")
+                        last_action_time = now
+                elif candidate == "swipe_left":
+                    if browser_previous_tab():
+                        update_hand_state(last_action="previous_tab")
+                        print("HAND GESTURE → SWIPE LEFT | PREVIOUS TAB")
+                        last_action_time = now
+
+            update_hand_state(gesture=detected_gesture)
+
+            if HAND_SHOW_WINDOW:
+                cv2.putText(
+                    frame,
+                    f"JARVIS HAND: {detected_gesture.upper()}",
+                    (18, 34),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.7,
+                    (0, 230, 255),
+                    2,
+                    cv2.LINE_AA
+                )
+                cv2.imshow(window_name, frame)
+                key = cv2.waitKey(1) & 0xFF
+                if key in (ord("q"), 27):
+                    print("HAND TRACKING → PREVIEW CLOSED")
+                    break
+            else:
+                time.sleep(0.005)
+
+    except Exception as e:
+        update_hand_state(running=False, error=str(e))
+        print(f"HAND TRACKING error: {e}")
+    finally:
+        if camera is not None:
+            camera.release()
+        if HAND_SHOW_WINDOW and HAND_TRACKING_AVAILABLE:
+            try:
+                cv2.destroyWindow(window_name)
+            except Exception:
+                pass
+        if landmarker is not None:
+            try:
+                landmarker.close()
+            except Exception:
+                pass
+        update_hand_state(running=False)
+        print("HAND TRACKING → STOPPED")
+
+
+def start_hand_tracking():
+    thread = threading.Thread(
+        target=hand_tracking_loop,
+        name="JARVIS-Hand-Tracking",
+        daemon=True
+    )
+    thread.start()
+    return thread
+
+
+class EdithBridgeHandler(
+    BaseHTTPRequestHandler
+):
+
+    # --------------------------------------------------------
+    # CORS / PREFLIGHT
+    # --------------------------------------------------------
+
+    def origin_is_allowed(self):
+
+        return self.headers.get("Origin", "") in ALLOWED_WEB_ORIGINS
 
 
     def do_OPTIONS(self):
 
+        origin = self.headers.get("Origin", "")
+
+        if origin not in ALLOWED_WEB_ORIGINS:
+            self.send_response(403)
+            self.end_headers()
+            return
+
         self.send_response(204)
+        self.send_header("Access-Control-Allow-Origin", origin)
+        self.send_header("Vary", "Origin")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Private-Network", "true")
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
 
-        self.send_header(
-            "Access-Control-Allow-Origin",
-            "*"
+
+    # --------------------------------------------------------
+    # JSON RESPONSE
+    # --------------------------------------------------------
+
+    def send_json(
+        self,
+        data,
+        status=200
+    ):
+
+        response = json.dumps(
+            data
+        ).encode(
+            "utf-8"
+        )
+
+        self.send_response(
+            status
         )
 
         self.send_header(
-            "Access-Control-Allow-Methods",
-            "GET, OPTIONS"
+            "Content-Type",
+            "application/json"
         )
 
+        origin = self.headers.get("Origin", "")
+        if origin in ALLOWED_WEB_ORIGINS:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
+            self.send_header("Access-Control-Allow-Private-Network", "true")
+
         self.send_header(
-            "Access-Control-Allow-Headers",
-            "*"
+            "Cache-Control",
+            "no-store"
         )
 
         self.end_headers()
 
+        self.wfile.write(
+            response
+        )
+
+
+    # --------------------------------------------------------
+    # POST
+    # --------------------------------------------------------
+
+    def do_POST(self):
+
+        parsed = urlparse(
+            self.path
+        )
+
+        path = parsed.path
+
+        if path == "/config" and not self.origin_is_allowed():
+            self.send_json(
+                {"ok": False, "error": "Origin not allowed."},
+                403
+            )
+            return
+
+
+        # ----------------------------------------------------
+        # AI CONFIGURATION
+        # ----------------------------------------------------
+
+        if path == "/config":
+
+            try:
+
+                content_length = int(
+                    self.headers.get(
+                        "Content-Length",
+                        "0"
+                    )
+                )
+
+            except (
+                TypeError,
+                ValueError
+            ):
+
+                content_length = 0
+
+
+            if content_length <= 0:
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error": "Empty request body."
+                    },
+                    400
+                )
+
+                return
+
+
+            if content_length > 32 * 1024:
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error": "Request too large."
+                    },
+                    413
+                )
+
+                return
+
+
+            try:
+
+                raw_body = self.rfile.read(
+                    content_length
+                )
+
+                data = json.loads(
+                    raw_body.decode(
+                        "utf-8"
+                    )
+                )
+
+            except json.JSONDecodeError:
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error": "Invalid JSON."
+                    },
+                    400
+                )
+
+                return
+
+            except Exception:
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "Could not read request."
+                    },
+                    400
+                )
+
+                return
+
+
+            if not isinstance(
+                data,
+                dict
+            ):
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "Invalid configuration."
+                    },
+                    400
+                )
+
+                return
+
+
+            provider = data.get(
+                "provider",
+                ""
+            )
+
+            api_key = data.get(
+                "api_key",
+                ""
+            )
+
+            model = data.get(
+                "model",
+                ""
+            )
+
+            base_url = data.get(
+                "base_url",
+                ""
+            )
+
+
+            if not isinstance(
+                provider,
+                str
+            ):
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "Provider must be text."
+                    },
+                    400
+                )
+
+                return
+
+
+            if not isinstance(
+                api_key,
+                str
+            ):
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "API key must be text."
+                    },
+                    400
+                )
+
+                return
+
+
+            if not isinstance(
+                model,
+                str
+            ):
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "AI model must be text."
+                    },
+                    400
+                )
+
+                return
+
+
+            if not isinstance(
+                base_url,
+                str
+            ):
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "Base URL must be text."
+                    },
+                    400
+                )
+
+                return
+
+
+            provider = provider.strip().lower()
+            api_key = api_key.strip()
+            model = model.strip()
+            base_url = base_url.strip()
+
+
+            if provider not in SUPPORTED_PROVIDERS:
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "Unsupported AI provider."
+                    },
+                    400
+                )
+
+                return
+
+
+            if not api_key:
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "API key is required."
+                    },
+                    400
+                )
+
+                return
+
+
+            if not model:
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "AI model is required."
+                    },
+                    400
+                )
+
+                return
+
+
+            if (
+                provider == "custom"
+                and not base_url
+            ):
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "Custom provider requires "
+                            "an API endpoint."
+                    },
+                    400
+                )
+
+                return
+
+
+            try:
+
+                save_ai_config(
+                    provider,
+                    api_key,
+                    model,
+                    base_url
+                )
+
+            except Exception as e:
+
+                print(
+                    f"AI config save error: {e}"
+                )
+
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error":
+                            "Could not save "
+                            "AI configuration."
+                    },
+                    500
+                )
+
+                return
+
+
+            self.send_json({
+
+                "ok":
+                    True,
+
+                "provider":
+                    ai_provider(),
+
+                "model":
+                    ai_model(),
+
+                "configured":
+                    ai_is_configured()
+
+            })
+
+
+            print(
+
+                "AI CONFIG → "
+                f"{ai_provider()} / "
+                f"{ai_model()} configured"
+            )
+
+
+            return
+
+
+        # ----------------------------------------------------
+        # UNKNOWN POST
+        # ----------------------------------------------------
+
+        self.send_json(
+
+            {
+                "ok": False,
+                "error": "Not found"
+            },
+
+            404
+        )
+
+
+    # --------------------------------------------------------
+    # GET
+    # --------------------------------------------------------
 
     def do_GET(self):
 
@@ -1039,52 +4182,94 @@ class EdithBridgeHandler(BaseHTTPRequestHandler):
         path = parsed.path
 
 
-        # ====================================================
-        # WEB STATE
-        # ====================================================
+        # ----------------------------------------------------
+        # STATE
+        # ----------------------------------------------------
 
         if path == "/state":
 
             with state_lock:
 
-                data = json.dumps(
+                data = dict(
                     edith_state
-                ).encode(
-                    "utf-8"
                 )
 
 
-            self.send_response(200)
-
-            self.send_header(
-                "Content-Type",
-                "application/json"
-            )
-
-            self.send_header(
-                "Access-Control-Allow-Origin",
-                "*"
-            )
-
-            self.send_header(
-                "Cache-Control",
-                "no-store"
-            )
-
-            self.end_headers()
-
-            self.wfile.write(
+            self.send_json(
                 data
             )
 
             return
 
 
-        # ====================================================
-        # MEDIA CONTROL
-        # ====================================================
+        # ----------------------------------------------------
+        # HAND TRACKING STATUS
+        # ----------------------------------------------------
+
+        if path == "/hand":
+            with hand_state_lock:
+                data = dict(hand_state)
+            self.send_json(data)
+            return
+
+
+        # ----------------------------------------------------
+        # STATUS
+        # ----------------------------------------------------
+
+        if path == "/status":
+
+            self.send_json({
+
+                "installed":
+                    True,
+
+                "running":
+                    True,
+
+                "version":
+                    APP_VERSION,
+
+                "state":
+                    edith_state["state"],
+
+                "message":
+                    edith_state["message"],
+
+                "pc_control":
+                    True,
+
+                "destructive_actions":
+                    False,
+
+                "ai_provider":
+                    ai_provider(),
+
+                "ai_model":
+                    ai_model(),
+
+                "ai_configured":
+                    ai_is_configured(),
+
+                "hand_tracking":
+                    dict(hand_state)
+            })
+
+            return
+
+
+        # ----------------------------------------------------
+        # MEDIA
+        # ----------------------------------------------------
 
         if path == "/media":
+
+            if not self.origin_is_allowed():
+                self.send_json(
+                    {"ok": False, "error": "Origin not allowed."},
+                    403
+                )
+                return
 
             query = parse_qs(
                 parsed.query
@@ -1096,136 +4281,83 @@ class EdithBridgeHandler(BaseHTTPRequestHandler):
             )[0].lower().strip()
 
 
-            allowed_actions = (
+            allowed = (
+
                 "pause",
+
                 "play",
+
                 "volume_up",
+
                 "volume_down",
+
                 "screenshot",
+
                 "next_tab",
+
                 "previous_tab"
+
             )
 
 
-            # ------------------------------------------------
-            # VALIDATE ACTION
-            # ------------------------------------------------
+            if action not in allowed:
 
-            if action not in allowed_actions:
+                self.send_json(
 
-                response = json.dumps({
-                    "ok": False,
-                    "error": "Invalid media action"
-                }).encode(
-                    "utf-8"
-                )
+                    {
+                        "ok": False,
+                        "error":
+                            "Invalid action"
+                    },
 
-
-                self.send_response(
                     400
-                )
-
-                self.send_header(
-                    "Content-Type",
-                    "application/json"
-                )
-
-                self.send_header(
-                    "Access-Control-Allow-Origin",
-                    "*"
-                )
-
-                self.send_header(
-                    "Cache-Control",
-                    "no-store"
-                )
-
-                self.end_headers()
-
-                self.wfile.write(
-                    response
                 )
 
                 return
 
 
-            # ------------------------------------------------
-            # EXECUTE MEDIA COMMAND
-            # ------------------------------------------------
-
-            success = handle_media_command(
-                action
+            success = (
+                handle_media_command(
+                    action
+                )
             )
 
 
-            if success:
+            self.send_json(
 
-                response = json.dumps({
-                    "ok": True,
-                    "action": action
-                }).encode(
-                    "utf-8"
-                )
+                {
+                    "ok":
+                        success,
 
-                self.send_response(
-                    200
-                )
+                    "action":
+                        action
 
+                },
 
-            else:
-
-                response = json.dumps({
-                    "ok": False,
-                    "action": action,
-                    "error": "Media command failed"
-                }).encode(
-                    "utf-8"
-                )
-
-                self.send_response(
-                    500
-                )
-
-
-            self.send_header(
-                "Content-Type",
-                "application/json"
-            )
-
-            self.send_header(
-                "Access-Control-Allow-Origin",
-                "*"
-            )
-
-            self.send_header(
-                "Cache-Control",
-                "no-store"
-            )
-
-            self.end_headers()
-
-            self.wfile.write(
-                response
+                200 if success else 500
             )
 
             return
 
 
-        # ====================================================
-        # UNKNOWN REQUEST
-        # ====================================================
+        # ----------------------------------------------------
+        # UNKNOWN
+        # ----------------------------------------------------
 
-        self.send_response(
+        self.send_json(
+
+            {
+                "ok": False,
+                "error": "Not found"
+            },
+
             404
         )
 
-        self.send_header(
-            "Access-Control-Allow-Origin",
-            "*"
-        )
 
-        self.end_headers()
-
+    # --------------------------------------------------------
+    # SILENT SERVER LOG
+    # --------------------------------------------------------
 
     def log_message(
         self,
@@ -1237,7 +4369,7 @@ class EdithBridgeHandler(BaseHTTPRequestHandler):
 
 
 # ============================================================
-# START WEB BRIDGE
+# START BRIDGE
 # ============================================================
 
 def start_bridge():
@@ -1245,15 +4377,18 @@ def start_bridge():
     try:
 
         server = HTTPServer(
+
             (
                 BRIDGE_HOST,
                 BRIDGE_PORT
             ),
+
             EdithBridgeHandler
         )
 
 
         print(
+
             f"JARVIS WEB BRIDGE: "
             f"http://{BRIDGE_HOST}:{BRIDGE_PORT}"
         )
@@ -1270,29 +4405,19 @@ def start_bridge():
 
 
 bridge_thread = threading.Thread(
+
     target=start_bridge,
+
     daemon=True
 )
+
 
 bridge_thread.start()
 
 
-# ============================================================
-# GEMINI
-# ============================================================
+# Start local hand tracking independently of the voice/wake-word loop.
+hand_tracking_thread = start_hand_tracking()
 
-if not GEMINI_API_KEY:
-
-    print(
-        "GEMINI_API_KEY is not set."
-    )
-
-    raise SystemExit
-
-
-client = genai.Client(
-    api_key=GEMINI_API_KEY
-)
 
 
 # ============================================================
@@ -1312,51 +4437,79 @@ def find_microphone():
 
     devices = sd.query_devices()
 
+
+    preferred = [
+
+        "microphone",
+
+        "bassheads",
+
+        "headset",
+
+        "usb",
+
+        "headphones"
+    ]
+
+
     candidates = []
 
-    for index, device in enumerate(devices):
 
-        if device["max_input_channels"] <= 0:
+    for index, device in enumerate(
+        devices
+    ):
+
+        if device[
+            "max_input_channels"
+        ] <= 0:
+
             continue
 
-        name = device["name"].lower()
 
-        # Ignore loopback inputs such as Stereo Mix. They can capture
-        # computer audio instead of the microphone and prevent wake-word
-        # detection from hearing the user clearly.
-        if "stereo mix" in name or "loopback" in name:
-            continue
+        name = device[
+            "name"
+        ].lower()
+
 
         score = 0
 
-        # Prefer the user's AB13X USB microphone when it is available.
-        if "ab13x" in name:
-            score += 100
 
-        if "microphone" in name:
-            score += 20
+        for word in preferred:
 
-        if "usb" in name:
-            score += 10
+            if word in name:
 
-        if "bassheads" in name or "headset" in name:
-            score += 5
+                score += 1
 
-        candidates.append((score, index, device))
 
-    if not candidates:
-        raise RuntimeError(
-            "No microphone found. Check that your microphone is connected."
+        candidates.append(
+
+            (
+                score,
+                index,
+                device
+            )
         )
 
-    candidates.sort(key=lambda item: item[0], reverse=True)
 
-    _, index, device = candidates[0]
+    if not candidates:
 
-    print(
-        f"Microphone selected: {device['name']} "
-        f"({int(device['default_samplerate'])} Hz)"
+        raise RuntimeError(
+            "No microphone found."
+        )
+
+
+    candidates.sort(
+
+        key=lambda x: x[0],
+
+        reverse=True
     )
+
+
+    _, index, device = (
+        candidates[0]
+    )
+
 
     return index, device
 
@@ -1371,33 +4524,45 @@ async def generate_voice(
 ):
 
     communicator = edge_tts.Communicate(
+
         text,
+
         VOICE
     )
+
 
     await communicator.save(
         filename
     )
 
 
-def speak(text):
+def speak(
+    text
+):
 
     print(
         f"\nJARVIS: {text}\n"
     )
 
 
-    filename = tempfile.NamedTemporaryFile(
-        suffix=".mp3",
-        delete=False
-    ).name
+    filename = (
+        tempfile.NamedTemporaryFile(
+
+            suffix=".mp3",
+
+            delete=False
+        ).name
+    )
 
 
     try:
 
         asyncio.run(
+
             generate_voice(
+
                 text,
+
                 filename
             )
         )
@@ -1406,6 +4571,7 @@ def speak(text):
         pygame.mixer.music.load(
             filename
         )
+
 
         pygame.mixer.music.play()
 
@@ -1420,6 +4586,13 @@ def speak(text):
         pygame.mixer.music.unload()
 
 
+    except Exception as e:
+
+        print(
+            f"TTS error: {e}"
+        )
+
+
     finally:
 
         try:
@@ -1428,27 +4601,32 @@ def speak(text):
                 filename
             )
 
-        except:
+        except Exception:
 
             pass
 
 
 # ============================================================
-# PREPARE YES VOICE
+# YES VOICE
 # ============================================================
 
 YES_FILE = os.path.join(
+
     tempfile.gettempdir(),
-    "edith_yes.mp3"
+
+    "jarvis_yes.mp3"
 )
 
 
 async def create_yes_voice():
 
     communicator = edge_tts.Communicate(
+
         "Yes?",
+
         VOICE
     )
+
 
     await communicator.save(
         YES_FILE
@@ -1464,6 +4642,7 @@ def prepare_yes_voice():
         print(
             "Preparing Andrew voice..."
         )
+
 
         asyncio.run(
             create_yes_voice()
@@ -1482,6 +4661,7 @@ def say_yes():
         pygame.mixer.music.load(
             YES_FILE
         )
+
 
         pygame.mixer.music.play()
 
@@ -1509,22 +4689,32 @@ def say_yes():
 
 def listen_for_command():
 
-    mic_index, mic_info = find_microphone()
+    mic_index, mic_info = (
+        find_microphone()
+    )
 
 
     sample_rate = int(
-        mic_info["default_samplerate"]
+        mic_info[
+            "default_samplerate"
+        ]
     )
 
 
     channels = (
+
         2
-        if mic_info["max_input_channels"] >= 2
+
+        if mic_info[
+            "max_input_channels"
+        ] >= 2
+
         else 1
     )
 
 
     print(
+
         f"Listening for your command "
         f"(up to {MAX_COMMAND_TIME:.0f} seconds)..."
     )
@@ -1533,31 +4723,43 @@ def listen_for_command():
     try:
 
         calibration = sd.rec(
+
             int(
                 sample_rate * 0.30
             ),
+
             samplerate=sample_rate,
+
             channels=channels,
+
             dtype="float32",
+
             device=mic_index
         )
+
 
         sd.wait()
 
 
         if channels > 1:
 
-            calibration = calibration.mean(
-                axis=1
+            calibration = (
+                calibration.mean(
+                    axis=1
+                )
             )
 
         else:
 
-            calibration = calibration[:, 0]
+            calibration = (
+                calibration[:, 0]
+            )
 
 
         noise_rms = float(
+
             np.sqrt(
+
                 np.mean(
                     calibration ** 2
                 )
@@ -1575,7 +4777,9 @@ def listen_for_command():
 
 
     threshold = max(
+
         0.012,
+
         noise_rms * 2.5
     )
 
@@ -1584,7 +4788,9 @@ def listen_for_command():
 
 
     chunk_size = max(
+
         1,
+
         int(
             sample_rate *
             chunk_time
@@ -1593,13 +4799,16 @@ def listen_for_command():
 
 
     maximum_chunks = int(
+
         MAX_COMMAND_TIME /
         chunk_time
     )
 
 
     silence_chunks_needed = max(
+
         1,
+
         int(
             END_SILENCE /
             chunk_time
@@ -1608,7 +4817,9 @@ def listen_for_command():
 
 
     minimum_speech_chunks = max(
+
         1,
+
         int(
             MIN_SPEECH_TIME /
             chunk_time
@@ -1628,19 +4839,24 @@ def listen_for_command():
     try:
 
         with sd.InputStream(
-            device=mic_index,
-            samplerate=sample_rate,
-            channels=channels,
-            dtype="float32",
-            blocksize=chunk_size
-        ) as stream:
 
+            device=mic_index,
+
+            samplerate=sample_rate,
+
+            channels=channels,
+
+            dtype="float32",
+
+            blocksize=chunk_size
+
+        ) as stream:
 
             for _ in range(
                 maximum_chunks
             ):
 
-                data, overflow = stream.read(
+                data, _ = stream.read(
                     chunk_size
                 )
 
@@ -1662,7 +4878,9 @@ def listen_for_command():
 
 
                 volume = float(
+
                     np.sqrt(
+
                         np.mean(
                             mono ** 2
                         )
@@ -1691,6 +4909,7 @@ def listen_for_command():
                     mono.copy()
                 )
 
+
                 speech_chunks += 1
 
 
@@ -1704,11 +4923,15 @@ def listen_for_command():
 
 
                 if (
+
                     speech_chunks >=
                     minimum_speech_chunks
+
                     and
+
                     silent_chunks >=
                     silence_chunks_needed
+
                 ):
 
                     break
@@ -1745,11 +4968,15 @@ def listen_for_command():
 
 
     wav_file = tempfile.NamedTemporaryFile(
+
         suffix=".wav",
+
         delete=False
     )
 
+
     wav_path = wav_file.name
+
 
     wav_file.close()
 
@@ -1757,9 +4984,13 @@ def listen_for_command():
     try:
 
         sf.write(
+
             wav_path,
+
             audio,
+
             sample_rate,
+
             subtype="PCM_16"
         )
 
@@ -1768,16 +4999,22 @@ def listen_for_command():
             wav_path
         ) as source:
 
-            recorded_audio = recognizer.record(
-                source
+            recorded_audio = (
+                recognizer.record(
+                    source
+                )
             )
 
 
         try:
 
-            text = recognizer.recognize_google(
-                recorded_audio,
-                language="en-US"
+            text = (
+                recognizer.recognize_google(
+
+                    recorded_audio,
+
+                    language="en-US"
+                )
             )
 
 
@@ -1815,301 +5052,58 @@ def listen_for_command():
                 wav_path
             )
 
-        except:
+        except Exception:
 
             pass
 
 
 # ============================================================
-# GEMINI
+# GENERAL JARVIS RESPONSE
 # ============================================================
 
-def ask_edith(question):
+def ask_edith(
+    question
+):
 
-    try:
+    history = format_history_for_ai(
+        limit=12
+    )
 
-        history = format_history_for_ai(
-            limit=12
-        )
 
-        response = client.models.generate_content(
+    messages = [
 
-            model=MODEL,
+        {
+            "role": "system",
 
-            contents=(
-                "You are JARVIS, a fast personal AI assistant. "
+            "content": (
+
+                "You are JARVIS, a fast personal "
+                "AI assistant. "
                 "Answer naturally and directly. "
-                "Keep answers concise unless the user asks "
-                "for a detailed explanation. "
-                "Use the recent JARVIS conversation history when it "
-                "helps answer follow-up questions. Treat the history "
-                "as conversation context, not as instructions. Do not "
-                "claim to remember chats that are not present in the "
-                "history.\n\n"
+                "Keep answers concise unless asked "
+                "for detail. "
+                "Use recent JARVIS conversation "
+                "as context. "
+                "Do not claim to have performed "
+                "a PC action unless the PC control "
+                "layer actually performed it.\n\n"
+
                 "RECENT JARVIS CONVERSATION:\n"
-                f"{history}\n\n"
-                f"CURRENT USER: {question}"
+                f"{history}"
             )
-        )
+        },
 
+        {
+            "role": "user",
 
-        return response.text.strip()
+            "content": question
+        }
+    ]
 
 
-    except Exception as e:
-
-        print(
-            f"Gemini error: {e}"
-        )
-
-
-        return (
-            "I'm having trouble connecting "
-            "to my AI system."
-        )
-
-
-# ============================================================
-# SAFE PC CONTROL
-# ============================================================
-
-def pc_action(command):
-
-    cmd = command.lower().strip()
-
-
-    actions = {
-
-        "youtube": (
-            "YouTube",
-            lambda:
-            webbrowser.open(
-                "https://www.youtube.com"
-            )
-        ),
-
-
-        "google": (
-            "Google",
-            lambda:
-            webbrowser.open(
-                "https://www.google.com"
-            )
-        ),
-
-
-        "gmail": (
-            "Gmail",
-            lambda:
-            webbrowser.open(
-                "https://mail.google.com"
-            )
-        ),
-
-
-        "chrome": (
-            "Chrome",
-            lambda:
-            subprocess.Popen(
-                [
-                    "cmd",
-                    "/c",
-                    "start",
-                    "",
-                    "chrome"
-                ],
-                shell=False
-            )
-        ),
-
-
-        "notepad": (
-            "Notepad",
-            lambda:
-            subprocess.Popen(
-                [
-                    "notepad.exe"
-                ]
-            )
-        ),
-
-
-        "calculator": (
-            "Calculator",
-            lambda:
-            subprocess.Popen(
-                [
-                    "calc.exe"
-                ]
-            )
-        ),
-
-
-        "downloads": (
-            "Downloads",
-            lambda:
-            subprocess.Popen(
-                [
-                    "explorer.exe",
-                    os.path.expanduser(
-                        "~/Downloads"
-                    )
-                ]
-            )
-        ),
-
-
-        "documents": (
-            "Documents",
-            lambda:
-            subprocess.Popen(
-                [
-                    "explorer.exe",
-                    os.path.expanduser(
-                        "~/Documents"
-                    )
-                ]
-            )
-        ),
-
-
-        "desktop": (
-            "Desktop",
-            lambda:
-            subprocess.Popen(
-                [
-                    "explorer.exe",
-                    os.path.expanduser(
-                        "~/Desktop"
-                    )
-                ]
-            )
-        ),
-    }
-
-
-    if "youtube" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["youtube"]
-
-
-    elif "google" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["google"]
-
-
-    elif "gmail" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["gmail"]
-
-
-    elif "chrome" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["chrome"]
-
-
-    elif "notepad" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["notepad"]
-
-
-    elif "calculator" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["calculator"]
-
-
-    elif "downloads" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["downloads"]
-
-
-    elif "documents" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["documents"]
-
-
-    elif "desktop" in cmd and (
-        "open" in cmd or
-        "launch" in cmd or
-        "start" in cmd
-    ):
-
-        name, action = actions["desktop"]
-
-
-    else:
-
-        return False
-
-
-    try:
-
-        speak(
-            f"Opening {name}."
-        )
-
-
-        action()
-
-
-        time.sleep(
-            0.5
-        )
-
-
-        speak(
-            f"{name} opened."
-        )
-
-
-        return True
-
-
-    except Exception as e:
-
-        print(
-            f"Could not open {name}: {e}"
-        )
-
-
-        speak(
-            f"I couldn't open {name}."
-        )
-
-
-        return True
+    return ask_ai(
+        messages
+    )
 
 
 # ============================================================
@@ -2118,106 +5112,162 @@ def pc_action(command):
 
 def wait_for_jarvis():
 
-    mic_index, mic_info = find_microphone()
+    mic_index, mic_info = (
+        find_microphone()
+    )
 
-    mic_rate = int(mic_info["default_samplerate"])
 
-    # The wake-word model works with mono audio at 16 kHz.
-    # Keep the input stream at the microphone's supported native rate,
-    # then resample and accumulate exact 1280-sample model frames.
-    channels = 1
+    mic_rate = int(
+        mic_info[
+            "default_samplerate"
+        ]
+    )
+
+
+    channels = (
+
+        2
+
+        if mic_info[
+            "max_input_channels"
+        ] >= 2
+
+        else 1
+    )
+
 
     wake_model = Model(
-        wakeword_models=[WAKE_WORD],
+
+        wakeword_models=[
+            WAKE_WORD
+        ],
+
         inference_framework="onnx"
     )
 
-    print(f"Wake-word model loaded: {WAKE_WORD}")
-    print("Listening for HEY JARVIS...")
 
     detected = False
-    pending_audio = np.empty(0, dtype=np.float32)
-    callback_error = None
-    last_score_print = [0.0]
 
-    def callback(indata, frames, callback_time, status):
 
-        nonlocal detected, pending_audio, callback_error
+    def callback(
+        indata,
+        frames,
+        callback_time,
+        status
+    ):
 
-        if detected or callback_error is not None:
+        nonlocal detected
+
+
+        if detected:
+
             return
 
-        if status:
-            # Stream status warnings are diagnostic; don't stop listening.
-            print(f"Microphone stream notice: {status}")
 
-        try:
-            # InputStream is mono, but explicitly flatten for safety.
-            audio = np.asarray(indata, dtype=np.float32).reshape(-1)
+        audio = indata
 
-            if mic_rate != 16000:
-                audio = resample_poly(audio, 16000, mic_rate).astype(
-                    np.float32, copy=False
-                )
 
-            # The model expects complete 80 ms frames (1280 samples at
-            # 16 kHz). The old code passed each resampled microphone block
-            # directly; those blocks could be shorter than one model frame,
-            # so the detector might never evaluate the full wake phrase.
-            pending_audio = np.concatenate((pending_audio, audio))
+        if audio.ndim > 1:
 
-            frame_size = 1280
+            audio = audio.mean(
+                axis=1
+            )
 
-            while len(pending_audio) >= frame_size and not detected:
 
-                frame = pending_audio[:frame_size]
-                pending_audio = pending_audio[frame_size:]
+        if mic_rate != 16000:
 
-                frame = np.clip(frame, -1.0, 1.0)
-                frame = (frame * 32767).astype(np.int16)
+            audio = resample_poly(
 
-                prediction = wake_model.predict(frame)
-                score = float(prediction.get(WAKE_WORD, 0.0))
+                audio,
 
-                now = time.monotonic()
-                if now - last_score_print[0] >= 2.0:
-                    print(f"Wake-word score: {score:.3f}")
-                    last_score_print[0] = now
+                16000,
 
-                if score >= WAKE_THRESHOLD:
-                    detected = True
-                    print(f"Wake word detected (score: {score:.3f}).")
+                mic_rate
+            )
 
-        except Exception as e:
-            callback_error = e
+
+        audio = np.clip(
+
+            audio,
+
+            -1,
+
+            1
+        )
+
+
+        audio = (
+
+            audio * 32767
+
+        ).astype(
+            np.int16
+        )
+
+
+        prediction = wake_model.predict(
+            audio
+        )
+
+
+        score = prediction.get(
+
+            WAKE_WORD,
+
+            0
+        )
+
+
+        if score >= WAKE_THRESHOLD:
+
+            detected = True
+
 
     try:
+
         with sd.InputStream(
+
             device=mic_index,
+
             samplerate=mic_rate,
+
             channels=channels,
+
             dtype="float32",
+
             blocksize=2400,
+
             callback=callback
+
         ):
-            while not detected and callback_error is None:
-                sd.sleep(20)
+
+            while not detected:
+
+                sd.sleep(
+                    20
+                )
+
 
     except Exception as e:
-        print(f"\nWake detector error: {e}")
-        time.sleep(1)
+
+        print(
+            f"\nWake detector error: {e}"
+        )
+
+
+        time.sleep(
+            1
+        )
+
+
         return False
 
-    if callback_error is not None:
-        print(f"\nWake detector processing error: {callback_error}")
-        time.sleep(1)
-        return False
 
     return True
 
 
 # ============================================================
-# START JARVIS
+# STARTUP
 # ============================================================
 
 print()
@@ -2235,7 +5285,17 @@ print(
 )
 
 print(
-    "Gemini AI: ACTIVE"
+    f"Companion Version: {APP_VERSION}"
+)
+
+print(
+    f"AI Provider: "
+    f"{ai_provider().upper() or 'NOT CONFIGURED'}"
+)
+
+print(
+    f"AI Model: "
+    f"{ai_model() or 'NOT CONFIGURED'}"
 )
 
 print(
@@ -2251,7 +5311,7 @@ print(
 )
 
 print(
-    "Command window: 7 SECONDS MAX"
+    "COMMAND WINDOW: 7 SECONDS MAX"
 )
 
 print(
@@ -2259,51 +5319,31 @@ print(
 )
 
 print(
-    "PC CONTROL: ACTIVE"
+    "ADVANCED PC CONTROL: ACTIVE"
+)
+
+print(
+    "SAFE / NON-DESTRUCTIVE MODE: ACTIVE"
+)
+
+print(
+    "BROWSER CONTROL: ACTIVE"
+)
+
+print(
+    "FILE SEARCH / OPEN: ACTIVE"
+)
+
+print(
+    "WINDOW NAVIGATION: ACTIVE"
+)
+
+print(
+    "KEYBOARD CONTROL: ACTIVE"
 )
 
 print(
     "EXTERNAL MEDIA CONTROL: ACTIVE"
-)
-
-print(
-    "   OPEN PALM → PAUSE ONLY"
-)
-
-print(
-    "   CLOSED FIST → PLAY ONLY"
-)
-
-print(
-    "   THUMB UP → VOLUME UP ONLY"
-)
-
-print(
-    "   THUMB DOWN → VOLUME DOWN ONLY"
-)
-
-print(
-    "   TWO FINGERS → SCREENSHOT ONLY"
-)
-
-print(
-    "   SWIPE RIGHT → LEFT → NEXT TAB"
-)
-
-print(
-    "   SWIPE LEFT → RIGHT → PREVIOUS TAB"
-)
-
-print(
-    "   1 / 3 / 4 FINGERS → NO ACTION"
-)
-
-print(
-    "AIR MOUSE: DISABLED"
-)
-
-print(
-    "PINCH CLICK: DISABLED"
 )
 
 print(
@@ -2319,7 +5359,7 @@ print(
 )
 
 print(
-    f"MEMORY FILE: {MEMORY_FILE}"
+    "DESTRUCTIVE ACTIONS: BLOCKED"
 )
 
 print(
@@ -2329,25 +5369,23 @@ print(
 print()
 
 
-prepare_yes_voice()
+if not ai_is_configured():
 
+    print(
+        "WARNING: AI PROVIDER IS NOT CONFIGURED."
+    )
 
-set_state(
-    "ready",
-    "JARVIS CORE // ONLINE"
-)
+    print(
+        "Configure the AI provider from "
+        "the J.A.R.V.I.S. web interface."
+    )
 
+    print(
+        "The Companion is waiting for "
+        "AI configuration."
+    )
 
-print(
-    "JARVIS is sleeping."
-)
-
-print(
-    "Say: HEY JARVIS"
-)
-
-print()
-
+    print()
 
 # ============================================================
 # MAIN LOOP
@@ -2356,10 +5394,6 @@ print()
 while True:
 
     try:
-
-        # ====================================================
-        # SLEEP / WAKE WORD
-        # ====================================================
 
         set_state(
             "ready",
@@ -2380,10 +5414,6 @@ while True:
         )
 
 
-        # ====================================================
-        # JARVIS SAYS YES
-        # ====================================================
-
         set_state(
             "listening",
             "VOICE INPUT // ACTIVE"
@@ -2393,15 +5423,7 @@ while True:
         say_yes()
 
 
-        # ====================================================
-        # CONTINUOUS CONVERSATION
-        # ====================================================
-
         while True:
-
-            # ------------------------------------------------
-            # LISTEN FOR COMMAND
-            # ------------------------------------------------
 
             set_state(
                 "listening",
@@ -2414,12 +5436,10 @@ while True:
             )
 
 
-            command = listen_for_command()
+            command = (
+                listen_for_command()
+            )
 
-
-            # ------------------------------------------------
-            # NO COMMAND
-            # ------------------------------------------------
 
             if not command:
 
@@ -2438,18 +5458,17 @@ while True:
                     "\nJARVIS is sleeping."
                 )
 
+
                 print(
                     "Say: HEY JARVIS"
                 )
 
+
                 print()
+
 
                 break
 
-
-            # ------------------------------------------------
-            # THINKING
-            # ------------------------------------------------
 
             set_state(
                 "thinking",
@@ -2458,26 +5477,30 @@ while True:
 
 
             # ------------------------------------------------
-            # 1) CONTEXT RECALL
+            # CONTEXT RECALL
             # ------------------------------------------------
-            # This is checked BEFORE local_responses so an old
-            # hard-coded reply can never override the real recent
-            # conversation context.
 
-            if is_context_recall_question(command):
+            if is_context_recall_question(
+                command
+            ):
 
-                answer = ask_context_recall(
-                    command
+                answer = (
+                    ask_context_recall(
+                        command
+                    )
                 )
+
 
                 set_state(
                     "responding",
                     "JARVIS RESPONSE // ACTIVE"
                 )
 
+
                 speak(
                     answer
                 )
+
 
                 remember_exchange(
                     command,
@@ -2485,15 +5508,19 @@ while True:
                 )
 
 
-            # ------------------------------------------------
-            # 2) INSTANT LOCAL REPLY (no API call — fastest)
-            # ------------------------------------------------
-
             else:
 
-                local_answer = local_responses.get_response(
-                    command,
-                    CONVERSATION_HISTORY
+                # --------------------------------------------
+                # LOCAL RESPONSE
+                # --------------------------------------------
+
+                local_answer = (
+                    local_responses.get_response(
+
+                        command,
+
+                        CONVERSATION_HISTORY
+                    )
                 )
 
 
@@ -2516,32 +5543,31 @@ while True:
                     )
 
 
-                # ------------------------------------------------
-                # 2) PC COMMAND
-                # ------------------------------------------------
+                # --------------------------------------------
+                # PC CONTROL
+                # --------------------------------------------
 
-                elif pc_action(command):
+                elif pc_action(
+                    command
+                ):
 
                     set_state(
                         "responding",
-                        "JARVIS RESPONSE // ACTIVE"
-                    )
-
-
-                    time.sleep(
-                        0.3
+                        "PC ACTION // COMPLETE"
                     )
 
 
                     remember_exchange(
+
                         command,
-                        "(performed a PC action)"
+
+                        "(performed a safe PC action)"
                     )
 
 
-                # ------------------------------------------------
-                # 3) FALL BACK TO THE CONNECTED AI (Gemini)
-                # ------------------------------------------------
+                # --------------------------------------------
+                # AI
+                # --------------------------------------------
 
                 else:
 
@@ -2572,10 +5598,6 @@ while True:
                     )
 
 
-            # ------------------------------------------------
-            # RESPONSE FINISHED
-            # ------------------------------------------------
-
             set_state(
                 "ready",
                 "JARVIS CORE // ONLINE"
@@ -2587,18 +5609,10 @@ while True:
             )
 
 
-            # ------------------------------------------------
-            # CONTINUOUS CONVERSATION
-            # ------------------------------------------------
-
             print(
                 "\nJARVIS ready for your next command..."
             )
 
-
-    # ========================================================
-    # CTRL + C
-    # ========================================================
 
     except KeyboardInterrupt:
 
@@ -2616,10 +5630,6 @@ while True:
         break
 
 
-    # ========================================================
-    # ERROR PROTECTION
-    # ========================================================
-
     except Exception as e:
 
         print(
@@ -2636,8 +5646,3 @@ while True:
         time.sleep(
             1
         )
-Toggle sidebar
-Ctrl+Shift+S
-
-
-
